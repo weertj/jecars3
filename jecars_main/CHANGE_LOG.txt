@@ -1,0 +1,30 @@
+
+JeCARS Web Application -- CHANGE LOG
+====================================
+
+-------------------------------------------------------------
+Changes in version v1.0
+
+ * Bugs solved
+    [ 2542920 ] Event nodetype error
+    [ 2358772 ] addChildPath creates path with //
+    CARS_Utils.addMultiProperty( ... ) bug solved
+    catch all exceptions in the ExpireManager
+
+ * Enhancements
+    [ 2612650 ] extended Tool support
+    [ 2581081 ] namePattern=... support
+    [ 2564410 ] HTTP Headers supports
+    CARS_Interface extended with initGetNode(...) call
+    [ 2513303 ] jecars:EventCollectionID
+    [ 2174404 ] HEAD support
+    CARS_AccessManager_v1_5 for Jacakrabbit 1.5 support
+
+ * Nodetypes
+    jecars:EventCollectionID (String) added in [jecars:EventsType]
+
+-------------------------------------------------------------
+
+v0.50
+  Beta release
+
