@@ -1,0 +1,686 @@
+// *
+// * Copyright 2007-2012 NLR - National Aerospace Laboratory
+// *
+// * Licensed under the Apache License, Version 2.0 (the "License");
+// * you may not use this file except in compliance with the License.
+// * You may obtain a copy of the License at
+// *
+// *      http://www.apache.org/licenses/LICENSE-2.0
+// *
+// * Unless required by applicable law or agreed to in writing, software
+// * distributed under the License is distributed on an "AS IS" BASIS,
+// * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// * See the License for the specific language governing permissions and
+// * limitations under the License.
+// *
+
+
+<nt = 'http://www.jcp.org/jcr/nt/1.0'>
+<mix = 'http://www.jcp.org/jcr/mix/1.0'>
+<jecars = 'http://jecars.org'>
+
+
+[jecars:digestauth] mixin
+- jecars:HA1    (String)
+
+[jecars:permissionable] mixin
+- jecars:Actions    (String)    multiple < '(read|add_node|set_property|get_property|remove|acl_read|acl_edit)'
+- jecars:Delegate   (Boolean)
+- jecars:Owner      (Boolean)
+- jecars:Principal  (Path) multiple
+
+[jecars:keywordable] mixin
+- jecars:Keywords   (String) multiple
+
+
+[jecars:root] > nt:hierarchyNode
+- jecars:Published    (Date)
+- jecars:Modified     (Date)
+- jecars:ExpireDate   (Date)
+- jecars:LastAccessed (Date)
+- jecars:Title        (String)
+- jecars:Body         (String)
+- jecars:Id           (Long)
++ * (jecars:permissionable)
+
+[jecars:Permission] > jecars:root, jecars:permissionable
+
+[jecars:mixin_unstructured] mixin
+- * 
+- * multiple
++ * = nt:unstructured multiple VERSION
+
+[jecars:unstructured] > jecars:root, nt:unstructured
+
+[jecars:mixin_logintoken] mixin
+- jecars:AccountType                (String)
+- jecars:KeyValidInMinutesInitial   (Long)
+- jecars:ExtendValidationInMinutes  (Long)
+- jecars:Email                      (String)
+- jecars:Source                     (String)
+
+
+[jecars:LogEntry] > jecars:root
+- jecars:Level   (String)="INFO" autocreated < '(FINEST|FINER|FINE|CONFIG|INFO|WARNING|SEVERE)'
+
+[jecars:Logs] > jecars:root
++ * (jecars:LogEntry) multiple
+
+[jecars:FileAccess] > jecars:root
+- jecars:LastDirectory  (String)
+
+[jecars:History] > jecars:root
++ jecars:FileAccess (jecars:FileAccess)=jecars:FileAccess autocreated
+
+[jecars:Prefs] > jecars:root
+- jecars:ParentPrefs        (Path)
++ * (jecars:unstructured)
+
+// ****************************************************************************
+// **** Query nodetypes
+
+[jecars:Query] > jecars:unstructured
+
+[jecars:Queries] > jecars:root
++ * (jecars:Queries)=jecars:Queries multiple
++ * (jecars:Query)=jecars:Query multiple
++ * (jecars:Permission)
+
+
+// **************************************
+// **** Trashcans
+[jecars:trashed] mixin
+- jecars:RestorePath    (Path) mandatory
+
+[jecars:Trashcan] > jecars:root
+- jecars:ObjectCount (Long)='0' mandatory autocreated
++ * (jecars:trashed) multiple
++ * (jecars:Trashcan)
++ *
+
+[jecars:Trashcans] > jecars:root
++ * (jecars:Trashcans)
++ * (jecars:Trashcan)
++ jecars:General (jecars:Trashcan)=jecars:Trashcan autocreated
+
+
+//[jecars:external] > jecars:root, mix:referenceable
+[jecars:external] > jecars:root
+- jecars:ExternalPath        (Path)
+- jecars:RepositoryClass     (String)
+- jecars:WorkspaceName       (String)
+- jecars:LoginName           (String)
+- jecars:LoginPassword       (String)
+
+
+[jecars:ApplicationSource] > jecars:root
++ * (jecars:root)
+
+[jecars:interfaceclass] mixin
+- jecars:InterfaceClass  (String)
+
+[jecars:CARS_Interface] > jecars:ApplicationSource, jecars:interfaceclass
+
+
+[jecars:ApplicationSources] > jecars:root
++ * (jecars:ApplicationSource)
+
+[jecars:OutputGenerator] > jecars:root, jecars:interfaceclass
+- jecars:OutputType (String)
+
+
+[jecars:OutputGenerators] > jecars:root
++ * (jecars:OutputGenerator)
+
+
+[jecars:localstorage] > jecars:CARS_Interface
+- jecars:StorageDirectory (String) mandatory
+
+[jecars:urlresource] mixin
+- jecars:URL            (String)
+- jecars:QueryPart      (String)
+
+[jecars:dataresource] > jecars:root
+
+[jecars:datafile] > jecars:dataresource, nt:resource, jecars:urlresource
+- jecars:ContentLength  (Long)
+
+[jecars:mix_link] mixin
+- jecars:Link   (Path)
+
+[jecars:mix_datafilelink] mixin
+- jecars:PathToDatafile (Path)
+
+[jecars:mix_filelink] mixin
+- jecars:PathToFile (String)
+
+[jecars:configresource] > jecars:datafile, nt:unstructured
+
+[jecars:parameterresource] > jecars:datafile
+
+[jecars:parameterdata] > jecars:parameterresource
+- jecars:string    (String) multiple
+- jecars:double    (Double) multiple
+- jecars:long      (Long)   multiple
+
+[jecars:mix_inputresource] mixin
+
+[jecars:inputresource] > jecars:mix_inputresource, jecars:datafile
+
+[jecars:mix_outputresource] mixin
+- jecars:IsLink     (Boolean)
+- jecars:Available  (Boolean)
+- jecars:Partial    (Boolean)
+
+[jecars:outputresource] > jecars:mix_outputresource, jecars:datafile
+
+[jecars:datafolder] > jecars:dataresource
++ * (jecars:datafolder)
++ * (jecars:datafile)
++ * (jecars:root)
++ * (jecars:Permission)
+
+[jecars:mix_datafolder] > jecars:datafolder mixin
+
+[jecars:datafoldermultiple] > jecars:dataresource
++ * (jecars:root) multiple
+
+[jecars:RemoteURLResource] > jecars:dataresource, jecars:urlresource
+- jecars:Username   (String)
+- jecars:Password   (String)
+- jecars:AuthType   (String)
+
+
+[jecars:LoggerSource] > jecars:Logs
+- jecars:LogFile    (String)
+
+[jecars:EventsType] > jecars:root
+- jecars:EventCollectionID (String)
+
+[jecars:Event] > jecars:EventsType
+- jecars:Source   (Path)
+- jecars:User     (Path)
+- jecars:Type     (String) < '(LOGIN|LOGOUT|READ|QUERY|WRITE|CREATE|MOVE|COPY|DELETE|TRASHED|CHECKIN|CHECKOUT|RESTORE|UPDATE|SEVERE|WARNING|INFO|CONFIG|FINE|FINER|FINEST|UNKNOWN|STATE|INSTANCE|OUTPUT|MESSAGE|STATUS|PROGRESS)'
+- jecars:Category (String) < '(URL|APP|DIR|DEF|SYS|TOOL)'
+
+[jecars:EventReference] > jecars:EventsType
+- jecars:EventPath (Path)
+
+
+[jecars:Exception] > jecars:Event
+- jecars:Exception (Binary)
+
+[jecars:EventsStoreFolder] > jecars:EventsType
+- jecars:StoreEvents    (Boolean)='true' autocreated
++ * (jecars:EventsStoreFolder)
++ * (jecars:EventsType)
++ * (jecars:Permission)
+
+[jecars:EventsFolder] > jecars:EventsStoreFolder
+- jecars:StoreEventsPer     (String)='MINUTE' autocreated < '(NONE|YEAR|MONTH|DAY|HOUR|MINUTE)'
+- jecars:EventsCount        (Long)='0'  mandatory autocreated
+- jecars:ExpireHourLOGIN    (Long)='48' mandatory autocreated
+- jecars:ExpireHourLOGOUT   (Long)='48' mandatory autocreated
+- jecars:ExpireHourREAD     (Long)='1'  mandatory autocreated
+- jecars:ExpireHourQUERY    (Long)='12' mandatory autocreated
+- jecars:ExpireHourWRITE    (Long)='24' mandatory autocreated
+- jecars:ExpireHourCREATE   (Long)='24' mandatory autocreated
+- jecars:ExpireHourMOVE     (Long)='24' mandatory autocreated
+- jecars:ExpireHourCOPY     (Long)='1'  mandatory autocreated
+- jecars:ExpireHourDELETE   (Long)='24' mandatory autocreated
+- jecars:ExpireHourTRASHED  (Long)='24' mandatory autocreated
+- jecars:ExpireHourCHECKIN  (Long)='48' mandatory autocreated
+- jecars:ExpireHourCHECKOUT (Long)='24' mandatory autocreated
+- jecars:ExpireHourRESTORE  (Long)='48' mandatory autocreated
+- jecars:ExpireHourUPDATE   (Long)='1'  mandatory autocreated
+- jecars:ExpireHourSEVERE   (Long)='48' mandatory autocreated
+- jecars:ExpireHourWARNING  (Long)='2'  mandatory autocreated
+- jecars:ExpireHourINFO     (Long)='1'  mandatory autocreated
+- jecars:ExpireHourCONFIG   (Long)='1'  mandatory autocreated
+- jecars:ExpireHourFINE     (Long)='1'  mandatory autocreated
+- jecars:ExpireHourFINER    (Long)='1'  mandatory autocreated
+- jecars:ExpireHourFINEST   (Long)='1'  mandatory autocreated
+- jecars:ExpireHourUNKNOWN  (Long)='1'  mandatory autocreated
+- jecars:ExpireHourSTATE    (Long)='1'  mandatory autocreated
+- jecars:ExpireHourINSTANCE (Long)='1'  mandatory autocreated
+- jecars:ExpireHourOUTPUT   (Long)='1'  mandatory autocreated
+- jecars:ExpireHourMESSAGE  (Long)='1'  mandatory autocreated
+- jecars:ExpireHourSTATUS   (Long)='1'  mandatory autocreated
+- jecars:ExpireHourPROGRESS (Long)='1'  mandatory autocreated
+
+[jecars:SystemEventsFolder] > jecars:EventsFolder
++ jecars:EventsLOGIN    (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsLOGOUT   (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsREAD     (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsQUERY    (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsWRITE    (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsCREATE   (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsMOVE     (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsCOPY     (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsDELETE   (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsTRASHED  (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsCHECKIN  (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsCHECKOUT (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsRESTORE  (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsUPDATE   (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsSEVERE   (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsWARNING  (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsINFO     (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsCONFIG   (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsFINE     (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsFINER    (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsFINEST   (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsVERSION  (jecars:EventsFolder)=jecars:EventsFolder autocreated
+
+// *****************************************************************************
+// **** Mail
+
+[jecars:MailServer] > jecars:root
+- jecars:SMTPHost       (String)='unknown smtp server' mandatory autocreated
+- jecars:TotalMailsSend (Long)='0' mandatory autocreated
+- jecars:LastMailSend   (Date)
+
+[jecars:Mail] > jecars:root
+- jecars:InSendQueue (Boolean)
+- jecars:MailServer  (Path)
+- jecars:To          (String) multiple
+- jecars:Cc          (String) multiple
+- jecars:Bcc         (String) multiple
+- jecars:SendResult  (String)
+- jecars:SendedAt    (Date)
+
+[jecars:Mails] > jecars:root
++ * (jecars:Mail)
+
+[jecars:MailBox] > jecars:root, jecars:unstructured
+- jecars:MailServer       (Path)
+- jecars:TotalMailsSend   (Long)='0' mandatory autocreated
+- jecars:LastMailSend     (Date)
+- jecars:LastMailCheck    (Date)
+- jecars:NewMailExpire    (Long)='120' mandatory autocreated
+- jecars:SendedMailExpire (Long)='120' mandatory autocreated
++ Inbox     (jecars:Mails)=jecars:Mails autocreated
++ SendQueue (jecars:Mails)=jecars:Mails autocreated
++ Sended    (jecars:Mails)=jecars:Mails autocreated
++ *         (jecars:Mails)
+
+
+[jecars:MailLink] > jecars:root
+- jecars:User               (Path)      // **** The mailbox will be {path}/jecars:Prefs/MailBox
+- jecars:ObservationPath    (Path)
+- jecars:EventType          (Long)
+- jecars:NodeType           (String)
+- jecars:NodeNameRegex      (String)
+
+[jecars:MailLinks] > jecars:root
++ * (jecars:MailLink)
+
+[jecars:MailManager] > jecars:Tool
++ DefaultMailServer (jecars:MailServer)=jecars:MailServer autocreated
++ MailLinks         (jecars:MailLinks)=jecars:MailLinks   autocreated
+
+
+// *****************************************************************************
+// **** Users/Groups...
+
+[jecars:Principal] > jecars:root
+- jecars:Source    (Path)
+- jecars:Fullname  (String)    = "[fullname]" autocreated
+
+[jecars:principalexport] mixin
+- jecars:Dest       (Path)      multiple
+- jecars:Exported   (Boolean)   multiple
+- jecars:ExportedAt (Date)      multiple
+
+[jecars:UserSource] > jecars:external
+- jecars:ChangePasswordURL  (String)
+
+[jecars:UserSources] > jecars:root
++ * (jecars:UserSource)
+
+
+[jecars:User] > jecars:Principal
+- jecars:Password_crypt     (String)
+- jecars:PasswordChangedAt  (Date)
+- jecars:PasswordMustChange (Boolean)='false' autocreated
+- jecars:Email              (String)
+- jecars:Suspended          (Boolean)='false' autocreated
+- jecars:UserTitle          (String)
+- jecars:FirstName          (String)
+- jecars:Prefix             (String)
+- jecars:Initials           (String)
+- jecars:LastName           (String)
+- jecars:Company            (String)
+- jecars:Department         (String)
+- jecars:Street             (String)
+- jecars:PostalCode         (String)
+- jecars:City               (String)
+- jecars:Country            (String)
+- jecars:Phone              (String)
+- jecars:OtherPhone         (String)
+- jecars:Fax                (String)
+- jecars:Mobile             (String)
+- jecars:Website            (String)
+- jecars:QuotaLimit         (Long)
+- jecars:QuotaCurrent       (Long)='0'
++ jecars:History            (jecars:History)=jecars:History                       autocreated
++ jecars:Prefs              (jecars:Prefs)=jecars:Prefs                           autocreated
++ jecars:Temp               (jecars:datafoldermultiple)=jecars:datafoldermultiple autocreated
++ jecars:P_UserPermission   (jecars:permissionable)=jecars:Permission             autocreated
+
+[jecars:Users] > jecars:root
++ * (jecars:User)=jecars:User
+
+[jecars:GroupSource] > jecars:external
+
+[jecars:GroupSources] > jecars:root
++ * (jecars:GroupSource)
+
+[jecars:groupable] mixin
+- jecars:GroupMembers (Path) multiple
+
+[jecars:Group] > jecars:Principal, jecars:groupable
+
+[jecars:GroupLevel] > jecars:Group
+
+[jecars:Groups] > jecars:root
++ * (jecars:Group)=jecars:Group
+
+
+
+// *************************
+// **** JeCARS Main
+
+[jecars:main] > jecars:root
+- jecars:MajorVersion    (Long)='2'         mandatory autocreated
+- jecars:MinorVersion    (Long)='2'         mandatory autocreated
+- jecars:BuildVersion    (Long)='20120221'  mandatory autocreated
+- jecars:CurrentId       (Long)='0'         mandatory autocreated
+- jecars:Started         (Date)
++ *
++ jecars:Trashcans (jecars:Trashcans)=jecars:Trashcans autocreated
+
+[jecars:workspace] > jecars:root
++ *            (jecars:Users)
++ *            (jecars:Groups)
++ jecars:Tools (jecars:datafolder)=jecars:datafolder autocreated
++ *            (jecars:datafolder)
++ *            (jecars:EventsFolder)
++ *            (jecars:Queries)
++ *            (jecars:Permission)
+
+
+[jecars:backup] > jecars:root
+- jecars:LastBackup      (Date)
+- jecars:BackupDuration  (Long)
+- jecars:BackupDirectory (String)
+- jecars:ExportPath      (Path)
++ jecars:StartBackup     (jecars:root)=jecars:root autocreated
+
+// ****************************************************************************
+// **** Workflowing/batching
+
+[jecars:batch] > jecars:root
++ *
+
+[jecars:batches] > jecars:root
++ * (jecars:batch)=jecars:batch multiple
+
+
+[jecars:ToolEvents] > jecars:EventsFolder
++ jecars:EventsSEVERE    (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsWARNING   (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsINFO      (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsCONFIG    (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsFINE      (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsFINER     (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsFINEST    (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsUNKNOWN   (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsSTATE     (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsINSTANCE  (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsOUTPUT    (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsMESSAGE   (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsSTATUS    (jecars:EventsFolder)=jecars:EventsFolder autocreated
++ jecars:EventsPROGRESS  (jecars:EventsFolder)=jecars:EventsFolder autocreated
+
+
+[jecars:ToolEvent] > jecars:Event
+- jecars:EventType  (Long)
+- jecars:State      (String)
+- jecars:Value      (String)
+- jecars:DValue     (Double)
+- jecars:Level      (Long)
+- jecars:Blocking   (Boolean)
+
+[jecars:ToolEventException] > jecars:ToolEvent
+- jecars:Exception  (Binary)
+
+[jecars:ToolConfig] > jecars:configresource
+- jecars:GenerateUniqueWorkingDirectory     (Boolean)   // **** Create for every tool instance an unique directory
+- jecars:WorkingDirectory                   (String)    // **** The working directory for the executable, if GenerateUniqueWorkingDirectory is true then this is the parent directory
+- jecars:ExecPath                           (String)    // **** The file path to the to be runned exec
+- jecars:Version                            (String)
+
+[jecars:ToolStatistics] > jecars:root
+- TotalNumberOfRuns     (Long)='0'  mandatory autocreated
+- TotalRunTimeInSecs    (Long)='0'  mandatory autocreated
+- AverageRunTimeInSecs  (Long)='0'  mandatory autocreated
+- BestCaseExecution     (Long)='9999999' mandatory autocreated
+- WorstCaseExecution    (Long)='0'  mandatory autocreated
+- LastCaseExecution     (Long)='0'  mandatory autocreated
+- LastStarted           (Date)
+
+[jecars:mix_toolstatistics] mixin
++ toolstatistics (jecars:ToolStatistics)=jecars:ToolStatistics autocreated
+
+[jecars:mix_commandlineitem] mixin
+- jecars:Priority       (Long)='0'  mandatory autocreated
+
+[jecars:Tool] > jecars:dataresource, mix:referenceable
+- jecars:AutoStart              (Boolean)
+- jecars:StoreEvents            (Boolean)
+- jecars:ReplaceEvents          (Boolean)
+- jecars:IsScheduled            (Boolean)
+- jecars:DelayInSecs            (Long)
+- jecars:IsSingle               (Boolean)
+- jecars:ToolTemplate           (Path)
+- jecars:ToolClass              (String)
+- jecars:LastToolSignal         (String)
+- jecars:OutputAsLink           (Boolean)
+- jecars:StateRequest           (String)
+- jecars:State                  (String)='open.notrunning' mandatory autocreated
+- jecars:PercCompleted          (Double)='0'
+- jecars:DefaultInstancePath    (Path)
+- jecars:AutoRunWhenInput       (String)
++ jecars:Config         (jecars:configresource)
++ jecars:Docs           (jecars:datafolder)
++ *                     (jecars:parameterresource)   multiple
++ *                     (jecars:inputresource)       multiple
++ *                     (jecars:mix_inputresource)   multiple
++ *                     (jecars:outputresource)      multiple
++ *                     (jecars:mix_outputresource)  multiple
++ jecars:Parameter      (jecars:dataresource) multiple
++ jecars:Input          (jecars:dataresource) multiple
++ jecars:Output         (jecars:dataresource) multiple
++ jecars:Events         (jecars:ToolEvents)   multiple
+
+[jecars:Tools] > jecars:root
++ * (jecars:Tools)
++ * (jecars:Tool)=jecars:Tool multiple
+
+// ****************************************************************************
+// **** GData nodetypes
+
+[jecars:document] > jecars:root
+
+// ****************************************************************************
+// **** Test nodes
+
+[jecars:TestNode] > jecars:root
+-jecars:Longs      (Long)       multiple
+-jecars:Doubles    (Double)     multiple
+-jecars:Strings    (String)     multiple
+-jecars:Paths      (Path)       multiple
+-jecars:References (Reference)  multiple
+-jecars:Booleans   (Boolean)    multiple
+
+// ****************************************************************************
+// **** WebDAV nodetypes
+
+[jecars:Dav_deftypes] mixin
+- jecars:Dav_DefaultFileType    (String)
+- jecars:Dav_DefaultFolderType  (String)
+
+// ****************************************************************************
+// **** Observation server nodetypes
+
+[jecars:Obs_Listener] mixin
+- jecars:Obs_Address        (String) mandatory
+- jecars:Obs_Port           (Long)   mandatory
+- jecars:Obs_Path           (Path)   mandatory
+- jecars:Obs_EventTypes     (Long)
+- jecars:Obs_IsDeep         (Boolean)
+
+[jecars:Obs_Server] > jecars:root
++ * (jecars:Obs_Listener)=jecars:Obs_Listener multiple
+
+
+// ****************************************************************************
+// **** Spatial nodetypes
+
+[jecars:mixin_georect] mixin
+- jecars:geo_type   (String)    mandatory   // **** The coordinate type, LATLON, RD, UTM
+- jecars:geo_x1     (Double)    mandatory
+- jecars:geo_y1     (Double)    mandatory
+- jecars:geo_x2     (Double)    mandatory
+- jecars:geo_y2     (Double)    mandatory
+- jecars:geo_width  (Double)    mandatory
+- jecars:geo_height (Double)    mandatory
+
+[jecars:mixin_geogrid] > jecars:mixin_georect mixin
+- jecars:geo_gridsizex   (Double) mandatory
+- jecars:geo_gridsizey   (Double) mandatory
+
+[jecars:mixin_3dtrack] mixin
+- jecars:track_time (Double) multiple
+- jecars:track_x    (Double) multiple
+- jecars:track_y    (Double) multiple
+- jecars:track_z    (Double) multiple
+
+
+// ****************************************************************************
+// **** JeWE nodetypes
+
+[jecars:mixin_toolhost] mixin
+[jecars:toolhost] > jecars:root, jecars:mixin_toolhost
+
+// ----------------------------------------------------------------------------------
+// ------- a workflowtaskport identifies an input or output port of a task ----------
+[jecars:mixin_workflowtaskport] mixin
+- jecars:propertyname          (String)            // if this port refers to a property of the task
+                                            // note: either use propertyname or nodename/nodetype
+- jecars:nodename              (String)            // if this port refers to a task’s child node with a known name
+- jecars:nodetype              (String)            // if this port refers to a task’s child node with a known type
+//- jecars:sequencenumber        (Long)              // in case the above properties map to multiple nodes,
+//                                            //    and we only want to identify the 1st, the 2nd, 3rd, etc.
+//                                            // It is advisable that the sequencenumber will also be the nodename
+[jecars:workflowtaskport] > jecars:root, jecars:mixin_workflowtaskport
+
+
+// --------------------------------------------------------------------------------------------
+// ------- a workflowtaskports identifies the set of input or output ports of a task ----------
+[jecars:mixin_workflowtaskports] mixin
++ *     (jecars:mixin_workflowtaskport)
+[jecars:workflowtaskports] > jecars:root, jecars:mixin_workflowtaskports
+
+
+// ---------------------------------------------------------------------------------------------------
+// ------- a workflowtask is a task the workflow will execute: execute tool, workflow, etc. ----------
+[jecars:mixin_workflowtask] mixin
+- jecars:type                  (String) mandatory          // Workflow task type
+                                                           // "START" - entry point
+                                                           // "END"   - exit point
+                                                           // "TASK"
+                                                           // "JAVATASK"
+- jecars:host                  (Path)                      // path to host to be used for execution
+- jecars:taskpath              (Path)                      // path to jecars:Tool, jecars:Workflow, ‘this’, etc.
+- jecars:javaclasspath         (String)                    // Points to java class when type is JAVATASK.
+- jecars:ExpireContextAfterMinutes (Long)                  // When set, the context's belonging to this workflow are expired
++ inputs                (jecars:mixin_workflowtaskports)=jecars:workflowtaskports autocreated  //
++ outputs               (jecars:mixin_workflowtaskports)=jecars:workflowtaskports autocreated  // 
++ data                  (jecars:datafolder)=jecars:datafolder autocreated  //
++ *                     (jecars:parameterresource) multiple
+[jecars:workflowtask] > jecars:root, jecars:mixin_workflowtask
+
+// ----- 
+[jecars:mixin_workflowtasks] mixin
++ *     (jecars:mixin_workflowtask) // note: ‘this’ is a special name
+[jecars:workflowtasks] > jecars:root, jecars:mixin_workflowtasks
+
+
+// -----------------------------------------------------------------------------
+// ------- a workflowtaskportref is a reference to a workflowtaskport ----------
+[jecars:mixin_workflowtaskportref] mixin
+- jecars:portref                (Path)  mandatory       // relative path from a task’s root to a workflowtaskport
+//- jecars:portindex              (Long)  mandatory       // in case
+[jecars:workflowtaskportref] > jecars:root, jecars:mixin_workflowtaskportref
+
+
+// --------------------------------------------------------------------------------------------------
+// ------- a workflowtaskendpoint identifies a workflow task and its input or output ports ----------
+[jecars:mixin_workflowlinkendpoint] mixin
+- jecars:endpoint               (Path) mandatory        // relative path from workflow root to workflowtask
++ *                      (jecars:mixin_workflowtaskportref)
+[jecars:workflowlinkendpoint] > jecars:root, jecars:mixin_workflowlinkendpoint
+
+// -----------------------------------------------------------------------------
+// ------- a workflowlink links one or more ports of 2 tasks -------------------
+[jecars:mixin_workflowlink]
+- type                  (String)
+- jecars:ExpireContextAfterMinutes (Long)                  // When set, the context's belonging to this workflow are expired
++ from                  (jecars:mixin_workflowlinkendpoint) 
++ to                    (jecars:mixin_workflowlinkendpoint)
+[jecars:workflowlink] > jecars:root, jecars:mixin_workflowlink
+ 
+// ----- 
+[jecars:mixin_workflowlinks] mixin
++ *     (jecars:mixin_workflowlink)
+[jecars:workflowlinks] > jecars:root, jecars:mixin_workflowlinks
+
+// ------- The workflow runners
+[jecars:mixin_RunnerContext] mixin
+- jecars:UsedInLink    (String)
+- jecars:UsedInTask    (String)
+
+[jecars:RunnerContext] > jecars:datafolder, jecars:mixin_RunnerContext
+
+[jecars:mixin_WorkflowRunner] mixin
+- jecars:COMMAND        (String)
+- jecars:SingleStep     (Long)
+- jecars:State          (String)='open.notrunning' autocreated
+- jecars:currentLink    (String)='' autocreated
+- jecars:currentTask    (String)='' autocreated
+- jecars:Started        (Date)
+- jecars:Ended          (Date)
+- jecars:Progress       (Double)
+
+[jecars:WorkflowRunner] > jecars:root, jecars:mixin_WorkflowRunner
++ context (jecars:RunnerContext)=jecars:RunnerContext autocreated
++ * (jecars:RunnerContext)=jecars:RunnerContext
++ * (jecars:Tool)=jecars:Tool
+
+[jecars:mixin_WorkflowRunners] mixin
+[jecars:WorkflowRunners] > jecars:root, jecars:mixin_WorkflowRunners
++ *     (jecars:mixin_WorkflowRunner)
+
+// ----------------------------------------------------------------------------------------
+// ------- the workflow toplevel node contains workflow tasks and links children ----------
+[jecars:Workflow] > jecars:Tool
++ runners       (jecars:mixin_WorkflowRunners)=jecars:WorkflowRunners autocreated
++ tasks         (jecars:mixin_workflowtasks)=jecars:workflowtasks   autocreated
++ links         (jecars:mixin_workflowlinks)=jecars:workflowlinks   autocreated
+
+[jecars:mixin_2dposition] mixin
+- jecars:x      (Long) mandatory
+- jecars:y      (Long) mandatory
+
