@@ -1,0 +1,30 @@
+
+
+ ======================================================================
+ == NOTICE file corresponding to section 4 d of the Apache License,  ==
+ == Version 2.0, in this case for the JeCARS project                 ==
+ ======================================================================
+ 
+ This product includes software developed by
+ the Apache Software Foundation (http://www.apache.org).
+
+ This product includes software developed by
+ the Google Inc (http://code.google.com).
+
+ This product includes software developed by
+ Maverick Software Development.
+  
+ The end-user documentation included with a redistribution, if any,
+ must include the following acknowledgement:
+ 
+ "This product includes software developed by the JeCARS (http://jecars.sourceforge.org) 
+  project, and was originally developed by NLR - National Aerospace Laboratory"
+ 
+ Alternatively, this acknowledgement may appear in the software itself,
+ if and wherever such third-party acknowledgements normally appear.
+ 
+ The name "JeCARS" must not be used to endorse or promote products
+ derived from this software without prior written permission.
+ For written permission, please contact info@nlr.nl.
+
+ 

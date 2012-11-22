@@ -1,0 +1,54 @@
+
+JeCARS Web Application -- RELEASE NOTES
+=======================================
+
+v1.0 Production version
+
+v0.60
+  - NOTE: To use JeCARS with JackRabbit v1.4:
+        Rename the CARS_AccessManager_v14.java into CARS_AccessManager.java
+  - NOTE: To use JeCARS with JackRabbit v1.5+:
+        Remove the CARS_AccessManager_v14.java file
+
+
+v0.20
+
+  - New features
+	- GET: "now{+/-}" search option
+	- GET: created/modified/published search options
+	- Events are now stored in date seperate folder, it's possible
+          to store an events in a <year>/<month>/<day>/<hour>/.. folder
+	- Tool application source
+        - ExpireManager is a tool.
+        - jecars:Id option
+
+  - Nodetypes
+   	- jecars:EventsStoreFolder added
+	- jecars:EventsFolder changed
+		- jecars:StoreEventsPer property added
+		- jecars:EventsType, jecars:Permission moved to jecars:EventsStoreFolder
+	- jecars:workspace changed
+		- jecars:Tools (jecars:datafolder) added
+	- jecars:Tool added
+	- jecars:Tools added
+	- Initial jecars:CH_* charts nodetypes added
+		
+  - Bugs solved
+	- ExpireManager, InvalidItemStateException catch
+        - Error generator
+        - Tracker [ 1840898 ] support for special characters
+
+v0.16
+
+  - Backup GUI Tool (org.jecars.backup.JB_BackupTool)
+  - backup facility added
+  - Versioning implemented
+  - textentries output generator
+  
+  Bugs solved
+  - Tracker #1801149
+
+
+v0.15.2
+
+  Initial public release
