@@ -1,0 +1,52 @@
+
+-------------------------------------------------------------
+Changes in version 1.0
+
+ * Bugs solved
+  - setMultiValueProperty() debugged
+  - alt=properties getnodes() buffered read bug  
+  - ID: 2377394     setProperty( String, boolean ) not available
+
+ * Enhancements
+  - getAllProperties support
+
+  - include binary result in node data
+
+  - namePattern=... support ID: 2581081
+        JC_Filter.setNamePattern( final String pPattern )
+
+  - jecars:EventCollectionID  ID: 2513303
+
+  - User preferences - ID: 2339303
+
+  - isServerAvailable() implemented
+
+  - Implements Serializable added for persistent objects
+  
+  - JC_FeedXmlOutput.java Double and Long type support
+
+  - JC_Propertyable getValue() now supports Double and Boolean types
+
+  - Methods changed
+
+    JC_DefaultProperty:
+        public String getValueString();
+            Now returns also number and other types as string
+
+
+  - Introduction of new methods
+
+    JC_Nodeable:
+          public JC_Propertyable setProperty( final String pName, final double pValue ) throws JC_Exception;
+          public Collection<String>getChildNodeDefs() throws JC_Exception;
+          public boolean getUpdateAsHead() throws JC_Exception;
+    JC_Factory:
+        static public JC_Clientable createClient( final URL pURL ) throws JC_Exception;
+
+  - Testing (JUnit)
+        JC_DefaultNodeTest.java added
+
+-------------------------------------------------------------
+Changes in version 0.5
+
+Beta release
