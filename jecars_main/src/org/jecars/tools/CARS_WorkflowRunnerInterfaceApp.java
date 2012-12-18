@@ -42,6 +42,13 @@ public class CARS_WorkflowRunnerInterfaceApp extends CARS_DefaultInterface {
     return;
   }
 
+  @Override
+  public void init(CARS_Main pMain, Node pInterfaceNode) throws Exception {
+    // **** No reporting
+    return;
+  }
+  
+  
   /** isCorrectInterface
    *
    * @param pInterfaceNode

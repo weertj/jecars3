@@ -19,6 +19,7 @@ import com.google.gdata.util.common.html.HtmlToText;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.PropertyIterator;
+import javax.jcr.PropertyType;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
 import org.jecars.CARS_ActionContext;
@@ -182,7 +183,7 @@ public class CARS_OutputGenerator_HTML extends CARS_DefaultOutputGenerator imple
             sb.append( "\t\t" ).append( val.getString() ).append( "\n" );
           }
         } else {
-          sb.append( prop.getName() ).append( "\t\t" ).append( HtmlToText.htmlToPlainText(prop.getValue().getString()) ).append( "\n" );
+          sb.append( prop.getName() ).append( "\t\t" ).append( HtmlToText.htmlToPlainText(prop.getValue().getString()) ).append( "\t<i>(" ).append( PropertyType.nameFromValue(prop.getType()) ).append( ")</i>\n" );
         }
       } catch( Exception e ) {
       }

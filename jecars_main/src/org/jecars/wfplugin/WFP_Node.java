@@ -10,7 +10,9 @@ import java.util.List;
 import javax.jcr.Node;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.jcr.Value;
+import javax.jcr.Workspace;
 import org.jecars.CARS_Utils;
 import org.jecars.tools.workflow.WF_WorkflowRunner;
 
@@ -162,12 +164,14 @@ public class WFP_Node implements IWFP_Node {
   @Override
   public void rename( final String pName, final String pTitle ) throws WFP_Exception {
     try {
-      synchronized( WF_WorkflowRunner.WRITERACCESS ) {
-        Node parent = mNode.getParent();
-        mNode.setProperty( "jecars:Title", pTitle );
-        mNode.getSession().move( mNode.getPath(), parent.getPath() + "/" + pName );
-        mNode.getSession().save();
-        mNode = parent.getNode( pName );
+      Node parent = mNode.getParent();
+      if (!parent.hasNode( pName )) {
+        synchronized( WF_WorkflowRunner.WRITERACCESS ) {
+          mNode.setProperty( "jecars:Title", pTitle );
+          mNode.getSession().move( mNode.getPath(), parent.getPath() + "/" + pName );
+          mNode.getSession().save();
+          mNode = parent.getNode( pName );
+        }
       }
     } catch( RepositoryException re ) {
       throw new WFP_Exception( re );
@@ -238,8 +242,38 @@ public class WFP_Node implements IWFP_Node {
   }
 
   @Override
-  public Object getNodeObject() {
+  public Object getNodeObject()  throws WFP_Exception {
+    try {
+      return CARS_Utils.getLinkedNode( mNode );
+    } catch( RepositoryException re ) {
+      throw new WFP_Exception( re );
+    }
+  }
+
+  @Override
+  public Object makeLocalCopy() throws WFP_Exception {
+    mNode = makeLocalCopy( mNode );
     return mNode;
+  }
+  
+  static protected Node makeLocalCopy( Node pNode ) throws WFP_Exception {
+    try {
+      if (pNode.hasProperty( "jecars:Link" )) {
+        // **** Local copy will be made
+        Node n = CARS_Utils.getLinkedNode( pNode );
+        Session  ses = n.getSession();
+        Workspace ws = ses.getWorkspace();
+        String copyTo = pNode.getPath();
+        pNode.remove();
+        ses.save();
+        ws.copy( n.getPath(), copyTo );
+        ses.save();
+        pNode = ses.getNode( copyTo );
+      }
+    } catch( RepositoryException re ) {
+      throw new WFP_Exception( re );      
+    }
+    return pNode;
   }
 
   

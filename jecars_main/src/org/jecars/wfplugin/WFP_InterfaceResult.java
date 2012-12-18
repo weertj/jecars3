@@ -45,6 +45,10 @@ public class WFP_InterfaceResult {
     return new WFP_InterfaceResult().addState( STATE.STOP );
   }
 
+  static public WFP_InterfaceResult ERROR() {
+    return new WFP_InterfaceResult().addState( STATE.ERROR );
+  }
+
   static public WFP_InterfaceResult STOP_THREADDEATH() {
     return new WFP_InterfaceResult().addState( STATE.STOP ).addState( STATE.THREADDEATH );
   }

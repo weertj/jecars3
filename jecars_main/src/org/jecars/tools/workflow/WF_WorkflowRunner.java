@@ -401,6 +401,14 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
           // **** End of this part of the workflow reached
 //          stillRunning = false;
           setProgress( 1 );
+          synchronized( WRITERACCESS ) {
+            setCurrentTask( "" );
+            setCurrentLink( "" );
+            save();
+          }
+          if (res.isContinueWorkflow()) {
+            res.setState( WFP_InterfaceResult.STATE.STOP );
+          }
         } else {
           // **** Continue the workflow
           boolean first = true;
@@ -537,7 +545,12 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
     final WFP_Tool       tool = new WFP_Tool( pTask.getNode(), getWorkflow() );
     final WFP_Context context = new WFP_Context( getContext(), getMain() );
     context.copyTransientInputs( pTransientContext );
-    WFP_InterfaceResult res = iface.start( tool, context );
+    final WFP_InterfaceResult res;
+    try {
+      res = iface.start( tool, context );
+    } finally {
+      save();
+    }
     if (!res.isThreadDeath()) {
       pTransientContext.copyTransientInputs( context );
       if (tool.getWorstExceptionLevel().intValue()>=Level.SEVERE.intValue()) {
@@ -607,8 +620,21 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
           final WF_Workflow wf = new WF_Workflow( ttn );        
           newWF = wf.copyTo( getNode(), "Workflow_" + getStepNumber() );
           save();
-        }
+        }          
         final Node n = newWF.getNode();
+        
+        // **** Copy items from the jecars:workflowtask node
+        final NodeIterator nni = pTask.getNode().getNodes();
+        final Workspace ws = getNode().getSession().getWorkspace();
+        while( nni.hasNext() ) {
+          Node ttnn = nni.nextNode();
+          if (ttnn.isNodeType( "jecars:parameterresource" )) {
+            ttnn = CARS_Utils.getLinkedNode(ttnn);
+            ws.copy( ttnn.getPath(), n.getPath() + "/" + ttnn.getName() );
+          }
+        }
+
+        
         final String toolPath;
         {
           final CARS_ToolInterface ti = CARS_ToolsFactory.getTool( mMain, n, null, true );        
@@ -619,14 +645,27 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
           }
           toolPath = toolNode.getPath();
 
-          final List<Node> nl = getContext().getDataNodes();
-          for( final Node dataNode : nl ) {
-            if (!toolNode.hasNode( dataNode.getName() )) {
-              synchronized( WRITERACCESS ) {
-                toolNode.getSession().move( dataNode.getPath(), toolNode.getPath() + "/" + dataNode.getName() );
+          // **** Copy data nodes to the root of the new workflow
+          {
+            final List<Node> nl = getContext().getDataNodes();
+            for( final Node dataNode : nl ) {
+              if (!toolNode.hasNode( dataNode.getName() )) {
+                synchronized( WRITERACCESS ) {
+                  toolNode.getSession().move( dataNode.getPath(), toolNode.getPath() + "/" + dataNode.getName() );
+                }
               }
             }
-//          ti.addInput( dataNode );
+          }
+          {
+            // **** Copy parameter nodes to the root of the new workflow
+            final List<Node> nl = getContext().getParameterNodes();
+            for( final Node dataNode : nl ) {
+              if (!toolNode.hasNode( dataNode.getName() )) {
+                synchronized( WRITERACCESS ) {
+                  toolNode.getSession().move( dataNode.getPath(), toolNode.getPath() + "/" + dataNode.getName() );
+                }
+              }
+            }
           }
           synchronized( WRITERACCESS ) {
             toolNode.getSession().save();
@@ -663,17 +702,29 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
         while( ni.hasNext() ) {
           final Node tnode = ni.nextNode();
           if ((!tnode.isNodeType("jecars:permissionable")) &&
+              (!tnode.isNodeType("jecars:configresource")) &&
               (!tnode.isNodeType("jecars:EventsFolder")) &&
               (!tnode.isNodeType("jecars:mixin_WorkflowRunners")) &&
               (!tnode.isNodeType("jecars:mixin_workflowtasks")) &&
               (!tnode.isNodeType("jecars:mixin_workflowlinks"))) {
             synchronized( WRITERACCESS ) {
-              final Node nn = context.getNode().addNode( tnode.getName(), "jecars:inputresource" );
-              nn.setProperty( "jcr:mimeType", "" );
-              nn.setProperty( "jcr:data", "" );
-              nn.setProperty( "jcr:lastModified", Calendar.getInstance() );
-              nn.addMixin( "jecars:mix_link" );
-              nn.setProperty( "jecars:Link" , tnode.getPath() );
+              final Node nn;
+              if (tnode.isNodeType( "jecars:parameterresource" )) {
+//                nn = context.getNode().addNode( tnode.getName(), "jecars:parameterresource" );                
+                Node resparaN = CARS_Utils.getLinkedNode(tnode);
+                ws.copy( resparaN.getPath(), context.getNode().getPath() + "/" + resparaN.getName() );
+              } else {
+                if (context.getNode().hasNode( tnode.getName() )) {
+                  context.getNode().getNode( tnode.getName() ).remove();
+                }
+                nn = context.getNode().addNode( tnode.getName(), "jecars:inputresource" );
+                nn.setProperty( "jcr:mimeType", "" );
+                nn.setProperty( "jcr:data", "" );
+                nn.setProperty( "jcr:lastModified", Calendar.getInstance() );
+                nn.addMixin(    "jecars:mix_link" );
+                nn.setProperty( "jecars:Link" , tnode.getPath() );
+              }
+              save();
             }
           }
         

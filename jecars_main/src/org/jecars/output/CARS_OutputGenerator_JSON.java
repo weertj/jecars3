@@ -16,6 +16,7 @@
 package org.jecars.output;
 
 import com.google.gdata.util.common.base.StringUtil;
+//import com.google.gson.Gson;
 import java.util.Iterator;
 import javax.jcr.ItemNotFoundException;
 import javax.jcr.Node;
@@ -77,7 +78,8 @@ public class CARS_OutputGenerator_JSON extends CARS_DefaultOutputGenerator imple
   @Override
   public void addThisNodeEntry( final CARS_ActionContext pContext, final CARS_Buffer pMessage, final Node pThisNode,
                                 final long pFromNode, final long pToNode ) throws RepositoryException, Exception {
-    
+//    Gson gson = new Gson();
+//    pMessage.append( "\t\"title\": " ).append( gson.toJson( pThisNode.getName() )).append( ",\n" );
 //    pMessage.append( "\t\"title\": \"" ).append( CARS_Utils.convertNodeName(pThisNode) ).append( "\",\n" );
 //    if (pThisNode.hasProperty( CARS_ActionContext.gDefTitle )) {
 //      pMessage.append( "\t\"subtitle\": \"" ).append(

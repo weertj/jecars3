@@ -26,6 +26,7 @@ import org.jecars.wfplugin.IWFP_Input;
 import org.jecars.wfplugin.IWFP_Interface;
 import org.jecars.wfplugin.IWFP_Output;
 import org.jecars.wfplugin.IWFP_Tool;
+import org.jecars.wfplugin.WFP_Exception;
 import org.jecars.wfplugin.WFP_InterfaceResult;
 
 /**
@@ -34,6 +35,10 @@ import org.jecars.wfplugin.WFP_InterfaceResult;
  */
 public class WFPT_DataContainer implements IWFP_Interface {
 
+  static public final String BASEDIRECTORY  = "BaseDirectory";
+  static public final String DIRECTORY      = "Directory";
+  static public final String APPEND         = "Append";
+
   /** start
    * 
    * @param pTool
@@ -41,28 +46,46 @@ public class WFPT_DataContainer implements IWFP_Interface {
    */
   @Override
   public WFP_InterfaceResult start( final IWFP_Tool pTool, final IWFP_Context pContext ) {
-    File dc = new File( "C:/SVN/Projects/SPeCTRE/Beamforming/matlabtest" );
-      System.out.println("HELLO DATACONTAINER!!!!!! write to " + dc.getAbsolutePath() );
-    try {
-      for( IWFP_Input input : pContext.getInputs() ) {
-          System.out.println("write input " + input.getPath() );
-        final InputStream is = input.openStream();
-        final FileOutputStream fos = new FileOutputStream( new File( dc, input.getName() ));
-        CARS_Utils.sendInputStreamToOutputStream( 10000, is, fos );
-        fos.close();
-        is.close();
-      }
+//    File dc = new File( "C:/SVN/Projects/SPeCTRE/Beamforming/matlabtest" );
+//      System.out.println("HELLO DATACONTAINER!!!!!! write to " + dc.getAbsolutePath() );
+    // **** Check workflow for overrule parameterw
+    final boolean append = Boolean.parseBoolean(pTool.getParameter( APPEND, "false" ));
+    final String basedirectory = pTool.getParameter( BASEDIRECTORY, null );
+    final String directory = pTool.getParameter( DIRECTORY, null );
+    if (directory==null) {
+      pTool.reportException( Level.SEVERE, new WFP_Exception( "WFPT_DataContainer: Directory parameter not set") );
+      return WFP_InterfaceResult.STOP();
+    } else {
+      try {          
+        File dc;
+        if (basedirectory==null) {
+          dc = new File( directory );
+        } else {
+          dc = new File( basedirectory, directory );
+        }
+        dc.mkdirs();
+        for( IWFP_Input input : pContext.getInputs() ) {
+          File writeFile = new File( dc, input.getName() );
+            System.out.println("write input " + input.getPath() + " -> " + writeFile.getAbsolutePath() );
+          pTool.reportMessage( Level.INFO, "WFPT_DataContainer: Write input " + input.getPath() + " to " + writeFile.getAbsolutePath() );
+          final InputStream is = input.openStream();
+          final FileOutputStream fos = new FileOutputStream( writeFile, append );
+          CARS_Utils.sendInputStreamToOutputStream( 10000, is, fos );
+          fos.close();
+          is.close();
+        }
+        
+        // **** To output
+        for( final File dcf : dc.listFiles() ) {
+            final IWFP_Output output = pContext.addOutput( dcf.getName() );
+            FileInputStream fis = new FileInputStream( dcf );
+            output.setContents( fis );
+            fis.close();
+        }
       
-      // **** To output
-      for( final File dcf : dc.listFiles() ) {
-        final IWFP_Output output = pContext.addOutput( dcf.getName() );
-        FileInputStream fis = new FileInputStream( dcf );
-        output.setContents( fis );
-        fis.close();
-      }
-      
-    } catch( Exception e ) {
+      } catch( Exception e ) {
       pTool.reportException( Level.WARNING, e );
+      }
     }
       
     return WFP_InterfaceResult.OK();

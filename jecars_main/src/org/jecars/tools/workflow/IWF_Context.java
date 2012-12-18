@@ -19,13 +19,14 @@ package org.jecars.tools.workflow;
 import java.util.List;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
-import org.jecars.CARS_Main;
 
-/**
+/** IWF_Context
  *
  */
 public interface IWF_Context extends IWF_Default {
 
+  void       setParameterNode( String pName, String pValue ) throws RepositoryException;
+  List<Node> getParameterNodes() throws RepositoryException;
   List<Node> getDataNodes() throws RepositoryException;
   
   void setUsedLink( IWF_Link pLink ) throws RepositoryException;

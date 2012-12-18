@@ -23,7 +23,7 @@ import javax.jcr.RepositoryException;
 import javax.security.auth.login.CredentialExpiredException;
 import org.jecars.tools.CARS_DefaultToolInterface;
 
-/**
+/** IWF_Workflow
  *
  */
 public interface IWF_Workflow extends IWF_Default {
@@ -38,6 +38,6 @@ public interface IWF_Workflow extends IWF_Default {
   
   IWF_WorkflowRunner createRunner( final IWF_WorkflowRunner pMaster, final IWF_Task pStartTask ) throws  AccessDeniedException, CredentialExpiredException, RepositoryException, CloneNotSupportedException;
 
-
+  String        getParameter( final String pParameterName, final String pDefault );
   
 }

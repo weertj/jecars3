@@ -971,7 +971,7 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
    */
   public void copyConfigNodeToTool( final Node pConfigNode ) throws RepositoryException {
     pConfigNode.getSession().getWorkspace().copy( pConfigNode.getPath(), getTool().getPath() + "/jecars:Config" );
-    mConfigNode = null;
+    addConfigNode( null );
     return;
   }
 
@@ -987,7 +987,7 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
     if (mConfigNode!=null) {
       return mConfigNode;
     }
-    mConfigNode = getResolvedToolNode( getTool(), "jecars:Config" );
+    addConfigNode( getResolvedToolNode( getTool(), "jecars:Config" ));
     return mConfigNode;
   }
 
@@ -1482,7 +1482,7 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
   /** Report this event to the listeners
    * @param pEvent The to be reported event
    */
-  protected void reportToInstanceListeners( CARS_ToolInstanceEvent pEvent ) {
+  synchronized protected void reportToInstanceListeners( CARS_ToolInstanceEvent pEvent ) {
     try {
       // **** Check for storing events
       final CARS_EventManager em = CARS_Factory.getEventManager();

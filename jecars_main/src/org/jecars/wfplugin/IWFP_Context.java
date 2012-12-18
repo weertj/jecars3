@@ -18,6 +18,7 @@ package org.jecars.wfplugin;
 import java.util.List;
 import javax.jcr.Node;
 import org.jecars.CARS_Main;
+import org.jecars.tools.workflow.IWF_Context;
 
 /**
  *
@@ -37,7 +38,14 @@ public interface IWFP_Context {
   List<IWFP_Input>  getInputs() throws WFP_Exception;
   Object            getTransientInput( final String pName );
   
+  IWF_Context getContext();
+  boolean     hasOutput( final String pName ) throws WFP_Exception;
   IWFP_Output addOutput( final String pName ) throws WFP_Exception;
+  IWFP_Output addOutput( final String pName, final String pNodeType ) throws WFP_Exception;
+  IWFP_Output getOutput( final String pName ) throws WFP_Exception;
   void        addTransientObject( final String pName, final Object pData );
+
+  IWFP_ContextParameter getParameter( final String pName ) throws WFP_Exception;
+  IWFP_ContextParameter addParameter( final String pName ) throws WFP_Exception;
   
 }

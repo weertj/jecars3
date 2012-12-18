@@ -109,7 +109,20 @@ public class WFP_Input extends WFP_Node implements IWFP_Input {
           final FileInputStream fis = new FileInputStream( ptf );
           mCurrentBinary = input.getSession().getValueFactory().createBinary( fis );
         } else {
-          mCurrentBinary = input.getProperty( "jcr:data" ).getBinary();
+          if (input.hasProperty( "jcr:data" )) {
+            mCurrentBinary = input.getProperty( "jcr:data" ).getBinary();
+          } else {
+            if (input.hasProperty( "jecars:Link" )) {
+              Node resolved = CARS_Utils.getLinkedNode( input );
+              if (resolved.hasProperty( "jecars:PathToFile" )) {
+                String ptf = resolved.getProperty( "jecars:PathToFile" ).getString();
+                final FileInputStream fis = new FileInputStream( ptf );
+                mCurrentBinary = input.getSession().getValueFactory().createBinary( fis );
+              } else if (input.hasProperty( "jcr:data" )) {
+                mCurrentBinary = input.getProperty( "jcr:data" ).getBinary();                
+              }
+            }
+          }
         }
       }
       return mCurrentBinary.getStream();
