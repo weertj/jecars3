@@ -1107,8 +1107,8 @@ public class CARS_DavResource implements DavResource, BindableResource, JcrConst
           throw new JcrDavException( cee, DavServletResponse.SC_METHOD_NOT_ALLOWED );
         } catch (AccessDeniedException ade) {
           throw new JcrDavException( ade, DavServletResponse.SC_METHOD_NOT_ALLOWED );
-        } catch( RepositoryException re ) {
-          throw new JcrDavException( re, DavServletResponse.SC_INTERNAL_SERVER_ERROR );
+//        } catch( RepositoryException re ) {
+//          throw new JcrDavException( re, DavServletResponse.SC_INTERNAL_SERVER_ERROR );
         }
     }
 
