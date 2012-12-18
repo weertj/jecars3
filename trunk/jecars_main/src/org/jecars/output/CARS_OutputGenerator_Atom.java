@@ -61,7 +61,7 @@ public class CARS_OutputGenerator_Atom extends CARS_DefaultOutputGenerator imple
       if (gFeedHeader==null) {
         gFeedHeader = "<?xml version=\"1.0\" encoding='utf-8'?>\n" +
                       "<feed xmlns=\"http://www.w3.org/2005/Atom\" xmlns:openSearch=\"http://a9.com/-/spec/opensearchrss/1.0/\"\n";
-        Iterator it = CARS_ActionContext.gIncludeNS.iterator();
+//        Iterator it = CARS_ActionContext.gIncludeNS.iterator();
         Session appSession = CARS_Factory.getSystemApplicationSession();
         synchronized(appSession) {
           String nms[] = appSession.getNamespacePrefixes();
@@ -192,7 +192,8 @@ public class CARS_OutputGenerator_Atom extends CARS_DefaultOutputGenerator imple
       if (po instanceof Property) {
         p = (Property)po;
         if (p.getName().indexOf(':')!=-1) {
-          String prefix = p.getName().substring( 0, p.getName().indexOf(':'));
+          // **** Property with namespace
+          final String prefix = p.getName().substring( 0, p.getName().indexOf(':'));
           if (CARS_ActionContext.gIncludeNS.contains( prefix )) {
              if ((p.getType()!=PropertyType.BINARY) || (includeBinary==true)) {
                if (p.getDefinition().isMultiple()) {
@@ -209,8 +210,26 @@ public class CARS_OutputGenerator_Atom extends CARS_DefaultOutputGenerator imple
                  addPropertyValue( pContext, pReply, p.getName(), pThisNode, p.getValue() );
                }
              }
-           }
-         }
+           }          
+        } else {
+          // **** Property without namespace
+          if ((p.getType()!=PropertyType.BINARY) || (includeBinary)) {
+            if (p.getDefinition().isMultiple()) {
+              pReply.append( "<" ) .append( p.getName() ).append( " multi=\"true\">\n" );
+              try {
+                Value[] vals = p.getValues();
+                for( int val=0; val<vals.length; val++ ) {
+                  addPropertyValue( pContext, pReply, p.getName(), pThisNode, vals[val] );
+                }
+              } finally {
+                pReply.append( "</" ).append( p.getName() ).append( ">\n" );
+              }
+            } else {
+              addPropertyValue( pContext, pReply, p.getName(), pThisNode, p.getValue() );
+            }
+          }          
+          
+        }
        } else if (po instanceof JD_Taglist) {
          JD_Taglist tags = (JD_Taglist)po;
          Iterator it = tags.getIterator();

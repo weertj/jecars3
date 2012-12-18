@@ -16,14 +16,13 @@
 package org.jecars.wfplugin.tools;
 
 import java.util.Calendar;
-import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import org.apache.jackrabbit.util.ISO8601;
 import org.jecars.wfplugin.IWFP_Context;
+import org.jecars.wfplugin.IWFP_ContextParameter;
 import org.jecars.wfplugin.IWFP_Interface;
-import org.jecars.wfplugin.IWFP_Node;
 import org.jecars.wfplugin.IWFP_Tool;
 import org.jecars.wfplugin.WFP_InterfaceResult;
 
@@ -36,6 +35,7 @@ public class WFPT_Sleep implements IWFP_Interface {
   static public final String SLEEPTIMEINSECS    = "SleepTimeInSecs";
   static public final String WAKEUPDATE         = "WakeUpDate";
   static public final String REPEATTIMESECS     = "RepeatTimeSecs";
+  static public final String REPEATTIMEDAYS     = "RepeatTimeDays";
     
   private Timer mTimer = new Timer();
   final private Object mWakeup = new Object();
@@ -59,8 +59,70 @@ public class WFPT_Sleep implements IWFP_Interface {
    */
   @Override
   public WFP_InterfaceResult start( final IWFP_Tool pTool, final IWFP_Context pContext ) {
-      System.out.println("----- SLEEP TOOL ------ " + Thread.currentThread() );
+//      System.out.println("----- SLEEP TOOL ------ " + Thread.currentThread() );
     try {
+      { // **** The context parameters
+      IWFP_ContextParameter sleepsecs  = pTool.getContextParameter( pContext, ".*" + SLEEPTIMEINSECS, null, true );
+      IWFP_ContextParameter wakeupdate = pTool.getContextParameter( pContext, ".*" + WAKEUPDATE, null, true );
+      IWFP_ContextParameter repeatsecs = pTool.getContextParameter( pContext, ".*" + REPEATTIMESECS, null, true );
+      IWFP_ContextParameter repeatdays = pTool.getContextParameter( pContext, ".*" + REPEATTIMEDAYS, null, true );
+
+      if (sleepsecs!=null) {
+        Thread.sleep( (int)(Double.parseDouble(sleepsecs.getStringValue()) * 1000) );
+      } else if (wakeupdate!=null) {        
+        Calendar cal = ISO8601.parse( wakeupdate.getStringValue() );
+        mTimer = new Timer( pTool.getTaskPath() );
+        synchronized( mWakeup ) {
+          mTimer.schedule( new WakeUpTimer(), cal.getTime(), 2000 );
+          mWakeup.wait();
+        }
+        if (repeatsecs!=null) {
+          int secs = Integer.parseInt( repeatsecs.getStringValue() );
+          cal.add( Calendar.SECOND, secs );
+          wakeupdate.setValue( ISO8601.format(cal) );
+        }
+        if (repeatdays!=null) {
+          int days = Integer.parseInt( repeatdays.getStringValue() );
+          cal.add( Calendar.DAY_OF_YEAR, days );
+          wakeupdate.setValue( ISO8601.format(cal) );
+        }
+      }
+      
+      
+      }
+      
+      { // **** The tool parameters
+      String sleepsecs  = pTool.getParameter( SLEEPTIMEINSECS, null );
+      String wakeupdate = pTool.getParameter( WAKEUPDATE, null );
+      String repeatsecs = pTool.getParameter( REPEATTIMESECS, null );
+      String repeatdays = pTool.getParameter( REPEATTIMEDAYS, null );
+
+      if (sleepsecs!=null) {
+        Thread.sleep( (int)(Double.parseDouble(sleepsecs) * 1000) );
+      } else if (wakeupdate!=null) {        
+        Calendar cal = ISO8601.parse( wakeupdate );
+        mTimer = new Timer( pTool.getTaskPath() );
+        synchronized( mWakeup ) {
+          mTimer.schedule( new WakeUpTimer(), cal.getTime(), 2000 );
+          mWakeup.wait();
+        }
+        if (repeatsecs!=null) {
+          int secs = Integer.parseInt( repeatsecs );
+          cal.add( Calendar.SECOND, secs );
+          pTool.getParameter( WAKEUPDATE ).setValue( ISO8601.format(cal) );
+        }
+        if (repeatdays!=null) {
+          int days = Integer.parseInt( repeatdays );
+          cal.add( Calendar.DAY_OF_YEAR, days );
+          pTool.getParameter( WAKEUPDATE ).setValue( ISO8601.format(cal) );
+        }
+      }
+      }
+    } catch( Exception e ) {
+      pTool.reportException( Level.WARNING, e);
+    }
+      
+    /*
       final IWFP_Node taskNode = pTool.getTaskAsNode();
       if (taskNode.hasNode( SLEEPTIMEINSECS )) {
         IWFP_Node sleeptime = taskNode.getNode( SLEEPTIMEINSECS );
@@ -91,6 +153,7 @@ public class WFPT_Sleep implements IWFP_Interface {
     } catch( Exception e ) {
       pTool.reportException( Level.WARNING, e);
     }
+    */
     return WFP_InterfaceResult.OK();
   }
     

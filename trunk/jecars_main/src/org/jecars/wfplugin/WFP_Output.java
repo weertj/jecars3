@@ -16,12 +16,14 @@
 package org.jecars.wfplugin;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import javax.jcr.Binary;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import org.apache.tools.ant.util.ReaderInputStream;
+import org.jecars.CARS_Utils;
 import org.jecars.tools.workflow.IWF_Context;
 
 /**
@@ -76,8 +78,40 @@ public class WFP_Output extends WFP_Node implements IWFP_Output {
     }
     return;
   }
-  
 
+  /** appendContents
+   * 
+   * @param pInput
+   * @throws WFP_Exception 
+   */
+  @Override
+  public void appendContents( final InputStream pInput ) throws WFP_Exception {
+    try {
+      Binary bin = getNode().getProperty( "jcr:data" ).getBinary();
+      final InputStream is = bin.getStream();
+      final byte[] data = CARS_Utils.readAsByteArray( is );
+      is.close();
+      final byte[] data2 = CARS_Utils.readAsByteArray( pInput );
+      pInput.close();
+      byte total[] = new byte[data.length+data2.length];
+      System.arraycopy( data, 0, total, 0, data.length);
+      System.arraycopy( data2, 0, total, data.length, data2.length);
+      ByteArrayInputStream bais = new ByteArrayInputStream( total );
+      final Binary binresult = getNode().getSession().getValueFactory().createBinary( bais );
+      getNode().setProperty( "jcr:data", binresult );
+      bais.close();
+    } catch( IOException ie ) {
+      throw new WFP_Exception( ie );
+    } catch( RepositoryException re ) {
+      throw new WFP_Exception( re );      
+    }
+  }
+
+  /** setContents
+   * 
+   * @param pInput
+   * @throws WFP_Exception 
+   */
   @Override
   public void setContents( final InputStream pInput ) throws WFP_Exception {
     try {

@@ -51,6 +51,16 @@ public class WFP_Context implements IWFP_Context {
     return;
   }
 
+  /** getContext
+   * 
+   * @return 
+   */
+  @Override
+  public IWF_Context getContext() {
+    return mContext;
+  }
+
+  
   /** getMain
    * 
    * @return 
@@ -115,6 +125,21 @@ public class WFP_Context implements IWFP_Context {
     return mInputs;
   }
 
+  
+  /** hasOutput
+   * 
+   * @param pName
+   * @return 
+   */
+  @Override
+  public boolean hasOutput( final String pName ) throws WFP_Exception {
+    try {
+      return mContext.getNode().hasNode( pName );
+    } catch( RepositoryException re ) {
+      throw new WFP_Exception( re );
+    }
+  }
+
   /** addOutput
    * 
    * @param pName
@@ -131,6 +156,35 @@ public class WFP_Context implements IWFP_Context {
       throw new WFP_Exception( re );
     }
   }
+
+  @Override
+  public IWFP_Output addOutput( final String pName, final String pNodeType ) throws WFP_Exception {
+    try {
+      final Node n = mContext.getNode().addNode( pName, pNodeType );
+      n.addMixin( "jecars:mix_inputresource" );
+      return new WFP_Output( mContext, n );
+    } catch( RepositoryException re ) {
+      throw new WFP_Exception( re );
+    }    
+  }
+
+  
+  /** getOutput
+   * 
+   * @param pName
+   * @return
+   * @throws WFP_Exception 
+   */
+  @Override
+  public IWFP_Output getOutput( final String pName ) throws WFP_Exception {
+    try {
+      final Node n = mContext.getNode().getNode( pName );
+      return new WFP_Output( mContext, n );
+    } catch( RepositoryException re ) {
+      throw new WFP_Exception( re );
+    }
+  }
+  
 
   /** hasInput
    * 
@@ -176,6 +230,42 @@ public class WFP_Context implements IWFP_Context {
   public void addTransientObject( final String pName, final Object pData ) {
     mTransientInputs.put( pName, pData );
     return;
+  }
+
+  /** getParameter
+   * 
+   * @param pName
+   * @return
+   * @throws WFP_Exception 
+   */
+  @Override
+  public IWFP_ContextParameter getParameter( final String pName ) throws WFP_Exception {
+    try {
+      for( Node n : mContext.getParameterNodes() ) {
+        if (n.getName().equals( pName )) {
+          return new WFP_ContextParameter( n );
+        }
+      }
+    } catch( RepositoryException re ) {
+      throw new WFP_Exception(re);
+    }
+    return null;
+  }
+
+  @Override
+  public IWFP_ContextParameter addParameter( final String pName ) throws WFP_Exception {
+    try {
+      IWFP_ContextParameter cpar = getParameter( pName );
+      if (cpar==null) {
+        Node n = mContext.getNode().addNode( pName, "jecars:parameterdata" );
+        n.setProperty( "jcr:data", "" );
+        n.setProperty( "jcr:mimeType", "jecars/workflowparameter" );
+        cpar = new WFP_ContextParameter( n );
+      }
+      return cpar;
+    } catch( RepositoryException re ) {
+      throw new WFP_Exception(re);
+    }
   }
     
 }

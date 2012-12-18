@@ -15,12 +15,16 @@
  */
 package org.jecars.wfplugin;
 
-import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
+import java.util.regex.Pattern;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
+import javax.jcr.Value;
 import org.jecars.CARS_Utils;
 import org.jecars.tools.CARS_ToolInstanceEvent;
+import org.jecars.tools.workflow.IWF_Context;
 import org.jecars.tools.workflow.IWF_Workflow;
 import org.jecars.tools.workflow.WF_WorkflowRunner;
 
@@ -54,6 +58,11 @@ public class WFP_Tool extends WFP_Node implements IWFP_Tool {
       return null;
     }
   }
+
+  @Override
+  public IWF_Workflow getWorkflow() {
+    return mWorkflow;
+  }  
   
   @Override
   public Level getWorstExceptionLevel() {
@@ -159,5 +168,139 @@ public class WFP_Tool extends WFP_Node implements IWFP_Tool {
       throw new WFP_Exception(re);
     }
   }
-    
+
+  /** getParameter
+   * 
+   * The get parameter method first looks for the parameter at;
+   *   
+   *   The task/{toolname (resolved)}/{parameter}
+   * 
+   * if not found then search in;
+   * 
+   *  {current workflow}/{name of the tool}.{parameter}
+   * 
+   * @param pParameterName
+   * @param pDefault
+   * @return 
+   */
+  @Override
+  public String getParameter( final String pParameterName, final String pDefault ) {
+    String val = getParameter( getNode(), pParameterName, null );
+    if (val==null) {
+      val = getWorkflow().getParameter( getName() + "." + pParameterName, pDefault );
+    }
+    return val;
+  }
+
+  /** getParameter
+   * 
+   * @param pParameterName
+   * @return
+   * @throws WFP_Exception 
+   */
+  @Override
+  public IWFP_Parameter getParameter( final String pParameterName ) throws WFP_Exception {
+    try {
+      if (getNode().hasNode( pParameterName )) {
+        final Node n = CARS_Utils.getLinkedNode( getNode().getNode( pParameterName ));
+        return new WFP_Parameter( n );
+      } else if (getWorkflow().getNode().hasNode( getName() + "." + pParameterName )) {
+        final Node n = CARS_Utils.getLinkedNode( getWorkflow().getNode().getNode( getName() + "." + pParameterName ));
+        return new WFP_Parameter( n );
+      }
+      return null;
+    } catch( RepositoryException re ) {
+      throw new WFP_Exception( re );
+    }
+  }
+
+  
+  
+  /** getContextParameter
+   * 
+   * @param pContext
+   * @param pParameterName
+   * @return 
+   */
+  @Override
+  public IWFP_ContextParameter getContextParameter( final IWFP_Context pContext, final String pRegex, final String pParameterName, final boolean pMakeLocalCopy ) throws WFP_Exception {
+    final List<IWFP_ContextParameter> conparms = getContextParameters( pContext, pRegex, pParameterName, pMakeLocalCopy );
+    if (conparms.isEmpty()) {
+      return null;
+    }
+    return conparms.get(0);
+  }
+
+  /** getContextParameters
+   * 
+   * get parameter from the pContext.
+   * 
+   * @param pContext
+   * @param pRegex Use the regex to retrieve the parameters or NULL
+   * @param pParameterName Look for this parameter or NULL
+   * @param pMakeLocalCopy If true then the parameter will be resolved and(!) stored, so the jecars:Link property will be gone
+   * @return
+   * @throws WFP_Exception 
+   */
+  @Override
+  public List<IWFP_ContextParameter> getContextParameters( final IWFP_Context pContext, final String pRegex, final String pParameterName, final boolean pMakeLocalCopy ) throws WFP_Exception {
+    final List<IWFP_ContextParameter> conparms = new ArrayList<IWFP_ContextParameter>();
+    try {
+      final IWF_Context con = pContext.getContext();
+      if (pRegex==null) {
+        final String parname = getName() + "." + pParameterName;
+        for( Node n : con.getParameterNodes() ) {
+          if (n.getName().equals( parname )) {
+            if (pMakeLocalCopy) {
+              n = makeLocalCopy( n );
+            }
+            conparms.add( new WFP_ContextParameter( n ));
+          }
+        }
+      } else {
+        // **** Check against regular expression
+        Pattern nnp = Pattern.compile( pRegex );
+        for( Node n : con.getParameterNodes() ) {
+          if (nnp.matcher( n.getName()).find()) {
+            if (pMakeLocalCopy) {
+              n = makeLocalCopy( n );
+            }
+            conparms.add( new WFP_ContextParameter( n ) );
+          }
+        }
+
+      }
+    } catch( RepositoryException re ) {
+      return conparms;
+    }
+    return conparms;
+  }
+  
+  /** getParameter
+   * 
+   * @param pNode
+   * @param pParameterName
+   * @param pDefault
+   * @return 
+   */
+  static public String getParameter( final Node pNode, final String pParameterName, final String pDefault ) {
+    try {
+      if (pNode.hasNode( pParameterName )) {
+        final Node n = CARS_Utils.getLinkedNode(pNode.getNode( pParameterName ));
+        final Value[] values = n.getProperty( "jecars:string" ).getValues();
+        if (values.length>0) {
+          return values[0].getString();
+        } else {
+          return pDefault;
+        }
+      } else {
+        return pDefault;
+      }
+    } catch(RepositoryException re ) {
+      return pDefault;
+    }
+  }
+  
+  
+  
 }

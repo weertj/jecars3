@@ -98,14 +98,30 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
         session.getWorkspace().copy( in.getPath(), copyPath );
       }
     }
-
     
-    final NodeIterator ni = getTool().getNodes( "jecars:Input*" );
-    while( ni.hasNext() ) {
-      Node n = ni.nextNode();
-      n.getSession().getWorkspace().copy( n.getPath(), context.getPath() + "/" + n.getName() );
+    {
+      final NodeIterator ni = getTool().getNodes( "jecars:Input*" );
+      while( ni.hasNext() ) {
+        Node n = ni.nextNode();
+        if (!context.hasNode( n.getName() )) {
+          n.getSession().getWorkspace().copy( n.getPath(), context.getPath() + "/" + n.getName() );
+        }
+      }
     }
-        
+
+    // **** Copy the parameters
+    {
+      final NodeIterator ni = getTool().getNodes();
+      while( ni.hasNext() ) {
+        Node n = ni.nextNode();
+        if (n.isNodeType( "jecars:parameterresource" )) {
+          if (!context.hasNode( n.getName() )) {
+            n.getSession().getWorkspace().copy( n.getPath(), context.getPath() + "/" + n.getName() );
+          }
+        }
+      }
+    }
+    
     return;
   }
 

@@ -29,7 +29,8 @@ public interface IWFP_Node {
   void                  remove() throws WFP_Exception;
   void                  rename( final String pName, final String pTitle ) throws WFP_Exception;
 
-  Object                getNodeObject();
+  Object                getNodeObject() throws WFP_Exception;
+  Object                makeLocalCopy() throws WFP_Exception;
   
   void                  save() throws WFP_Exception;
   

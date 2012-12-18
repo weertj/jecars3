@@ -17,12 +17,14 @@ package org.jecars.wfplugin;
 
 import java.io.InputStream;
 import java.io.Reader;
-
-/**
+ 
+/** IWFP_Output
  *
  * @author weert
  */
 public interface IWFP_Output extends IWFP_Node {
+
+  void appendContents( final InputStream pInput ) throws WFP_Exception;
 
   void setContents( final String pContents )    throws WFP_Exception;
   void setContents( final Reader pReader )      throws WFP_Exception;

@@ -27,6 +27,7 @@ import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 import javax.security.auth.login.CredentialExpiredException;
 import org.jecars.tools.CARS_DefaultToolInterface;
+import org.jecars.wfplugin.WFP_Tool;
 
 /** WF_Workflow
  *
@@ -186,6 +187,17 @@ public class WF_Workflow extends WF_Default implements IWF_Workflow {
     save();
    
     return new WF_Workflow(  wf );
+  }
+
+  /** getParameter
+   * 
+   * @param pParameterName
+   * @param pDefault
+   * @return 
+   */
+  @Override
+  public String getParameter( final String pParameterName, final String pDefault ) {
+    return WFP_Tool.getParameter( getNode(), pParameterName, pDefault );
   }
   
     

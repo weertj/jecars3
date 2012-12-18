@@ -48,6 +48,13 @@ public class CARS_WorkflowsInterfaceApp extends CARS_DefaultInterface {
   protected String getToBeCheckedInterface() {
     return "org.jecars.tools.CARS_WorkflowsInterfaceApp";
   }
+  
+  @Override
+  public void init(CARS_Main pMain, Node pInterfaceNode) throws Exception {
+    // **** No reporting
+    return;
+  }
+
 
   /** isCorrectInterface
    *

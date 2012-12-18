@@ -27,7 +27,6 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Workspace;
 import javax.jcr.nodetype.NodeType;
-import org.jecars.CARS_Main;
 import org.jecars.CARS_Utils;
 
 /** WF_Context
@@ -62,12 +61,44 @@ public class WF_Context extends WF_Default implements IWF_Context {
            n.isNodeType( "jecars:datafile" ) ||
            n.isNodeType( "jecars:dataresource" ) ||
            n.isNodeType( "jecars:mix_link" )) ) {
+        if (!n.isNodeType("jecars:parameterresource")) {
+          nl.add( n );
+        }
+      }
+    }
+    return nl;
+  }
+
+  /** getParameterNodes
+   * 
+   * @return
+   * @throws RepositoryException 
+   */
+  @Override
+  public List<Node> getParameterNodes() throws RepositoryException {
+    final List<Node> nl = new ArrayList<Node>();
+    NodeIterator ni = getNode().getNodes();
+    while( ni.hasNext() ) {
+      Node n = ni.nextNode();
+      if (n.isNodeType("jecars:parameterresource")) {
         nl.add( n );
       }
     }
     return nl;
   }
 
+  @Override
+  public void setParameterNode( final String pName, final String pValue ) throws RepositoryException {
+    Node n = getNode();
+    if (n.hasNode( pName )) {
+      n.getNode( pName ).remove();
+    }
+    Node para = n.addNode( pName, "jecars:parameterdata" );
+    para.setProperty( "jecars:string", pValue );
+    return;
+  }
+
+  
   /** restore
    * 
    * @param pStepNumber
@@ -187,8 +218,10 @@ public class WF_Context extends WF_Default implements IWF_Context {
           Pattern nnp = Pattern.compile( tp.getNodeName() );
           Pattern ntp = Pattern.compile( nodetype );
           for( final Node n : nodeList ) {
-            if ((nnp.matcher( n.getPath().substring(pathPrefixSize) ).find()) &&
-                (ntp.matcher( n.getPrimaryNodeType().getName() ).find())) {
+            if (n.isNodeType( "jecars:parameterresource")) {
+              positiveNodes.add( n );
+            } else if ((nnp.matcher( n.getPath().substring(pathPrefixSize) ).find()) &&
+                (ntp.matcher( n.getPrimaryNodeType().getName() ).find())) {              
               positiveNodes.add( n );
             }
           }

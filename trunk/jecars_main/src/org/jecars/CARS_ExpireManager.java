@@ -306,5 +306,14 @@ public class CARS_ExpireManager extends CARS_DefaultToolInterface {
     return (Session)getTool().getSession().getRepository().login( new CARS_Credentials( CARS_Definitions.gSuperuserName, "".toCharArray(), null ));
   }
 
+  @Override
+  public int getRunningExpireMinutes() {
+    return -1;
+  }
+
+  @Override
+  public int getClosedExpireMinutes() {
+    return -1;
+  }
 
 }
