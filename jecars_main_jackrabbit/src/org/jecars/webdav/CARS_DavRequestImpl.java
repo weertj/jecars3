@@ -40,26 +40,17 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import javax.servlet.AsyncContext;
-import javax.servlet.DispatcherType;
 
 import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
 import javax.servlet.ServletInputStream;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import javax.servlet.http.Part;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -1064,66 +1055,6 @@ public class CARS_DavRequestImpl implements WebdavRequest, DavConstants {
 
     @Override
     public int getLocalPort() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public boolean authenticate(HttpServletResponse hsr) throws IOException, ServletException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public void login(String string, String string1) throws ServletException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public void logout() throws ServletException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public Collection<Part> getParts() throws IOException, ServletException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public Part getPart(String string) throws IOException, ServletException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public ServletContext getServletContext() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public AsyncContext startAsync() throws IllegalStateException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public AsyncContext startAsync(ServletRequest sr, ServletResponse sr1) throws IllegalStateException {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public boolean isAsyncStarted() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public boolean isAsyncSupported() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public AsyncContext getAsyncContext() {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public DispatcherType getDispatcherType() {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
