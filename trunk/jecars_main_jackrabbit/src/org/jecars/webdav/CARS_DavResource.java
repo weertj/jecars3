@@ -373,12 +373,15 @@ public class CARS_DavResource implements DavResource, BindableResource, JcrConst
     public void spool( final OutputContext pOutputContext ) throws IOException {
       if (exists() && pOutputContext != null) {
         try {
-          final Node n = getNode();
+          Node n = getNode();
           if (n.isNodeType( "nt:resource" )) {
+            n = CARS_Utils.getLinkedNode(n);
             final OutputStream os = pOutputContext.getOutputStream();
             if (os!=null) {
-              CARS_Utils.sendInputStreamToOutputStream( 10000, n.getProperty( "jcr:data" ).getStream(),
+              Binary bin = n.getProperty( "jcr:data" ).getBinary();
+              CARS_Utils.sendInputStreamToOutputStream( 10000, bin.getStream(),
                         pOutputContext.getOutputStream() );
+              bin.dispose();
             }
           }
         } catch( Exception re ) {
