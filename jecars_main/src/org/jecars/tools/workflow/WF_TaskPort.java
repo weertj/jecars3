@@ -59,6 +59,7 @@ public class WF_TaskPort extends WF_Default implements IWF_TaskPort {
     return "";
   }
 
+  @Deprecated
   @Override
   public int getSequenceNumber() throws RepositoryException {
     if (getNode().hasProperty( "jecars:sequencenumber" )) {

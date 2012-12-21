@@ -26,6 +26,7 @@ public interface IWF_TaskPort {
   String getNodeName() throws RepositoryException;
   String getNodeType() throws RepositoryException;
   String getPropertyName() throws RepositoryException;
+  @Deprecated
   int    getSequenceNumber() throws RepositoryException;
 
 }
