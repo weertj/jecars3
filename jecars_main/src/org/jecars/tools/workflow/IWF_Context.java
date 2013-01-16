@@ -26,6 +26,7 @@ import javax.jcr.RepositoryException;
 public interface IWF_Context extends IWF_Default {
 
   void       setParameterNode( String pName, String pValue ) throws RepositoryException;
+  Node       getParameterNode( String pName ) throws RepositoryException;
   List<Node> getParameterNodes() throws RepositoryException;
   List<Node> getDataNodes() throws RepositoryException;
   

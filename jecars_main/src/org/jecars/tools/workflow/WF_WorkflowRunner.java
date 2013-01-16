@@ -26,6 +26,7 @@ import java.util.logging.Level;
 import javax.jcr.*;
 import org.jecars.CARS_Main;
 import org.jecars.CARS_Utils;
+import org.jecars.client.nt.EJC_EndTaskParameter;
 import org.jecars.tools.CARS_FileClassLoader;
 import org.jecars.tools.CARS_ToolInterface;
 import org.jecars.tools.CARS_ToolsFactory;
@@ -594,8 +595,17 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
       case END: {
         res.setState( WFP_InterfaceResult.STATE.STOP );
         final List<Node> nl = getContext().getDataNodes();
-        final Node wfNode = getWorkflow().getNode();
+        Node wfNode = getWorkflow().getNode();
         synchronized( WRITERACCESS ) {
+          final Node param = getContext().getParameterNode( EJC_EndTaskParameter.OUTPUT_FOLDER.name() );
+          if (param!=null) {
+            final Value[] values = param.getProperty( "jecars:string" ).getValues();
+            if (values.length>0) {
+              final Node outputFolder = wfNode.addNode( values[0].getString(), "jecars:datafolder" );
+              outputFolder.addMixin( "jecars:mix_outputresource" );
+              wfNode = outputFolder; 
+            }
+          }
           for( final Node dataNode : nl ) {
             try {
               wfNode.getSession().move( dataNode.getPath(), wfNode.getPath() + "/" + dataNode.getName() );
