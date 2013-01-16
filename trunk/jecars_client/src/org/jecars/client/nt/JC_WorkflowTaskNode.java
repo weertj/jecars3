@@ -209,6 +209,18 @@ public class JC_WorkflowTaskNode extends JC_DefaultNode {
     return (JC_ParameterDataNode)pn.morphToNodeType();
   }
 
+  /** addParameterData
+   * 
+   * @param pName
+   * @return
+   * @throws JC_Exception 
+   */
+  public JC_ParameterDataNode addParameterData( final Enum pName ) throws JC_Exception {    
+    final JC_Nodeable pn = addNode( pName.toString(), "jecars:parameterdata" );
+    pn.save();
+    return (JC_ParameterDataNode)pn.morphToNodeType();
+  }
+
   /** setExpireContextAfterMinutes
    * 
    * @param pMin
