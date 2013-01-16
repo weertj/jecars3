@@ -87,6 +87,12 @@ public class WF_Context extends WF_Default implements IWF_Context {
     return nl;
   }
 
+  /** setParameterNode
+   * 
+   * @param pName
+   * @param pValue
+   * @throws RepositoryException 
+   */
   @Override
   public void setParameterNode( final String pName, final String pValue ) throws RepositoryException {
     Node n = getNode();
@@ -97,7 +103,21 @@ public class WF_Context extends WF_Default implements IWF_Context {
     para.setProperty( "jecars:string", pValue );
     return;
   }
-
+ 
+  /** getParameterNode
+   * 
+   * @param pName
+   * @return
+   * @throws RepositoryException 
+   */
+  @Override
+  public Node getParameterNode( String pName ) throws RepositoryException {
+    final Node n = getNode();
+    if (n.hasNode( pName )) {
+      return n.getNode( pName );
+    }
+    return null;
+  }
   
   /** restore
    * 
