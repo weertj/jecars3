@@ -1,0 +1,319 @@
++jecars%3AEventsREAD	jecars:EventsFolder
+-jecars:ExpireHourCHECKOUT	Long	24
+-jecars:ExpireHourINFO	Long	1
+-jecars:ExpireHourTRASHED	Long	24
+-jecars:StoreEventsPer	String	HOUR
+-jecars:ExpireHourQUERY	Long	12
+-jecars:ExpireHourLOGOUT	Long	48
+-jecars:ExpireHourCHECKIN	Long	48
+-jcr:created	Date	2008-10-15T10%3A04%3A25.805%2B02%3A00
+-jecars:ExpireHourCONFIG	Long	1
+-jecars:ExpireHourWARNING	Long	2
+-jecars:ExpireHourSEVERE	Long	48
+-jecars:ExpireHourUPDATE	Long	1
+-jecars:ExpireHourLOGIN	Long	48
+-jecars:ExpireHourREAD	Long	1
+-jecars:ExpireHourCOPY	Long	1
+-jecars:ExpireHourMOVE	Long	24
+-jecars:ExpireHourDELETE	Long	24
+-jecars:ExpireHourRESTORE	Long	48
+-jecars:ExpireHourCREATE	Long	24
+-jecars:ExpireHourFINEST	Long	1
+-jecars:EventsCount	Long	382
+-jecars:ExpireHourFINE	Long	1
+-jecars:ExpireHourFINER	Long	1
+-jecars:ExpireHourWRITE	Long	24
+[
++2008	jecars:EventsStoreFolder
+-jcr:created	Date	2008-10-21T10%3A59%3A35.663%2B02%3A00
+-jecars:ExpireDate	Date	2008-10-21T12%3A20%3A24.958%2B02%3A00
+[
++10	jecars:EventsStoreFolder
+-jcr:created	Date	2008-10-21T10%3A59%3A35.663%2B02%3A00
+-jecars:ExpireDate	Date	2008-10-21T12%3A20%3A24.958%2B02%3A00
+[
++21	jecars:EventsStoreFolder
+-jcr:created	Date	2008-10-21T10%3A59%3A35.663%2B02%3A00
+-jecars:ExpireDate	Date	2008-10-21T12%3A20%3A24.958%2B02%3A00
+[
++11	jecars:EventsStoreFolder
+-jcr:created	Date	2008-10-21T11%3A02%3A53.359%2B02%3A00
+-jecars:ExpireDate	Date	2008-10-21T12%3A20%3A24.958%2B02%3A00
+[
++URL_READ_348	jecars:Exception
+-jecars:Title	String	GET%3A+%2FJeCARS%2Fdefault%3Falt%3Datom
+-jecars:Type	String	READ
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A02%3A53.359%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2Fdefault%3Falt%3Datom
+-jecars:ExpireDate	Date	2008-10-21T12%3A02%3A53.359%2B02%3A00
++URL_READ_349	jecars:Exception
+-jecars:Title	String	GET%3A+%2FJeCARS%2Fdefault%3Falt%3Dproperties%26childnodedefs%3Dproperty
+-jecars:Type	String	READ
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A02%3A53.531%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2Fdefault%3Falt%3Dproperties%26childnodedefs%3Dproperty
+-jecars:ExpireDate	Date	2008-10-21T12%3A02%3A53.515%2B02%3A00
++URL_READ_350	jecars:Exception
+-jecars:Title	String	GET%3A+%2FJeCARS%2Fdefault%2FUsers%2FAdministrator%3Falt%3Datom
+-jecars:Type	String	READ
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A02%3A53.594%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2Fdefault%2FUsers%2FAdministrator%3Falt%3Datom
+-jecars:ExpireDate	Date	2008-10-21T12%3A02%3A53.594%2B02%3A00
++URL_READ_351	jecars:Exception
+-jecars:Title	String	HEAD%3A+%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Type	String	READ
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A02%3A53.656%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	HEAD%3A+%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:ExpireDate	Date	2008-10-21T12%3A02%3A53.656%2B02%3A00
++URL_READ_352	jecars:Exception
+-jecars:Title	String	HEAD%3A+%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Type	String	READ
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A02%3A53.750%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	HEAD%3A+%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:ExpireDate	Date	2008-10-21T12%3A02%3A53.734%2B02%3A00
++URL_READ_353	jecars:Exception
+-jecars:Title	String	HEAD%3A+%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Type	String	READ
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A02%3A53.765%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	HEAD%3A+%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:ExpireDate	Date	2008-10-21T12%3A02%3A53.765%2B02%3A00
++URL_READ_354	jecars:Exception
+-jecars:Title	String	GET%3A+%2FJeCARS%2Fdefault%2FUsers%3Falt%3Datom
+-jecars:Type	String	READ
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A02%3A53.812%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2Fdefault%2FUsers%3Falt%3Datom
+-jecars:ExpireDate	Date	2008-10-21T12%3A02%3A53.812%2B02%3A00
++URL_READ_355	jecars:Exception
+-jecars:Title	String	GET%3A+%2F
+-jecars:Type	String	READ
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A04%3A07.764%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2F
+-jecars:ExpireDate	Date	2008-10-21T12%3A04%3A07.764%2B02%3A00
++URL_READ_356	jecars:Exception
+-jecars:Title	String	GET%3A+%2FJeCARS
+-jecars:Type	String	READ
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A04%3A09.613%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS
+-jecars:ExpireDate	Date	2008-10-21T12%3A04%3A09.613%2B02%3A00
++URL_READ_357	jecars:Exception
+-jecars:Title	String	GET%3A+%2FJeCARS%2FApplicationSources
+-jecars:Type	String	READ
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A04%3A10.972%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2FApplicationSources
+-jecars:ExpireDate	Date	2008-10-21T12%3A04%3A10.972%2B02%3A00
++URL_READ_358	jecars:Exception
+-jecars:Title	String	GET%3A+%2FJeCARS%2FApplicationSources%2FAdminApp
+-jecars:Type	String	READ
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A04%3A14.386%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2FApplicationSources%2FAdminApp
+-jecars:ExpireDate	Date	2008-10-21T12%3A04%3A14.386%2B02%3A00
++URL_READ_359	jecars:Exception
+-jecars:Title	String	GET%3A+%2FJeCARS%2FApplicationSources%2FAdminApp%2FBackupFacility
+-jecars:Type	String	READ
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A04%3A16.140%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2FApplicationSources%2FAdminApp%2FBackupFacility
+-jecars:ExpireDate	Date	2008-10-21T12%3A04%3A16.140%2B02%3A00
++URL_READ_360	jecars:Exception
+-jecars:Title	String	GET%3A+%2FJeCARS%2FApplicationSources%2FAdminApp%2FBackupFacility%3Falt%3Dhtml
+-jecars:Type	String	READ
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A04%3A20.850%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2FApplicationSources%2FAdminApp%2FBackupFacility%3Falt%3Dhtml
+-jecars:ExpireDate	Date	2008-10-21T12%3A04%3A20.850%2B02%3A00
++URL_READ_361	jecars:Exception
+-jecars:Type	String	READ
+-jecars:Title	String	GET%3A+%2FJeCARS%2Fdefault
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A15%3A37.774%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2Fdefault
+-jecars:ExpireDate	Date	2008-10-21T12%3A15%3A37.759%2B02%3A00
++URL_READ_362	jecars:Exception
+-jecars:Type	String	READ
+-jecars:Title	String	GET%3A+%2FJeCARS%2Fdefault%2FUsers
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A15%3A39.949%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2Fdefault%2FUsers
+-jecars:ExpireDate	Date	2008-10-21T12%3A15%3A39.949%2B02%3A00
++URL_READ_363	jecars:Exception
+-jecars:Type	String	READ
+-jecars:Title	String	GET%3A+%2FJeCARS%2Fdefault%2FUsers%3Falt%3Dbackup
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A15%3A46.253%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2Fdefault%2FUsers%3Falt%3Dbackup
+-jecars:ExpireDate	Date	2008-10-21T12%3A15%3A46.253%2B02%3A00
++URL_READ_364	jecars:Exception
+-jecars:Type	String	READ
+-jecars:Title	String	GET%3A+%2FJeCARS%2Fdefault%3Falt%3Dbackup
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A16%3A17.258%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2Fdefault%3Falt%3Dbackup
+-jecars:ExpireDate	Date	2008-10-21T12%3A16%3A17.258%2B02%3A00
++URL_READ_365	jecars:Exception
+-jecars:Type	String	READ
+-jecars:Title	String	GET%3A+%2FJeCARS%2Fdefault%2FData
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A16%3A35.795%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2Fdefault%2FData
+-jecars:ExpireDate	Date	2008-10-21T12%3A16%3A35.795%2B02%3A00
++URL_READ_366	jecars:Exception
+-jecars:Type	String	READ
+-jecars:Title	String	GET%3A+%2FJeCARS%2Fdefault%2FGroups
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A16%3A37.297%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2Fdefault%2FGroups
+-jecars:ExpireDate	Date	2008-10-21T12%3A16%3A37.297%2B02%3A00
++URL_READ_367	jecars:Exception
+-jecars:Type	String	READ
+-jecars:Title	String	GET%3A+%2FJeCARS%2Fdefault%2FGroups%3Falt%3Dbackup
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A16%3A44.618%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2Fdefault%2FGroups%3Falt%3Dbackup
+-jecars:ExpireDate	Date	2008-10-21T12%3A16%3A44.618%2B02%3A00
++URL_READ_368	jecars:Exception
+-jecars:Type	String	READ
+-jecars:Title	String	GET%3A+%2FJeCARS%2Fdefault%2FEvents
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A17%3A10.680%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2Fdefault%2FEvents
+-jecars:ExpireDate	Date	2008-10-21T12%3A17%3A10.680%2B02%3A00
++URL_READ_369	jecars:Exception
+-jecars:Type	String	READ
+-jecars:Title	String	GET%3A+%2FJeCARS%2Fdefault%2FEvents%2FSystem
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A17%3A11.759%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2Fdefault%2FEvents%2FSystem
+-jecars:ExpireDate	Date	2008-10-21T12%3A17%3A11.759%2B02%3A00
++URL_READ_370	jecars:Exception
+-jecars:Type	String	READ
+-jecars:Title	String	GET%3A+%2FJeCARS%2Fdefault%2FEvents%2FSystem%2Fjecars%3AEventsREAD
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A17%3A16.656%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2Fdefault%2FEvents%2FSystem%2Fjecars%3AEventsREAD
+-jecars:ExpireDate	Date	2008-10-21T12%3A17%3A16.656%2B02%3A00
++URL_READ_371	jecars:Exception
+-jecars:Type	String	READ
+-jecars:Title	String	GET%3A+%2FJeCARS%2Fdefault%2FEvents%2FSystem%2Fjecars%3AEventsREAD%2F2008
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A17%3A17.798%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2Fdefault%2FEvents%2FSystem%2Fjecars%3AEventsREAD%2F2008
+-jecars:ExpireDate	Date	2008-10-21T12%3A17%3A17.798%2B02%3A00
++URL_READ_372	jecars:Exception
+-jecars:Type	String	READ
+-jecars:Title	String	GET%3A+%2FJeCARS%2Fdefault%2FEvents%2FSystem%2Fjecars%3AEventsREAD%2F2008%2F10
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A17%3A18.689%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2Fdefault%2FEvents%2FSystem%2Fjecars%3AEventsREAD%2F2008%2F10
+-jecars:ExpireDate	Date	2008-10-21T12%3A17%3A18.689%2B02%3A00
++URL_READ_373	jecars:Exception
+-jecars:Type	String	READ
+-jecars:Title	String	GET%3A+%2FJeCARS%2Fdefault%2FEvents%2FSystem%2Fjecars%3AEventsREAD%2F2008%2F10%2F21
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A17%3A19.659%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2Fdefault%2FEvents%2FSystem%2Fjecars%3AEventsREAD%2F2008%2F10%2F21
+-jecars:ExpireDate	Date	2008-10-21T12%3A17%3A19.659%2B02%3A00
++URL_READ_374	jecars:Exception
+-jecars:Type	String	READ
+-jecars:Title	String	GET%3A+%2FJeCARS%2Fdefault%2FEvents%2FSystem%2Fjecars%3AEventsREAD%2F2008%2F10%2F21%2F10
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A17%3A20.926%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2Fdefault%2FEvents%2FSystem%2Fjecars%3AEventsREAD%2F2008%2F10%2F21%2F10
+-jecars:ExpireDate	Date	2008-10-21T12%3A17%3A20.911%2B02%3A00
++URL_READ_375	jecars:Exception
+-jecars:Type	String	READ
+-jecars:Title	String	GET%3A+%2FJeCARS%2Fdefault%2FEvents%2FSystem%2Fjecars%3AEventsREAD%2F2008%2F10%2F21%2F10%3Falt%3Dbackup
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A17%3A27.950%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2Fdefault%2FEvents%2FSystem%2Fjecars%3AEventsREAD%2F2008%2F10%2F21%2F10%3Falt%3Dbackup
+-jecars:ExpireDate	Date	2008-10-21T12%3A17%3A27.950%2B02%3A00
++URL_READ_376	jecars:Exception
+-jecars:Type	String	READ
+-jecars:Title	String	GET%3A+%2FJeCARS%2Fdefault%2FEvents%2FSystem%2Fjecars%3AEventsREAD%2F2008%2F10%2F21%2F10
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A19%3A15.148%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2Fdefault%2FEvents%2FSystem%2Fjecars%3AEventsREAD%2F2008%2F10%2F21%2F10
+-jecars:ExpireDate	Date	2008-10-21T12%3A19%3A15.148%2B02%3A00
++URL_READ_377	jecars:Exception
+-jecars:Type	String	READ
+-jecars:Title	String	GET%3A+%2FJeCARS%2Fdefault%2FEvents%2FSystem%2Fjecars%3AEventsREAD%2F2008%2F10%2F21
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A19%3A47.920%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2Fdefault%2FEvents%2FSystem%2Fjecars%3AEventsREAD%2F2008%2F10%2F21
+-jecars:ExpireDate	Date	2008-10-21T12%3A19%3A47.920%2B02%3A00
++URL_READ_378	jecars:Exception
+-jecars:Type	String	READ
+-jecars:Title	String	GET%3A+%2FJeCARS%2Fdefault%2FEvents%2FSystem%2Fjecars%3AEventsREAD%2F2008
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A20%3A07.501%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2Fdefault%2FEvents%2FSystem%2Fjecars%3AEventsREAD%2F2008
+-jecars:ExpireDate	Date	2008-10-21T12%3A20%3A07.501%2B02%3A00
++URL_READ_379	jecars:Exception
+-jecars:Type	String	READ
+-jecars:Title	String	GET%3A+%2FJeCARS%2Fdefault%2FEvents%2FSystem%2Fjecars%3AEventsREAD%2F2008%2F10
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A20%3A08.251%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2Fdefault%2FEvents%2FSystem%2Fjecars%3AEventsREAD%2F2008%2F10
+-jecars:ExpireDate	Date	2008-10-21T12%3A20%3A08.251%2B02%3A00
++URL_READ_380	jecars:Exception
+-jecars:Type	String	READ
+-jecars:Title	String	GET%3A+%2FJeCARS%2Fdefault%2FEvents%2FSystem%2Fjecars%3AEventsREAD%2F2008%2F10%2F21%2F11
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A20%3A09.580%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2Fdefault%2FEvents%2FSystem%2Fjecars%3AEventsREAD%2F2008%2F10%2F21%2F11
+-jecars:ExpireDate	Date	2008-10-21T12%3A20%3A09.580%2B02%3A00
++URL_READ_381	jecars:Exception
+-jecars:Type	String	READ
+-jecars:Title	String	GET%3A+%2FJeCARS%2Fdefault%2FEvents%2FSystem%2Fjecars%3AEventsREAD%3Falt%3Dbackup
+-jecars:Category	String	URL
+-jcr:created	Date	2008-10-21T11%3A20%3A24.958%2B02%3A00
+-jecars:User	Path	%2FJeCARS%2Fdefault%2FUsers%2FAdministrator
+-jecars:Body	String	GET%3A+%2FJeCARS%2Fdefault%2FEvents%2FSystem%2Fjecars%3AEventsREAD%3Falt%3Dbackup
+-jecars:ExpireDate	Date	2008-10-21T12%3A20%3A24.958%2B02%3A00
+]
+]
+]
+]
+]
