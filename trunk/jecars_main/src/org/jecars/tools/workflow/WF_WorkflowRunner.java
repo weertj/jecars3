@@ -597,7 +597,12 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
         final List<Node> nl = getContext().getDataNodes();
         Node wfNode = getWorkflow().getNode();
         synchronized( WRITERACCESS ) {
-          final Node param = getContext().getParameterNode( EJC_EndTaskParameter.OUTPUT_FOLDER.name() );
+          Node param = getContext().getParameterNode( EJC_EndTaskParameter.OUTPUT_FOLDER.name() );
+          if (param==null) {
+            if (pTask.getToolTemplateNode().hasNode( EJC_EndTaskParameter.OUTPUT_FOLDER.name() )) {
+              param = pTask.getToolTemplateNode().getNode( EJC_EndTaskParameter.OUTPUT_FOLDER.name() );
+            }
+          }
           if (param!=null) {
             final Value[] values = param.getProperty( "jecars:string" ).getValues();
             if (values.length>0) {
@@ -628,7 +633,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
         final WF_Workflow newWF;
         synchronized( WRITERACCESS ) {
           final WF_Workflow wf = new WF_Workflow( ttn );        
-          newWF = wf.copyTo( getNode(), "Workflow_" + getStepNumber() );
+          newWF = wf.copyTo( getNode(), "Workflow_" + getStepNumber() + "_" + ttn.getName() );
           save();
         }          
         final Node n = newWF.getNode();
