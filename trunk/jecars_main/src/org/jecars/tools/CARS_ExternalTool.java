@@ -390,48 +390,19 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
         final List<Node> inputRes = getInputResources( getTool() );
         for ( final Node input : inputRes ) {
           if (!"jecars:Input".equals(input.getName())) {
-            InputStream       is = null;
-            FileOutputStream fos = null;
-            File      sourceFile = null;
-            Binary           bin = null;
-            try {
-              final Node linkedNode = CARS_Utils.getLinkedNode( input );
-              if (linkedNode.hasProperty( "jecars:URL" )) {
-                final String path = linkedNode.getProperty( "jecars:URL" ).getValue().getString();
-                final URL u = new URL( path );
-                if (path.startsWith( "file:/" )) {
-                  sourceFile = new File( URLDecoder.decode( u.getFile(), "UTF-8" ));
-                } else {
-                  is = u.openStream();
-                }
-              } else {
-                if (linkedNode.hasProperty( "jecars:PathToFile" )) {
-                  sourceFile = new File( linkedNode.getProperty( "jecars:PathToFile" ).getValue().getString() );
-//                  is = new FileInputStream(  );
-                } else {
-                  bin = linkedNode.getProperty( "jcr:data" ).getBinary();
-                  is = bin.getStream();
-                }
+            final Node linkedNode = CARS_Utils.getLinkedNode( input );
+            if (linkedNode.isNodeType("jecars:datafolder")) {
+              final NodeIterator ni = linkedNode.getNodes();              
+              while (ni.hasNext()) {
+                final Node nextNode = ni.nextNode();
+                copyInputResourceToWorkingDir(nextNode);
+                final File inputResFile = new File( mWorkingDirectory, nextNode.getName() );
+                copiedInputs.put( nextNode.getName(), inputResFile );          
               }
-              final File inputResFile = new File( mWorkingDirectory, linkedNode.getName() );
-              copiedInputs.put( linkedNode.getName(), inputResFile );
-              if (sourceFile==null) {
-                fos = new FileOutputStream( inputResFile );
-                CARS_Utils.sendInputStreamToOutputStream( 50000, is, fos );
-              } else {
-                CARS_Utils.sendInputToOutputNIOBuffer( sourceFile, inputResFile );
-              }
-//              mInputs.add( inputResFile );
-            } finally {
-              if (bin!=null) {
-                bin.dispose();
-              }
-              if (fos!=null) {
-                fos.close();
-              }
-              if (is!=null) {
-                is.close();
-              }
+            } else {
+             copyInputResourceToWorkingDir(linkedNode);
+             final File inputResFile = new File( mWorkingDirectory, linkedNode.getName() );
+             copiedInputs.put( linkedNode.getName(), inputResFile );
             }
           }
         }
@@ -468,6 +439,58 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
     super.toolInput();
     return;
   }
+
+  /**
+   * Copy linkedNode contents to mWorkingDirectory
+   * @param linkedNode
+   * @throws IOException
+   * @throws IllegalStateException
+   * @throws RepositoryException 
+   */
+    private void copyInputResourceToWorkingDir(final Node linkedNode) throws IOException, IllegalStateException, RepositoryException {
+        File      sourceFile = null;
+        Binary           bin = null;
+        InputStream       is = null;
+        FileOutputStream fos = null;
+        try {
+            if (linkedNode.hasProperty("jecars:URL")) {
+                final String path = linkedNode.getProperty("jecars:URL").getValue().getString();
+                final URL u = new URL(path);
+                if (path.startsWith("file:/")) {
+                    sourceFile = new File(URLDecoder.decode(u.getFile(), "UTF-8"));
+                } else {
+                    is = u.openStream();
+                }
+            } else {
+                if (linkedNode.hasProperty("jecars:PathToFile")) {
+                    sourceFile = new File(linkedNode.getProperty("jecars:PathToFile").getValue().getString());
+//                  is = new FileInputStream(  );
+                } else {
+                    bin = linkedNode.getProperty("jcr:data").getBinary();
+                    is = bin.getStream();
+                }
+            }
+            final File inputResFile = new File(mWorkingDirectory, linkedNode.getName());
+            if (sourceFile == null) {
+                fos = new FileOutputStream(inputResFile);
+                CARS_Utils.sendInputStreamToOutputStream(50000, is, fos);
+            } else {
+                CARS_Utils.sendInputToOutputNIOBuffer(sourceFile, inputResFile);
+            }
+//              mInputs.add( inputResFile );
+        } finally {
+            if (bin != null) {
+                bin.dispose();
+            }
+            if (fos != null) {
+                fos.close();
+            }
+            if (is != null) {
+                is.close();
+            }
+        }
+    }
+
 
 
   /** toolRun

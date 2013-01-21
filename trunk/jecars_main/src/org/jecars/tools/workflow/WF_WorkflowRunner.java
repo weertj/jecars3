@@ -563,6 +563,72 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
     }
     return res;
   }
+
+  /** copyDataNodesToContext
+   * 
+   * @param pOutputFolder
+   * @throws RepositoryException 
+   */
+  private void copyDataNodesToContext( final Node pOutputFolder ) throws RepositoryException {
+    // **** Copy the datanode items at context level to the outputfolder
+    final List<Node> nl = getContext().getDataNodes();
+    for( final Node dataNode : nl ) {
+      try {
+        if (dataNode.getPath().startsWith(pOutputFolder.getPath())) {
+          // **** Node copy not necessary, is already there
+        } else {
+          synchronized( WRITERACCESS ) {
+            dataNode.getSession().move( dataNode.getPath(), pOutputFolder.getPath() + "/" + dataNode.getName() );
+            final Node n = pOutputFolder.getNode( dataNode.getName() );
+            if (!n.isNodeType( "jecars:mix_outputresource" )) {
+              n.addMixin( "jecars:mix_outputresource" );
+            }
+            save();
+          }
+        }
+      } catch( ItemExistsException ie ) {
+      }
+    }
+    return;
+  }
+  
+  /** handleContextParameters
+   * 
+   * @param pTask
+   * @return
+   * @throws RepositoryException 
+   */
+  private Node handleContextParameters( final IWF_Task pTask ) throws RepositoryException {
+    Node wfNode = getContext().getNode();
+    
+    // ******************************************
+    // **** Check for WFP_OUTPUT_FOLDER parameter
+    Node param = getContext().getParameterNode( EWF_ContextParameter.WFP_OUTPUT_FOLDER.name() );
+    if (param==null) {
+      if (pTask.getNode().hasNode( EWF_ContextParameter.WFP_OUTPUT_FOLDER.name() )) {
+        param = pTask.getNode().getNode( EWF_ContextParameter.WFP_OUTPUT_FOLDER.name() );
+      }
+    }
+    if (param!=null) {
+      final Value[] values = param.getProperty( "jecars:string" ).getValues();
+      if (values.length>0) {
+        final String folderName = values[0].getString();
+        final Node outputFolder;
+        if (wfNode.hasNode(folderName)) {
+          outputFolder = wfNode.getNode(folderName);
+        } else {
+          synchronized( WRITERACCESS ) {
+            outputFolder = wfNode.addNode( folderName, "jecars:datafolder" );
+            outputFolder.addMixin( "jecars:mix_outputresource" );
+            save();
+          }
+        }
+        copyDataNodesToContext( outputFolder );        
+        wfNode = outputFolder;
+      }
+    }
+    return wfNode;
+  }
   
   /** runTask
    * 
@@ -578,6 +644,13 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
     switch( pTask.getType() ) {
       
       // **************
+      // **** START
+      case START: {
+        handleContextParameters( pTask );
+        break;
+      }
+        
+      // **************
       // **** CONSTANTS
       case CONSTANTS: {
         break;
@@ -586,6 +659,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
       // *****************
       // **** RUN JAVATASK
       case JAVATASK: {
+        handleContextParameters( pTask );
         res.replaceBy( runJavaTask( pTask, mTransientContext ));
         break;
       }
@@ -594,41 +668,51 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
       // **** END 
       case END: {
         res.setState( WFP_InterfaceResult.STATE.STOP );
-        final List<Node> nl = getContext().getDataNodes();
-        Node wfNode = getWorkflow().getNode();
-        synchronized( WRITERACCESS ) {
-          Node param = getContext().getParameterNode( EJC_EndTaskParameter.OUTPUT_FOLDER.name() );
-          if (param==null) {
-            if (pTask.getToolTemplateNode().hasNode( EJC_EndTaskParameter.OUTPUT_FOLDER.name() )) {
-              param = pTask.getToolTemplateNode().getNode( EJC_EndTaskParameter.OUTPUT_FOLDER.name() );
-            }
-          }
-          if (param!=null) {
-            final Value[] values = param.getProperty( "jecars:string" ).getValues();
-            if (values.length>0) {
-              final Node outputFolder = wfNode.addNode( values[0].getString(), "jecars:datafolder" );
-              outputFolder.addMixin( "jecars:mix_outputresource" );
-              wfNode = outputFolder; 
-            }
-          }
-          for( final Node dataNode : nl ) {
-            try {
-              wfNode.getSession().move( dataNode.getPath(), wfNode.getPath() + "/" + dataNode.getName() );
-              final Node n = wfNode.getNode( dataNode.getName() );
-              if (!n.isNodeType( "jecars:mix_outputresource" )) {
-                n.addMixin( "jecars:mix_outputresource" );
-              }
-            } catch( ItemExistsException ie ) {              
-            }
-          }
-          save();
-        }
+//        final List<Node> nl = getContext().getDataNodes();
+        final Node wfNode = handleContextParameters( pTask );
+//        synchronized( WRITERACCESS ) {
+//          Node wfNode = getWorkflow().getNode();
+//          Node param = getContext().getParameterNode( EJC_EndTaskParameter.OUTPUT_FOLDER.name() );
+//          if (param==null) {
+//            if (pTask.getNode().hasNode( EJC_EndTaskParameter.OUTPUT_FOLDER.name() )) {
+//              param = pTask.getNode().getNode( EJC_EndTaskParameter.OUTPUT_FOLDER.name() );
+//            }
+//          }
+//          if (param!=null) {
+//            final Value[] values = param.getProperty( "jecars:string" ).getValues();
+//            if (values.length>0) {
+//              final String folderName = values[0].getString();
+//              final Node outputFolder;
+//              if (wfNode.hasNode(folderName)) {
+//                outputFolder = wfNode.getNode(folderName);
+//              } else {
+//                outputFolder = wfNode.addNode( folderName, "jecars:datafolder" );
+//                outputFolder.addMixin( "jecars:mix_outputresource" );
+//              }
+//              wfNode = outputFolder;                 
+//            }
+//          }
+          copyDataNodesToContext( wfNode );
+//          final List<Node> nl = getContext().getDataNodes();
+//          for( final Node dataNode : nl ) {
+//            try {
+//              wfNode.getSession().move( dataNode.getPath(), wfNode.getPath() + "/" + dataNode.getName() );
+//              final Node n = wfNode.getNode( dataNode.getName() );
+//              if (!n.isNodeType( "jecars:mix_outputresource" )) {
+//                n.addMixin( "jecars:mix_outputresource" );
+//              }
+//            } catch( ItemExistsException ie ) {              
+//            }
+//          }
+//          save();
+//        }
         break;
       }
 
       // *****************
       // **** RUN WORKFLOW
       case WORKFLOW: {
+        handleContextParameters( pTask );
         final Node ttn = pTask.getToolTemplateNode();
         final WF_Workflow newWF;
         synchronized( WRITERACCESS ) {
@@ -760,6 +844,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
       // ***************
       // **** RUN TASK
       case TASK: {
+        handleContextParameters( pTask );
         final Node ttn = pTask.getToolTemplateNode();
         final Node tool = getNode().addNode( "Tool_" + getStepNumber(), "jecars:Tool" );
         synchronized( WRITERACCESS ) {
