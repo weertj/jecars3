@@ -245,6 +245,18 @@ public class JC_GroupNode extends JC_DefaultNode {
     }
   }
   
+  public void setIsRole( final boolean pB ) throws JC_Exception {
+    setProperty( "jecars:IsRole", pB );
+    save();
+    return;
+  }
+  
+  public boolean isRole() throws JC_Exception {
+    if (hasProperty( "jecars:IsRole" )) {
+      return getProperty( "jecars:IsRole" ).getValueAsBoolean();
+    }
+    return false;
+  }
   
   public String getGroupname() throws JC_Exception {
     return getName();

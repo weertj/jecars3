@@ -15,10 +15,17 @@
  */
 package org.jecars.client.nt;
 
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import org.jecars.client.JC_Clientable;
 import org.jecars.client.JC_DefaultNode;
 import org.jecars.client.JC_Exception;
+import org.jecars.client.JC_Filter;
+import org.jecars.client.JC_Nodeable;
+import org.jecars.client.JC_Params;
+import org.jecars.client.JC_Query;
+import org.jecars.client.JC_RESTComm;
 
 /**
  * JC_UserNode
@@ -437,4 +444,40 @@ public class JC_UserNode extends JC_DefaultNode {
       return (JC_PrefsNode)n.morphToNodeType();
     }
 
+    /** getGroups
+     * 
+     * @return
+     * @throws JC_Exception 
+     */
+    public List<JC_GroupNode> getGroups() throws JC_Exception {
+      final List<JC_GroupNode> groupList = new ArrayList<JC_GroupNode>();
+      final JC_Clientable c = getClient();
+      final JC_Params params = c.createParams( JC_RESTComm.GET ).cloneParams();
+      final JC_Filter filter = JC_Filter.createFilter();
+      filter.addCategory( "jecars:Group" );
+      final JC_Query  query  = JC_Query.createQuery();
+      query.setWhereString( JC_GroupNode.GROUPMEMBERS + " LIKE '%" + getName() + "'" );
+      final JC_Nodeable groups = c.getSingleNode( "/JeCARS/default/Groups" );      
+      for( final JC_Nodeable group : groups.getNodes( params, filter, query )) {
+        groupList.add( (JC_GroupNode)group.morphToNodeType() );
+      }
+      groups.refresh();
+      return groupList;
+    }
+    
+    public List<JC_Nodeable> getRoleFeatures() throws JC_Exception {
+      final List<JC_Nodeable> fList = new ArrayList<JC_Nodeable>();
+      final JC_Clientable c = getClient();
+      final JC_Params params = c.createParams( JC_RESTComm.GET ).cloneParams();
+      params.setDeep( true );
+      final JC_Filter filter = JC_Filter.createFilter();
+      filter.addCategory( "jecars:Feature" );
+      final JC_Nodeable groups = c.getSingleNode( "/JeCARS/default/Groups" );      
+      for( final JC_Nodeable feature : groups.getNodes( params, filter, null )) {
+        fList.add( feature );
+      }
+      return fList;      
+    }
+    
+    
 }

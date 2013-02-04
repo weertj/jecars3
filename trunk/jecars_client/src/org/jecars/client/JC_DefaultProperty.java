@@ -461,6 +461,11 @@ public class JC_DefaultProperty extends JC_DefaultItem implements JC_Propertyabl
     throw new UnsupportedOperationException("Not supported yet.");
   }
 
+  @Override
+  public String toString() {
+    return getName() + "=" + mValue;
+  }
+
   
 }
 

@@ -115,7 +115,7 @@ public class JC_Query {
    * 
    * @param pWhere
    */
-  public void setWhereString( final String pWhere ) throws UnsupportedEncodingException {
+  public void setWhereString( final String pWhere ) {
 //    mWhereString = URLEncoder.encode( pWhere, JC_RESTComm.CHARENCODE );
     mWhereString = pWhere;
     return;
