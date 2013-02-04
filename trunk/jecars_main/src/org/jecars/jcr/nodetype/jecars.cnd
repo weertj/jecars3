@@ -379,7 +379,15 @@
 [jecars:groupable] mixin
 - jecars:GroupMembers (Path) multiple
 
+[jecars:Feature] > jecars:root
+- jecars:Mode   (String)
+
+[jecars:Features] > jecars:root
++ * (jecars:Feature)
+
 [jecars:Group] > jecars:Principal, jecars:groupable
+- jecars:IsRole (Boolean)
++ Features (jecars:Features)=jecars:Features 
 
 [jecars:GroupLevel] > jecars:Group
 
