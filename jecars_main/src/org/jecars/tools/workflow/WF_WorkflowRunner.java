@@ -26,7 +26,6 @@ import java.util.logging.Level;
 import javax.jcr.*;
 import org.jecars.CARS_Main;
 import org.jecars.CARS_Utils;
-import org.jecars.client.nt.EJC_EndTaskParameter;
 import org.jecars.tools.CARS_FileClassLoader;
 import org.jecars.tools.CARS_ToolInterface;
 import org.jecars.tools.CARS_ToolsFactory;

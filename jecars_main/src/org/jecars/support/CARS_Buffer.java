@@ -46,6 +46,13 @@ public class CARS_Buffer {
     return this;
   }
   
+  public CARS_Buffer prefix( final String pS ) {
+    if (mStringBuilder!=null) {
+      mStringBuilder.insert( 0, pS );
+    }
+    return this;    
+  }
+  
   public CARS_Buffer append( final String pS ) {
     if (mStringBuilder!=null) {
       mStringBuilder.append( pS );

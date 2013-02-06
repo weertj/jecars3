@@ -118,7 +118,10 @@ public class CARS_OutputGenerator_JSON extends CARS_DefaultOutputGenerator imple
     if (pNodeNo!=1) {
       pMessage.append( "\t,\n" );
     }
-    pMessage.append( "\t{\n\t\t\"name\": \"" + CARS_Utils.convertNodeName(pChildNode) + "\"\n" );
+    pMessage.append( "\t{\n" );
+    pMessage.append( "\t\t\"type\": \"User\",\n" );
+    pMessage.append( "\t\t\"id\": " ).append( System.nanoTime() ).append( ",\n" );
+    pMessage.append( "\t\t\"name\": \"" ).append( CARS_Utils.convertNodeName(pChildNode) ).append( "\"\n" );
     pMessage.append( "\t}\n" );
 /*
     pMessage.append( "<published>" ).append( pContext.getPublishedDate(pChildNode) ).append( "</published>\n" );
