@@ -194,11 +194,11 @@ public class JackrabbitFactory extends CARS_Factory {
     n.setProperty( "jecars:Started", cal );
 
     Node internalSource;
-    if (!n.hasNode( "Trashcans" )) {
-      Node trashcans = n.addNode( "Trashcans", "jecars:Trashcan" );
-      Node gt = trashcans.addNode( "General", "jecars:Trashcan" );
-      gt.setProperty( "jecars:Body", "General default trashcan" );
-    }
+//    if (!n.hasNode( "Trashcans" )) {
+//      Node trashcans = n.addNode( "Trashcans", "jecars:Trashcan" );
+//      Node gt = trashcans.addNode( "General", "jecars:Trashcan" );
+//      gt.setProperty( "jecars:Body", "General default trashcan" );
+//    }
     // **********************************
     // **** Add system resources
     {
