@@ -19,6 +19,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.math.BigDecimal;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Properties;
@@ -192,13 +194,20 @@ public class JackrabbitFactory extends CARS_Factory {
     n.setProperty( "jecars:Started", cal );
 
     Node internalSource;
-//    if (n.hasNode( "Trashcans" )==false) {
-//      Node trashcans = n.addNode( "Trashcans", "jecars:Trashcan" );
-//      trashcans.setProperty( "jecars:Created", cal );
-//      Node gt = trashcans.addNode( "General", "jecars:Trashcan" );
-//      gt.setProperty( "jecars:Body", "General default trashcan" );
-//    }
-
+    if (!n.hasNode( "Trashcans" )) {
+      Node trashcans = n.addNode( "Trashcans", "jecars:Trashcan" );
+      Node gt = trashcans.addNode( "General", "jecars:Trashcan" );
+      gt.setProperty( "jecars:Body", "General default trashcan" );
+    }
+    // **********************************
+    // **** Add system resources
+    {
+      if (!n.hasNode( "Systems" )) {
+        Node systems = n.addNode( "Systems", "jecars:RES_Systems" );
+        systems.setProperty( "jecars:InterfaceClass", "org.jecars.apps.CARS_SystemsApp" );
+      }
+    }
+    
     if (!rootNode.hasNode( "shared" )) {
       final Node ext = rootNode.addNode( "shared", "jecars:CARS_Interface" );
       ext.setProperty( "jecars:InterfaceClass", "org.jecars.apps.CARS_SharedApp" );
