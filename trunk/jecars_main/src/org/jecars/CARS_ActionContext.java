@@ -59,7 +59,8 @@ public class CARS_ActionContext {
   final public static int NO_ERROR      = 0;
   final public static int ERROR_UNKNOWN = 1000;
 
-  static public boolean        gUntransport = true;
+  static public       String  gDefaultOutputFormat = "atom";
+  static public       boolean gUntransport = true;
   static public final Pattern gQueryPattern = Pattern.compile( "&" );
   
   final private static JD_Taglist gOutputGenerators = new JD_Taglist();
@@ -2005,7 +2006,7 @@ public class CARS_ActionContext {
   /** Create the reply for a POST (create object) message
    */
   private void createCreateNodeResult( final CARS_Buffer pReply ) {
-    String alt = "atom";
+    String alt = gDefaultOutputFormat;
     try {
       JD_Taglist params = getQueryPartsAsTaglist();
       if (params.getData( gDefAlt )!=null) alt = (String)params.getData( gDefAlt );
@@ -2025,7 +2026,7 @@ public class CARS_ActionContext {
   /** Create the reply for a DELETE (delete object) message
    */
   private void createDeleteNodeResult( final CARS_Buffer pReply ) {
-    String alt = "atom";
+    String alt = gDefaultOutputFormat;
     try {
       JD_Taglist params = getQueryPartsAsTaglist();
       if (params.getData( gDefAlt )!=null) alt = (String)params.getData( gDefAlt );
@@ -2052,7 +2053,7 @@ public class CARS_ActionContext {
    * @param pReply
    */
   private void createGetNodesResult( final CARS_Buffer pReply ) {
-    String alt = "atom";
+    String alt = gDefaultOutputFormat;
     boolean isFeed = true;
     long maxResult = MAX_NO_GETOBJECTS;
     CARS_OutputGenerator outputGen = null;
@@ -2566,6 +2567,12 @@ public class CARS_ActionContext {
 //              StringBuilder replyString = new StringBuilder();
               CARS_Buffer buffer = new CARS_Buffer( new StringBuilder() );
               createGetNodesResult( buffer );
+              String callback = getParameterStringFromMap( "callback" );
+              if (callback!=null) {
+                buffer.prefix( callback + "("
+                                + "{\n" +
+                                "  \"data\": " ).append( "})" );
+              }
               if (mError!=null) {
                 buffer = new CARS_Buffer( new StringBuilder() );
 //                replyString = new StringBuilder();

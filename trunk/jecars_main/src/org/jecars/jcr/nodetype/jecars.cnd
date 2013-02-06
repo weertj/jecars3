@@ -425,6 +425,32 @@
 - jecars:ExportPath      (Path)
 + jecars:StartBackup     (jecars:root)=jecars:root autocreated
 
+
+// ************************************
+// **** System resources
+
+[jecars:RES_FileSystem] > jecars:root
+- jecars:RootPath   (String)
+- jecars:Capacity   (Long)
+
+[jecars:RES_Core] > jecars:root
+- jecars:HyperThread        (Boolean)
+
+[jecars:RES_CPU] > jecars:root
+- jecars:ClockMhz           (Long)
+- jecars:Codename           (String)
+- jecars:DataPathWidth      (Long)
+- jecars:HyperThreadSupport (Boolean)
++ * (jecars:RES_Core)=jecars:RES_Core
+
+[jecars:RES_System] > jecars:root
+- jecars:MainMemory (Long)
++ * (jecars:RES_FileSystem)=jecars:RES_FileSystem
++ * (jecars:RES_CPU)=jecars:RES_CPU
+
+[jecars:RES_Systems] > jecars:CARS_Interface
++ * (jecars:RES_System)=jecars:RES_System
+
 // ****************************************************************************
 // **** Workflowing/batching
 
