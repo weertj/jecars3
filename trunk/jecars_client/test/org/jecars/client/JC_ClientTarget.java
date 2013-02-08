@@ -11,10 +11,9 @@ package org.jecars.client;
  */
 public class JC_ClientTarget {
 
-//  private static final String SERVER_ADDRESS = "http://3dflight.nlr.nl:8080/respite";
-//  private static final String SERVER_ADDRESS = "http://localhost/cars";
-  private static final String SERVER_ADDRESS = "http://localhost:8082/spade";
-//  private static final String SERVER_ADDRESS = "http://nlr01031w:8080/spectreCars";
+  private static final String SERVER_ADDRESS = "http://localhost/cars";
+//  private static final String SERVER_ADDRESS = "http://localhost:8080/cars";
+//  private static final String SERVER_ADDRESS = "http://localhost:8082/spade";
 
   static protected JC_Clientable getClient() throws JC_Exception {
      final JC_Clientable client = JC_Factory.createClient( SERVER_ADDRESS );
