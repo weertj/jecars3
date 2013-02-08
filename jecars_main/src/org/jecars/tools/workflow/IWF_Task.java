@@ -16,6 +16,7 @@
 
 package org.jecars.tools.workflow;
 
+import java.util.EnumSet;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 
@@ -26,7 +27,7 @@ public interface IWF_Task extends IWF_Default {
  
   EWF_TaskType getType() throws RepositoryException;
   Node         getToolTemplateNode() throws RepositoryException;
-
+  EnumSet<EWF_TaskModifier> getModifiers() throws RepositoryException;
   
   //  void         startTask() throws RepositoryException;
 

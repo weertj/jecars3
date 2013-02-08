@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2012 NLR - National Aerospace Laboratory
+ * Copyright 2011-2013 NLR - National Aerospace Laboratory
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
@@ -395,17 +396,24 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
           getContext().setUsedTask( currentTask );
           save();
         }
-        res.replaceBy( runTask( currentTask ));
-        final List<IWF_Link> links = workflow.getFromLinkByTask( currentTask );
+        EnumSet<EWF_TaskModifier> taskMods = currentTask.getModifiers();
+        WFP_InterfaceResult ires = runTask( currentTask );
+        if (ires.getStates().contains(WFP_InterfaceResult.STATE.ERROR)) {
+          if (taskMods.contains( EWF_TaskModifier.ALLOWERROR )) {
+            ires.setState( WFP_InterfaceResult.STATE.OK );
+          }
+        }
+        res.replaceBy( ires );
+        final List<IWF_Link> links = workflow.getFromLinkByTask( currentTask );                        
         if (!res.isContinueWorkflow() || links.isEmpty()) {
           // **** End of this part of the workflow reached
 //          stillRunning = false;
           setProgress( 1 );
-          synchronized( WRITERACCESS ) {
-            setCurrentTask( "" );
-            setCurrentLink( "" );
-            save();
-          }
+//          synchronized( WRITERACCESS ) {  // **** Don't set to "", in order to retrace were the runner went into error
+//            setCurrentTask( "" );
+//            setCurrentLink( "" );
+//            save();
+//          }
           if (res.isContinueWorkflow()) {
             res.setState( WFP_InterfaceResult.STATE.STOP );
           }
