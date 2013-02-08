@@ -16,6 +16,9 @@
 
 package org.jecars.tools.workflow;
 
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.StringTokenizer;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 
@@ -52,6 +55,8 @@ public class WF_Task extends WF_Default implements IWF_Task {
     return EWF_TaskType.valueOf( type );
   }
 
+  
+  
 //  @Override
 //  public void startTask() throws RepositoryException {
 //    
@@ -60,6 +65,24 @@ public class WF_Task extends WF_Default implements IWF_Task {
 //    
 //    return;
 //  }
+
+  /** getModifiers
+   * 
+   * @return
+   * @throws RepositoryException 
+   */
+  @Override
+  public EnumSet<EWF_TaskModifier> getModifiers() throws RepositoryException {
+    final EnumSet<EWF_TaskModifier> es = EnumSet.noneOf(EWF_TaskModifier.class);
+    if (getNode().hasProperty( "jecars:Modifiers" )) {
+      String mods = getNode().getProperty( "jecars:Modifiers" ).getString();
+      String[] mda = mods.split(",");
+      for( String md : mda ) {
+        es.add( EWF_TaskModifier.valueOf(md) );
+      }
+    }
+    return es;
+  }
   
     
 }

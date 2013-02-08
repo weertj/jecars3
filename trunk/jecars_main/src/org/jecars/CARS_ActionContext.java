@@ -64,6 +64,7 @@ public class CARS_ActionContext {
   static public final Pattern gQueryPattern = Pattern.compile( "&" );
   
   final private static JD_Taglist gOutputGenerators = new JD_Taglist();
+  private static       boolean    gOutputGeneratorsInit = false;
   final private static JD_Taglist gVersionManagers  = new JD_Taglist();
   
   // ****
@@ -176,9 +177,9 @@ public class CARS_ActionContext {
   /** Creates a new instance of CARS_ActionContext
    */
   public CARS_ActionContext() {
-    if (gOutputGenerators.isEmpty()) {
+    if (!gOutputGeneratorsInit) {
+      gOutputGeneratorsInit = true;
       synchronized( gOutputGenerators ) {
-        gOutputGenerators.clear();
         gOutputGenerators.replaceData( "atom", new CARS_OutputGenerator_Atom() );
         LOG.info( "OutputGenerator 'atom' added" );
         gOutputGenerators.replaceData( "html", new CARS_OutputGenerator_HTML() );
@@ -187,9 +188,6 @@ public class CARS_ActionContext {
         LOG.info( "OutputGenerator 'textentries' added" );
         gOutputGenerators.replaceData( "properties", new CARS_OutputGenerator_Properties() );
         LOG.info( "OutputGenerator 'properties' added" );
-        // **** TODO Elderberry
-//        gOutputGenerators.replaceData( "backup", new CARS_OutputGenerator_Backup() );
-//        LOG.info( "OutputGenerator 'backup' added" );
         gOutputGenerators.replaceData( "json", new CARS_OutputGenerator_JSON() );
         LOG.info( "OutputGenerator 'json' added" );
         gOutputGenerators.replaceData( "xml", new CARS_OutputGenerator_XML() );
@@ -198,9 +196,6 @@ public class CARS_ActionContext {
         LOG.info( "OutputGenerator 'xmltable' added" );
         gOutputGenerators.replaceData( "binary", new CARS_OutputGenerator_Binary() );
         LOG.info( "OutputGenerator 'binary' added" );
-        // **** TODO Elderberry
-//        gOutputGenerators.replaceData( "wfxml", new CARS_OutputGenerator_WorkflowXML() );
-//        LOG.info( "OutputGenerator 'wfxml' added" );
       }
     }
     if (gVersionManagers.isEmpty()) {
@@ -210,6 +205,10 @@ public class CARS_ActionContext {
       }
     }
     return;
+  }
+  
+  static public JD_Taglist getOutputGenerators() {
+    return gOutputGenerators;
   }
   
   /** Get version manager 

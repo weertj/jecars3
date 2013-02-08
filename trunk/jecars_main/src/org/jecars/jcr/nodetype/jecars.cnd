@@ -637,8 +637,11 @@
                                                            // "TASK"
                                                            // "JAVATASK"
 - jecars:host                  (Path)                      // path to host to be used for execution
-- jecars:taskpath              (Path)                      // path to jecars:Tool, jecars:Workflow, ‘this’, etc.
+- jecars:taskpath              (Path)                      // path to jecars:Tool, jecars:Workflow, this, etc.
 - jecars:javaclasspath         (String)                    // Points to java class when type is JAVATASK.
+- jecars:Modifiers             (String)                    // Comma seperated list of modifiers
+                                                           //   ALLOWERROR  = The task allows error, which means that the workflow
+                                                           //                  will continue in a OK state after an error has occured
 - jecars:ExpireContextAfterMinutes (Long)                  // When set, the context's belonging to this workflow are expired
 + inputs                (jecars:mixin_workflowtaskports)=jecars:workflowtaskports autocreated  //
 + outputs               (jecars:mixin_workflowtaskports)=jecars:workflowtaskports autocreated  // 
