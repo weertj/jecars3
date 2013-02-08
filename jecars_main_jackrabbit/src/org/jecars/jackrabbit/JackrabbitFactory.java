@@ -36,12 +36,14 @@ import javax.jcr.Repository;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
+import nl.msd.jdots.JD_Taglist;
 import org.apache.jackrabbit.commons.cnd.CndImporter;
 import org.apache.jackrabbit.commons.cnd.ParseException;
 import org.apache.jackrabbit.core.RepositoryImpl;
 import org.apache.jackrabbit.core.TransientRepository;
 import org.apache.jackrabbit.core.cache.CacheManager;
 import org.apache.log4j.PropertyConfigurator;
+import org.jecars.CARS_ActionContext;
 import org.jecars.CARS_DefaultMain;
 import org.jecars.CARS_Definitions;
 import org.jecars.CARS_EventManager;
@@ -53,6 +55,8 @@ import org.jecars.ICARS_Session;
 import org.jecars.apps.CARS_AdminApp;
 import org.jecars.jaas.CARS_Credentials;
 import org.jecars.jaas.CARS_PasswordService;
+import org.jecars.output.CARS_OutputGenerator_Backup;
+import org.jecars.output.CARS_OutputGenerator_WorkflowXML;
 
 /**
  * JackrabbitFactory
@@ -60,6 +64,8 @@ import org.jecars.jaas.CARS_PasswordService;
  * @version $Id: JackrabbitFactory.java,v 1.37 2009/06/21 20:58:48 weertj Exp $
  */
 public class JackrabbitFactory extends CARS_Factory {
+
+  static final protected Logger LOG = Logger.getLogger( "org.jecars" );
 
   @Override
   protected void addNodeTypesDefinitions(Session pSession, String[] pCNDS) throws IOException, RepositoryException {
@@ -104,6 +110,15 @@ public class JackrabbitFactory extends CARS_Factory {
   @Override
   protected void initJCR( CARS_Credentials pCreds) throws Exception {
     initJeCARSProperties();
+    
+    final JD_Taglist tags = CARS_ActionContext.getOutputGenerators();
+    synchronized( tags ) {
+      tags.replaceData( "backup", new CARS_OutputGenerator_Backup() );
+      LOG.info( "OutputGenerator 'backup' added" );
+      tags.replaceData( "wfxml", new CARS_OutputGenerator_WorkflowXML() );
+      LOG.info( "OutputGenerator 'wfxml' added" );
+    }
+    
     // **** init log handler
     initLogging();
     gLog.log( Level.INFO, "Create repository using: " + gConfigFile + " and " + gRepHome );
