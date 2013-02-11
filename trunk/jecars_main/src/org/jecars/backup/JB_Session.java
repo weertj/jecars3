@@ -15,13 +15,7 @@
  */
 package org.jecars.backup;
 
-import java.io.IOException;
-import javax.jcr.LoginException;
-import javax.jcr.Repository;
-import javax.jcr.RepositoryException;
 import javax.jcr.Session;
-import javax.jcr.SimpleCredentials;
-import org.apache.jackrabbit.core.TransientRepository;
 
 /**
  * JB_Session
@@ -47,13 +41,13 @@ public class JB_Session {
     return;
   }
   
-  public Session getSession() throws IOException, LoginException, RepositoryException {
-    if (mSession==null) {
-      Repository rep = new TransientRepository( mRepConfig, mRepDirectory );
-      mSession = rep.login( new SimpleCredentials( mUsername, mPassword.toCharArray() ) );
-    }
-    return mSession;
-  }
+//  public Session getSession() throws IOException, LoginException, RepositoryException {
+//    if (mSession==null) {
+//      Repository rep = new TransientRepository( mRepConfig, mRepDirectory );
+//      mSession = rep.login( new SimpleCredentials( mUsername, mPassword.toCharArray() ) );
+//    }
+//    return mSession;
+//  }
 
     
 }

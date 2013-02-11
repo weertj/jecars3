@@ -39,10 +39,10 @@ import javax.jcr.nodetype.ConstraintViolationException;
 import javax.jcr.nodetype.PropertyDefinition;
 import javax.jcr.version.Version;
 import javax.jcr.version.VersionException;
-import org.apache.jackrabbit.core.nodetype.InvalidNodeTypeDefException;
+//import org.apache.jackrabbit.core.nodetype.InvalidNodeTypeDefException;
 //import org.apache.jackrabbit.core.nodetype.NodeTypeDef;
-import org.apache.jackrabbit.core.nodetype.NodeTypeManagerImpl;
-import org.apache.jackrabbit.core.nodetype.NodeTypeRegistry;
+//import org.apache.jackrabbit.core.nodetype.NodeTypeManagerImpl;
+//import org.apache.jackrabbit.core.nodetype.NodeTypeRegistry;
 //import org.apache.jackrabbit.core.nodetype.compact.CompactNodeTypeDefReader;
 //import org.apache.jackrabbit.core.nodetype.compact.ParseException;
 import org.jecars.CARS_Utils;
@@ -58,79 +58,79 @@ public class JB_ImportData {
 
   private Throwable mLastThrow = null;
 
-// v2.0
-  public void importFromDirectory( Node pStartNode, JB_Options pOptions ) throws FileNotFoundException, RepositoryException, IOException, org.apache.jackrabbit.commons.cnd.ParseException {
-//  public void importFromDirectory( Node pStartNode, JB_Options pOptions ) throws FileNotFoundException, RepositoryException, IOException, org.apache.jackrabbit.core.nodetype.compact.ParseException {
-
-    if (pOptions.getImportNamespaces()==true) {
-      // **** Import namespaces
-      File mainImportFile = new File( pOptions.getImportDirectory(), pOptions.getExportNamespacesFilename() );
-      System.out.println( "Import namespaces using JB file: " + mainImportFile.getAbsolutePath() );
-      FileInputStream fis = new FileInputStream( mainImportFile );
-      BufferedReader br = new BufferedReader(new InputStreamReader( fis ));
-      try {
-        String line;
-        while( (line=br.readLine())!=null ) {
-          String[] nms = line.split( "\t" );
-          try {
-            System.out.println( "Register namespaces: " + nms[0] + " : " + nms[1] );
-            pStartNode.getSession().getWorkspace().getNamespaceRegistry().registerNamespace( nms[0], nms[1] );
-          } catch( Exception e) {             
-          }
-        }
-      } finally {
-        br.close();
-        fis.close();
-      }
-    }
-
-    if (pOptions.getImportNodeTypes()==true) {
-      // **** Import nodetypes
-      File mainImportFile = new File( pOptions.getImportDirectory(), pOptions.getExportNodeTypesFilename() );
-      System.out.println( "Import nodetypes using CND JB file: " + mainImportFile.getAbsolutePath() );
-      
-      FileInputStream fis = new FileInputStream( mainImportFile );
-      InputStreamReader isr = new InputStreamReader( fis );
-      try {
-// v2.0
-        org.apache.jackrabbit.commons.cnd.CndImporter.registerNodeTypes( isr, null );
-//        org.apache.jackrabbit.core.nodetype.compact.CompactNodeTypeDefReader cndReader = new org.apache.jackrabbit.core.nodetype.compact.CompactNodeTypeDefReader( isr, mainImportFile.getName() );
-//        List ntdList = cndReader.getNodeTypeDefs();
-//        NodeTypeManagerImpl ntmgr =(NodeTypeManagerImpl)pStartNode.getSession().getWorkspace().getNodeTypeManager();
-//        NodeTypeRegistry ntreg = ntmgr.getNodeTypeRegistry();
-//        for (Iterator it = ntdList.iterator(); it.hasNext();) {
-//          org.apache.jackrabbit.core.nodetype.NodeTypeDef ntd = (org.apache.jackrabbit.core.nodetype.NodeTypeDef)it.next();
+//// v2.0
+//  public void importFromDirectory( Node pStartNode, JB_Options pOptions ) throws FileNotFoundException, RepositoryException, IOException, org.apache.jackrabbit.commons.cnd.ParseException {
+////  public void importFromDirectory( Node pStartNode, JB_Options pOptions ) throws FileNotFoundException, RepositoryException, IOException, org.apache.jackrabbit.core.nodetype.compact.ParseException {
+//
+//    if (pOptions.getImportNamespaces()==true) {
+//      // **** Import namespaces
+//      File mainImportFile = new File( pOptions.getImportDirectory(), pOptions.getExportNamespacesFilename() );
+//      System.out.println( "Import namespaces using JB file: " + mainImportFile.getAbsolutePath() );
+//      FileInputStream fis = new FileInputStream( mainImportFile );
+//      BufferedReader br = new BufferedReader(new InputStreamReader( fis ));
+//      try {
+//        String line;
+//        while( (line=br.readLine())!=null ) {
+//          String[] nms = line.split( "\t" );
 //          try {
-//            ntreg.registerNodeType(ntd);
-//          } catch (InvalidNodeTypeDefException de) {
-//            System.out.println( de.getMessage() );
-//          } catch (RepositoryException re) {
-//            System.out.println( re.getMessage() );
+//            System.out.println( "Register namespaces: " + nms[0] + " : " + nms[1] );
+//            pStartNode.getSession().getWorkspace().getNamespaceRegistry().registerNamespace( nms[0], nms[1] );
+//          } catch( Exception e) {             
 //          }
 //        }
-      } finally {
-        isr.close();
-        fis.close();
-      }
-
-      
-    }
-    
-    boolean rerun = true;
-    int pass = 0;
-    while( rerun==true && (pass<2) ) {
-      File mainImportFile = new File( pOptions.getImportDirectory(), pOptions.getExportJeCARSFilename() );
-      System.out.println( "Using JB file: " + mainImportFile.getAbsolutePath() );
-      FileInputStream fis = new FileInputStream( mainImportFile );
-      try {
-        System.out.println( "PASS " + (++pass) );
-        rerun = importFromStream( pStartNode, fis, pOptions );
-      } finally {
-        fis.close();
-      }
-    }
-    return;
-  }  
+//      } finally {
+//        br.close();
+//        fis.close();
+//      }
+//    }
+//
+//    if (pOptions.getImportNodeTypes()==true) {
+//      // **** Import nodetypes
+//      File mainImportFile = new File( pOptions.getImportDirectory(), pOptions.getExportNodeTypesFilename() );
+//      System.out.println( "Import nodetypes using CND JB file: " + mainImportFile.getAbsolutePath() );
+//      
+//      FileInputStream fis = new FileInputStream( mainImportFile );
+//      InputStreamReader isr = new InputStreamReader( fis );
+//      try {
+//// v2.0
+//        org.apache.jackrabbit.commons.cnd.CndImporter.registerNodeTypes( isr, null );
+////        org.apache.jackrabbit.core.nodetype.compact.CompactNodeTypeDefReader cndReader = new org.apache.jackrabbit.core.nodetype.compact.CompactNodeTypeDefReader( isr, mainImportFile.getName() );
+////        List ntdList = cndReader.getNodeTypeDefs();
+////        NodeTypeManagerImpl ntmgr =(NodeTypeManagerImpl)pStartNode.getSession().getWorkspace().getNodeTypeManager();
+////        NodeTypeRegistry ntreg = ntmgr.getNodeTypeRegistry();
+////        for (Iterator it = ntdList.iterator(); it.hasNext();) {
+////          org.apache.jackrabbit.core.nodetype.NodeTypeDef ntd = (org.apache.jackrabbit.core.nodetype.NodeTypeDef)it.next();
+////          try {
+////            ntreg.registerNodeType(ntd);
+////          } catch (InvalidNodeTypeDefException de) {
+////            System.out.println( de.getMessage() );
+////          } catch (RepositoryException re) {
+////            System.out.println( re.getMessage() );
+////          }
+////        }
+//      } finally {
+//        isr.close();
+//        fis.close();
+//      }
+//
+//      
+//    }
+//    
+//    boolean rerun = true;
+//    int pass = 0;
+//    while( rerun==true && (pass<2) ) {
+//      File mainImportFile = new File( pOptions.getImportDirectory(), pOptions.getExportJeCARSFilename() );
+//      System.out.println( "Using JB file: " + mainImportFile.getAbsolutePath() );
+//      FileInputStream fis = new FileInputStream( mainImportFile );
+//      try {
+//        System.out.println( "PASS " + (++pass) );
+//        rerun = importFromStream( pStartNode, fis, pOptions );
+//      } finally {
+//        fis.close();
+//      }
+//    }
+//    return;
+//  }  
   
   public boolean importFromStream( Node pStartNode, InputStream pStream, JB_Options pOptions ) throws RepositoryException, IOException {
     
