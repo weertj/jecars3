@@ -137,4 +137,26 @@ public class JC_WorkflowLinkNode extends JC_DefaultNode {
     return;
   }
 
+  /** getType
+   * 
+   * @return
+   * @throws JC_Exception 
+   */
+  public EJC_WorkflowLinkType getType() throws JC_Exception {
+    if (hasProperty( "jecars:Type" )) {
+      return EJC_WorkflowLinkType.valueOf( getProperty( "jecars:Type" ).getValueString() );
+    }
+    return EJC_WorkflowLinkType.NORMAL;
+  }
+  
+  /** setType
+   * 
+   * @param pType
+   * @throws JC_Exception 
+   */
+  public void setType( final EJC_WorkflowLinkType pType ) throws JC_Exception {
+    setProperty( "jecars:Type", pType.name() );
+    return;
+  }
+  
 }
