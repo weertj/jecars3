@@ -231,5 +231,34 @@ public class JC_WorkflowTaskNode extends JC_DefaultNode {
     return;
   }
 
+  /** getModifier
+   * 
+   * @return
+   * @throws JC_Exception 
+   */
+  public String getModifiers() throws JC_Exception {
+    return getProperty( "jecars:Modifiers" ).getValueString();
+  }
+  
+  /** addModifier
+   * 
+   * @param pTM
+   * @throws JC_Exception 
+   */
+  public void addModifier( final EJC_TaskModifier pTM ) throws JC_Exception {
+    if (hasProperty( "jecars:Modifiers" )) {
+      String mod = getProperty( "jecars:Modifiers" ).getValueString().trim();
+      if (mod.isEmpty()) {
+        setProperty( "jecars:Modifiers", pTM.name() );        
+      } else {
+        if (mod.indexOf( pTM.name() )==-1) {
+          setProperty( "jecars:Modifiers", mod + "," + pTM.name() );
+        }
+      }
+    } else {
+      setProperty( "jecars:Modifiers", pTM.name() );
+    }
+    return;
+  }
   
 }
