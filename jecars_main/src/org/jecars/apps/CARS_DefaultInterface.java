@@ -43,6 +43,8 @@ import org.jecars.CARS_Factory;
 import org.jecars.CARS_Main;
 import org.jecars.CARS_RESTMethodHandled;
 import org.jecars.CARS_Utils;
+import org.jecars.backup.JB_ImportData;
+import org.jecars.backup.JB_Options;
 import org.jecars.support.CARS_Mime;
 import org.jecars.tools.CARS_ToolNode;
 import org.jecars.tools.CARS_ToolSignal;
@@ -152,8 +154,6 @@ public class CARS_DefaultInterface implements CARS_Interface, EventListener {
    * @throws javax.jcr.RepositoryException
    * @throws java.io.IOException
    */
- // **** TODO Elderberry
- /*
   private void _importStreamAsBackup( Node pNode, InputStream pBody ) throws RepositoryException, IOException {
     JB_ImportData imp = new JB_ImportData();
     JB_Options options = new JB_Options();
@@ -162,7 +162,6 @@ public class CARS_DefaultInterface implements CARS_Interface, EventListener {
     imp.importFromStream( pNode, pBody, options );
     return;
   }
-  */
    
   /** Store a binary stream, on default the jecars:datafile node type is supported.
    *  If the pNode is an other type the method will stored the data in a Binary property
@@ -177,10 +176,11 @@ public class CARS_DefaultInterface implements CARS_Interface, EventListener {
   @Override
   public boolean setBodyStream( final CARS_Main pMain, final Node pInterfaceNode, final Node pNode, final InputStream pBody, final String pMimeType ) throws Exception {
     boolean changed = false;
-    if (pMimeType==null) return changed;
+    if (pMimeType==null) {
+      return changed;
+    }
     if (pMimeType.equals( CARS_Mime.BACKUP_MIMETYPE )) {
-  // **** TODO Elderberry
-//      _importStreamAsBackup( pNode, pBody );
+      _importStreamAsBackup( pNode, pBody );
       return true;
     }
     if (pNode.isNodeType( "jecars:datafile" )) {
