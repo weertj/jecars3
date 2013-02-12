@@ -38,6 +38,7 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import org.jecars.CARS_Factory;
 import org.jecars.CARS_Utils;
+import org.jecars.tools.workflow.WF_WorkflowRunner;
 
 /**
  *
@@ -100,30 +101,38 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
         final StringBuilder sbuf = new StringBuilder();
         final Session streamSession = createToolSession();
         try {
-          final Node tool = streamSession.getNode( getTool().getPath() );
-          Node output = replaceOutput( tool, mName, "" );
-          output.setProperty( "jecars:Partial", true );
-          output.addMixin( "jecars:mixin_unstructured" );
-          streamSession.save();
-          while ( (line = br.readLine()) != null) {
-            sbuf.append( line ).append( '\n' );
-            output = replaceOutput( tool, mName, sbuf.toString() );
-            output.setProperty( "jecars:LastLine", line );
+          final Node tool;
+          Node output;
+          synchronized( WF_WorkflowRunner.WRITERACCESS ) {
+            tool = streamSession.getNode( getTool().getPath() );
+            output = replaceOutput( tool, mName, "" );
             output.setProperty( "jecars:Partial", true );
-            double runtime = (System.currentTimeMillis()-mToolStartTime)/1000;
-            double progress = runtime/(double)mToolAverageRunningTime;
-            if (progress>0.95) {
-              progress = 0.95;
-            }
-            getTool().setProperty( "jecars:PercCompleted", 100.0*progress );
-            getTool().save();
+            output.addMixin( "jecars:mixin_unstructured" );
             streamSession.save();
           }
+          while ( (line = br.readLine()) != null) {
+            sbuf.append( line ).append( '\n' );
+            synchronized( WF_WorkflowRunner.WRITERACCESS ) {
+              output = replaceOutput( tool, mName, sbuf.toString() );
+              output.setProperty( "jecars:LastLine", line );
+              output.setProperty( "jecars:Partial", true );
+              double runtime = (System.currentTimeMillis()-mToolStartTime)/1000;
+              double progress = runtime/(double)mToolAverageRunningTime;
+              if (progress>0.95) {
+                progress = 0.95;
+              }
+              tool.setProperty( "jecars:PercCompleted", 100.0*progress );
+              streamSession.save();
+            }
+          }
 //        final Node output = replaceOutput( getTool(), mName, sbuf.toString() );
-          output = replaceOutput( tool, mName, sbuf.toString() );
-          output.setProperty( "jecars:Partial", false );
-          streamSession.save();
+          synchronized( WF_WorkflowRunner.WRITERACCESS ) {
+            output = replaceOutput( tool, mName, sbuf.toString() );
+            output.setProperty( "jecars:Partial", false );
+            streamSession.save();
+          }
         } finally {
+          streamSession.save();
           streamSession.logout();
         }
       } catch (Exception ioe) {
@@ -585,11 +594,13 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
         error.join( 4000 );
         input.join( 4000 );
         process.destroy();
-        reportProgress( 1 );
-        try {
-          getTool().save();
-        } catch( RepositoryException re ) {
-          LOG.warning( re.getMessage() );
+        synchronized( WF_WorkflowRunner.WRITERACCESS ) {
+          reportProgress( 1 );
+          try {
+            getTool().save();
+          } catch( RepositoryException re ) {
+            LOG.warning( re.getMessage() );
+          }
         }
       } catch( Throwable e ) {
         reportException( e, Level.SEVERE );
