@@ -676,7 +676,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
       case END: {
         res.setState( WFP_InterfaceResult.STATE.STOP );
 //        final List<Node> nl = getContext().getDataNodes();
-        final Node wfNode = handleContextParameters( pTask );
+        final Node outputNode = handleContextParameters( pTask );
 //        synchronized( WRITERACCESS ) {
 //          Node wfNode = getWorkflow().getNode();
 //          Node param = getContext().getParameterNode( EJC_EndTaskParameter.OUTPUT_FOLDER.name() );
@@ -699,7 +699,25 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
 //              wfNode = outputFolder;                 
 //            }
 //          }
-          copyDataNodesToContext( wfNode );
+          copyDataNodesToContext( outputNode );
+          
+          final NodeIterator ni = outputNode.getNodes();
+          final Node wfNode = getWorkflow().getNode();
+          synchronized( WRITERACCESS ) {
+            while( ni.hasNext() ) {
+              Node dataNode = ni.nextNode();
+              try {
+                wfNode.getSession().move( dataNode.getPath(), wfNode.getPath() + "/" + dataNode.getName() );
+                final Node n = wfNode.getNode( dataNode.getName() );
+                if (!n.isNodeType( "jecars:mix_outputresource" )) {
+                  n.addMixin( "jecars:mix_outputresource" );
+                }
+              } catch( ItemExistsException ie ) {              
+              }            
+            }
+          }
+          save();
+          
 //          final List<Node> nl = getContext().getDataNodes();
 //          for( final Node dataNode : nl ) {
 //            try {
