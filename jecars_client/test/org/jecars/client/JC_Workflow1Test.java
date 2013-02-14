@@ -117,16 +117,32 @@ public class JC_Workflow1Test {
         JC_WorkflowTaskPortNode texitout  = exittask.addInputPort(  "Exit", null, ".*", ".*" );
         templateWorkflow.save();
         entrytask.addParameterData( EJC_ContextParameter.WFP_OUTPUT_FOLDER ).addParameter( "testoutput" );
+
+        // ********************************************************
+        // **** The switch
+        JC_WorkflowTaskNode theswitch = templateWorkflow.addJavaTask( "Switch", "org.jecars.wfplugin.tools.WFPT_Switch" );
+        templateWorkflow.save();
+        JC_ParameterDataNode pdn = theswitch.addParameterData( "Position" );
+        pdn.addParameter( "0" );
+        JC_WorkflowTaskPortNode theswitch_in0  = theswitch.addInputPort(  "In",  null, ".*", ".*" );
+        JC_WorkflowTaskPortNode theswitch_out0 = theswitch.addOutputPort( "Out0", null, ".*", ".*" );
+        JC_WorkflowTaskPortNode theswitch_out1 = theswitch.addOutputPort( "Out1", null, ".*", ".*" );        
         
         // ****************************************************
         // **** Sleep
         JC_WorkflowTaskNode sleep0 = templateWorkflow.addJavaTask( "Sleep0", "org.jecars.wfplugin.tools.WFPT_Sleep" );
         templateWorkflow.save();
-        JC_ParameterDataNode pdn = sleep0.addParameterData( "SleepTimeInSecs" );
+        pdn = sleep0.addParameterData( "SleepTimeInSecs" );
         pdn.addParameter( "3" );
         JC_WorkflowTaskPortNode sleep_in0  = sleep0.addInputPort(  "In",  null, ".*", ".*" );
         JC_WorkflowTaskPortNode sleep_out0 = sleep0.addOutputPort( "Out", null, ".*", ".*" );
         templateWorkflow.save();        
+        JC_WorkflowTaskNode sleep1_SecondPath = templateWorkflow.addJavaTask( "Sleep1_Second", "org.jecars.wfplugin.tools.WFPT_Sleep" );
+        templateWorkflow.save();
+        pdn = sleep1_SecondPath.addParameterData( "SleepTimeInSecs" );
+        pdn.addParameter( "3" );
+        JC_WorkflowTaskPortNode sleep_in_2_1  = sleep1_SecondPath.addInputPort(  "In",  null, ".*", ".*" );
+        JC_WorkflowTaskPortNode sleep_out_1 = sleep1_SecondPath.addOutputPort( "Out", null, ".*", ".*" );
         JC_WorkflowTaskNode sleep1 = templateWorkflow.addJavaTask( "Sleep1", "org.jecars.wfplugin.tools.WFPT_Sleep" );
         templateWorkflow.save();
         pdn = sleep1.addParameterData( "SleepTimeInSecs" );
@@ -134,9 +150,12 @@ public class JC_Workflow1Test {
         JC_WorkflowTaskPortNode sleep_in1  = sleep1.addInputPort(  "In",  null, ".*", ".*" );
         JC_WorkflowTaskPortNode sleep_out1 = sleep1.addOutputPort( "Out", null, ".*", ".*" );
         templateWorkflow.save();        
-        templateWorkflow.addLink( "ToSleep0",   entrytask, tentryout, sleep0, sleep_in0, 0 );
+        templateWorkflow.addLink( "ToSwitch",   entrytask, tentryout, theswitch, theswitch_in0, 0 );
+        templateWorkflow.addLink( "ToSleep0",   theswitch, theswitch_out0, sleep0, sleep_in0, 0 );
+        templateWorkflow.addLink( "ToSleep1_Sec",   theswitch, theswitch_out1, sleep1_SecondPath, sleep_in_2_1, 0 );
+        templateWorkflow.addLink( "FromSleep1_Sec", sleep1_SecondPath, sleep_out_1, sleep1, sleep_in1, 0 );
         templateWorkflow.addLink( "FromSleep0", sleep0, sleep_out0, sleep1, sleep_in1, 0 );        
-        templateWorkflow.addLink( "FromSleep1", sleep1, sleep_in1, exittask, texitout, 0 );        
+        templateWorkflow.addLink( "FromSleep1", sleep1, sleep_out1, exittask, texitout, 0 );        
 
         
         templateName = "jecarsTest2WorkflowTemplate";
@@ -225,7 +244,7 @@ public class JC_Workflow1Test {
      *
      * @throws org.jecars.client.JC_Exception
      */
-//    @Test
+    @Test
     public void testSleepTool() throws JC_Exception, Exception, InterruptedException, UnsupportedEncodingException {
       
       final JC_Nodeable templatesNode = getClient().getSingleNode("/JeCARS/default/jecars:Tools");
