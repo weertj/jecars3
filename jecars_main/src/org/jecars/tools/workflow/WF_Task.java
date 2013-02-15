@@ -16,10 +16,13 @@
 
 package org.jecars.tools.workflow;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.StringTokenizer;
 import javax.jcr.Node;
+import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 
 /**
@@ -55,7 +58,37 @@ public class WF_Task extends WF_Default implements IWF_Task {
     return EWF_TaskType.valueOf( type );
   }
 
-  
+  @Override
+  public List<IWF_TaskPort>getInputs() {
+    final List<IWF_TaskPort> tps = new ArrayList<IWF_TaskPort>();
+    try {
+      final NodeIterator ni = getNode().getNode( "inputs" ).getNodes();
+      while( ni.hasNext() ) {
+        Node n = ni.nextNode();
+        if (n.isNodeType( "jecars:workflowtaskport" )) {
+          tps.add( new WF_TaskPort( n ) );
+        }
+      }
+    } catch( RepositoryException re ) {        
+    }
+    return tps;
+  }
+
+  @Override
+  public List<IWF_TaskPort>getOutputs() {
+    final List<IWF_TaskPort> tps = new ArrayList<IWF_TaskPort>();
+    try {
+      final NodeIterator ni = getNode().getNode( "outputs" ).getNodes();
+      while( ni.hasNext() ) {
+        Node n = ni.nextNode();
+        if (n.isNodeType( "jecars:workflowtaskport" )) {
+          tps.add( new WF_TaskPort( n ) );
+        }
+      }
+    } catch( RepositoryException re ) {        
+    }
+    return tps;
+  }
   
 //  @Override
 //  public void startTask() throws RepositoryException {

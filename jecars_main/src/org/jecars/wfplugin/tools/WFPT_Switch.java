@@ -13,24 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.jecars.wfplugin.tools;
 
+package org.jecars.wfplugin.tools;
+ 
 import java.util.logging.Level;
 import org.jecars.wfplugin.IWFP_Context;
 import org.jecars.wfplugin.IWFP_ContextParameter;
 import org.jecars.wfplugin.IWFP_Interface;
+import org.jecars.wfplugin.IWFP_Parameter;
 import org.jecars.wfplugin.IWFP_Tool;
 import org.jecars.wfplugin.WFP_Exception;
 import org.jecars.wfplugin.WFP_InterfaceResult;
+
 
 /**
  *
  * @author weert
  */
-public class WFPT_LoopCounter implements IWFP_Interface {  
-      
-  static public final String COUNTER = "Counter";
-   
+public class WFPT_Switch implements IWFP_Interface {
+
+  static public final String POSITION = "Position";
+
+    
   /** start
    * 
    * @param pTool
@@ -39,24 +43,11 @@ public class WFPT_LoopCounter implements IWFP_Interface {
    */
   @Override
   public WFP_InterfaceResult start( final IWFP_Tool pTool, final IWFP_Context pContext ) {
-    try {
-      IWFP_ContextParameter param = pTool.getContextParameter( pContext, null, COUNTER, true );
-      if (param!=null) {
-        long counter = Long.parseLong(param.getStringValue());
-        counter--;
-        param.setValue( String.valueOf(counter) );
-        pTool.save();
-        if (--counter<0) {
-          return WFP_InterfaceResult.STOP();
-        }
-      }
-    } catch( WFP_Exception we ) {
-      pTool.reportException( Level.SEVERE, we );
-      return WFP_InterfaceResult.ERROR();        
-    }
-      
-    return WFP_InterfaceResult.OK();
+    final String position = pTool.getParameter( POSITION, "0" );    
+    final WFP_InterfaceResult ires = WFP_InterfaceResult.OK();        
+    ires.addState( WFP_InterfaceResult.STATE.OUTPUT_DECISION, position );    
+    return ires;
+  
   }
-
     
 }
