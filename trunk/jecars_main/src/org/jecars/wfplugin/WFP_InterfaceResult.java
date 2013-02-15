@@ -4,7 +4,7 @@
  */
 package org.jecars.wfplugin;
 
-import java.util.EnumSet;
+import java.util.EnumMap;
 
 /**
  *
@@ -12,12 +12,12 @@ import java.util.EnumSet;
  */
 public class WFP_InterfaceResult {
 
-  static public enum STATE {OK,STOP,THREADDEATH,ERROR};
+  static public enum STATE {OK,STOP,THREADDEATH,ERROR,OUTPUT_DECISION};
     
 //  static public final WFP_InterfaceResult OK   = new WFP_InterfaceResult( true );
 //  static public final WFP_InterfaceResult STOP = new WFP_InterfaceResult( false );
   
-  final private transient EnumSet<STATE> mState = EnumSet.noneOf( STATE.class );
+  final private transient EnumMap<STATE,String> mState = new EnumMap<STATE,String>(STATE.class);
 
   public WFP_InterfaceResult() {
     return;
@@ -30,9 +30,9 @@ public class WFP_InterfaceResult {
   @Deprecated
   public WFP_InterfaceResult( boolean pContinueWorkflow ) {
     if (pContinueWorkflow) {
-      mState.add( STATE.OK );
+      addState( STATE.OK );
     } else {
-      mState.add( STATE.STOP );
+      addState( STATE.STOP );
     }
     return;
   }
@@ -61,12 +61,12 @@ public class WFP_InterfaceResult {
   @Deprecated
   public WFP_InterfaceResult( boolean pContinueWorkflow, boolean pThreadDeath) {
     if (pContinueWorkflow) {
-      mState.add( STATE.OK );
+      addState( STATE.OK );
     } else {
-      mState.add( STATE.STOP );
+      addState( STATE.STOP );
     }
     if (pThreadDeath) {
-      mState.add( STATE.THREADDEATH );
+      addState( STATE.THREADDEATH );
     }
     return;
   }
@@ -78,31 +78,44 @@ public class WFP_InterfaceResult {
   
   public WFP_InterfaceResult replaceBy( WFP_InterfaceResult pIR ) {
     mState.clear();
-    mState.addAll( pIR.getStates() );
+    mState.putAll( pIR.mState );
     return this;
   }
-  
-  public EnumSet<STATE> getStates() {
-    return mState;
-  }
 
+  public boolean isDecision() {
+    return mState.containsKey( STATE.OUTPUT_DECISION );
+  }
+  
+  public boolean hasState( final STATE pState ) {
+    return mState.containsKey( pState );
+  }
+  
+  public String getStateValue( final STATE pState ) {
+    return mState.get( pState );
+  }
+  
   public WFP_InterfaceResult setState( final STATE pState ) {
     clear();
     addState( pState );
     return this;
   }
   
-  public WFP_InterfaceResult addState( final STATE pState ) {
-    mState.add( pState );
+  final public WFP_InterfaceResult addState( final STATE pState ) {
+    mState.put( pState, "" );
+    return this;
+  }
+
+  final public WFP_InterfaceResult addState( final STATE pState, final String pValue ) {
+    mState.put( pState, pValue );
     return this;
   }
   
   public boolean isContinueWorkflow() {
-    return mState.contains( STATE.OK );
+    return mState.containsKey( STATE.OK );
   }
 
   public boolean isThreadDeath() {
-    return mState.contains( STATE.THREADDEATH );
+    return mState.containsKey( STATE.THREADDEATH );
   }
     
 }

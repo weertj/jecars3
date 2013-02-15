@@ -212,10 +212,10 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
         save();
       }
       WFP_InterfaceResult res = nextStep();
-      if (res.getStates().contains( WFP_InterfaceResult.STATE.OK  )) {
+      if (res.hasState( WFP_InterfaceResult.STATE.OK  )) {
         state = CARS_ToolInterface.STATE_OPEN_RUNNING + CARS_ToolInterface.STATE_PAUSED;
       } else {
-        if (res.getStates().contains( WFP_InterfaceResult.STATE.ERROR )) {          
+        if (res.hasState( WFP_InterfaceResult.STATE.ERROR )) {          
           state = CARS_ToolInterface.STATE_CLOSED_ABNORMALCOMPLETED;
         } else {
           state = getState();
@@ -396,15 +396,38 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
           getContext().setUsedTask( currentTask );
           save();
         }
-        EnumSet<EWF_TaskModifier> taskMods = currentTask.getModifiers();
-        WFP_InterfaceResult ires = runTask( currentTask );
-        if (ires.getStates().contains(WFP_InterfaceResult.STATE.ERROR)) {
+        // ******************************
+        // **** Check modifiers
+        final EnumSet<EWF_TaskModifier> taskMods = currentTask.getModifiers();
+        final WFP_InterfaceResult ires = runTask( currentTask );
+        if (ires.hasState(WFP_InterfaceResult.STATE.ERROR)) {
           if (taskMods.contains( EWF_TaskModifier.ALLOWERROR )) {
             ires.setState( WFP_InterfaceResult.STATE.OK );
           }
         }
         res.replaceBy( ires );
-        final List<IWF_Link> links = workflow.getFromLinkByTask( currentTask );                        
+        final List<IWF_Link> links = workflow.getFromLinkByTask( currentTask );
+        // **********************************************
+        // **** Check for a decision for the output links
+        if (ires.isDecision()) {
+          final String outputTaskPort = ires.getStateValue( WFP_InterfaceResult.STATE.OUTPUT_DECISION );
+          final List<IWF_Link> tbrem = new ArrayList<IWF_Link>();
+          for( final IWF_Link link : links ) {
+            boolean toBeRemoved = true;
+            for( final IWF_TaskPortRef tpr : link.getFromEndPoint().getTaskPortRefs() ) {
+              if (outputTaskPort.equals( tpr.getTaskPort().getPortName() )) {
+                toBeRemoved = false;
+                break;
+              }
+            }
+            if (toBeRemoved) {
+              tbrem.add( link );
+            }
+          }
+          for( final IWF_Link link : tbrem ) {
+            links.remove( link );
+          }
+        }
         if (!res.isContinueWorkflow() || links.isEmpty()) {
           // **** End of this part of the workflow reached
 //          stillRunning = false;
