@@ -123,7 +123,7 @@ public class JC_Workflow1Test {
         JC_WorkflowTaskNode theswitch = templateWorkflow.addJavaTask( "Switch", "org.jecars.wfplugin.tools.WFPT_Switch" );
         templateWorkflow.save();
         JC_ParameterDataNode pdn = theswitch.addParameterData( "Position" );
-        pdn.addParameter( "0" );
+        pdn.addParameter( "Out0" );
         JC_WorkflowTaskPortNode theswitch_in0  = theswitch.addInputPort(  "In",  null, ".*", ".*" );
         JC_WorkflowTaskPortNode theswitch_out0 = theswitch.addOutputPort( "Out0", null, ".*", ".*" );
         JC_WorkflowTaskPortNode theswitch_out1 = theswitch.addOutputPort( "Out1", null, ".*", ".*" );        
