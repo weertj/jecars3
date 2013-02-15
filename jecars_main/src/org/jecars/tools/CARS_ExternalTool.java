@@ -665,6 +665,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
                 if (output!=null) {
                   final long len = file.length();
 //                  reportStatusMessage( "Set output file length " + len );
+                  output.setProperty( "jecars:Title", file.getName() );
                   output.setProperty( "jecars:IsLink", outputLink );
                   output.setProperty( "jecars:ContentLength", len );
                   output.setProperty( "jecars:Partial", false );
