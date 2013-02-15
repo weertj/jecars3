@@ -23,6 +23,7 @@ import javax.jcr.RepositoryException;
  */
 public interface IWF_TaskPort {
   
+  String getPortName() throws RepositoryException;
   String getNodeName() throws RepositoryException;
   String getNodeType() throws RepositoryException;
   String getPropertyName() throws RepositoryException;

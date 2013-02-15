@@ -223,7 +223,7 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
       try {
 //        mRunner.restart();
         WFP_InterfaceResult res;
-        while( (res=mRunner.singleStep()).getStates().contains( WFP_InterfaceResult.STATE.OK ) ) {
+        while( (res=mRunner.singleStep()).hasState( WFP_InterfaceResult.STATE.OK ) ) {
           if (mRunner.getCurrentLink().isNULL()) {
             currentSource = mRunner.getCurrentTask().toString();
           System.out.println("Child TASK wrun: " + currentSource );
@@ -243,7 +243,7 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
             break;
           }
         }
-        if (res.getStates().contains( WFP_InterfaceResult.STATE.ERROR )) {
+        if (res.hasState( WFP_InterfaceResult.STATE.ERROR )) {
           synchronized( WF_WorkflowRunner.WRITERACCESS ) {
             mRunner.getWorkflow().getNode().setProperty( "jecars:State", CARS_ToolInterface.STATE_CLOSED_ABNORMALCOMPLETED );
             mRunner.getWorkflow().save();

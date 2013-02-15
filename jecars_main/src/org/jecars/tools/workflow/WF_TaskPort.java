@@ -34,6 +34,13 @@ public class WF_TaskPort extends WF_Default implements IWF_TaskPort {
   public boolean isNULL() {
     return this==NULL;
   }
+  
+
+  @Override
+  public String getPortName() throws RepositoryException {
+    return getNode().getName();
+  }
+
 
   @Override
   public String getNodeName() throws RepositoryException {
