@@ -231,6 +231,15 @@ public class JC_WorkflowTaskNode extends JC_DefaultNode {
     return;
   }
 
+  /** getData
+   * 
+   * @return
+   * @throws JC_Exception 
+   */
+  public JC_datafolderNode getData() throws JC_Exception {
+    return (JC_datafolderNode)getNode( "data" ).morphToNodeType();
+  }
+  
   /** getModifier
    * 
    * @return
