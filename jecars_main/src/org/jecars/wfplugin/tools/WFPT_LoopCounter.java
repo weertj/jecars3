@@ -19,6 +19,7 @@ import java.util.logging.Level;
 import org.jecars.wfplugin.IWFP_Context;
 import org.jecars.wfplugin.IWFP_ContextParameter;
 import org.jecars.wfplugin.IWFP_Interface;
+import org.jecars.wfplugin.IWFP_Task;
 import org.jecars.wfplugin.IWFP_Tool;
 import org.jecars.wfplugin.WFP_Exception;
 import org.jecars.wfplugin.WFP_InterfaceResult;
@@ -49,6 +50,14 @@ public class WFPT_LoopCounter implements IWFP_Interface {
         if (--counter<0) {
           return WFP_InterfaceResult.STOP();
         }
+      } else {
+        IWFP_ContextParameter p = pContext.addParameter( COUNTER );
+        p.setValue( "1" );
+        pTool.getTask();
+        pContext.save();
+//        final IWFP_Task task = pTool.getWorkflow().getTaskByName( "Sleep0" );
+//        task.createParameter( "TestBla_Directory" ).setValue( "babalsalsa" );
+//        task.save();
       }
     } catch( WFP_Exception we ) {
       pTool.reportException( Level.SEVERE, we );

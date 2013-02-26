@@ -69,6 +69,15 @@ public class WFP_Context implements IWFP_Context {
   public CARS_Main getMain() {
     return mMain;
   }
+
+  @Override
+  public void save() throws WFP_Exception {
+    try {
+      mMain.getSession().save();
+    } catch( RepositoryException re ) {
+      throw new WFP_Exception(re);
+    }
+  }
  
   
   
@@ -105,7 +114,7 @@ public class WFP_Context implements IWFP_Context {
    * @throws WFP_Exception 
    */
   @Override
-  public void copyInput( final IWFP_Input pInput ) throws WFP_Exception {
+  public void copyInput( final IWFP_Node pInput ) throws WFP_Exception {
     try {
       Session ses = mContext.getNode().getSession();
       ses.getWorkspace().copy( pInput.getPath(), mContext.getNode().getPath() + "/" + pInput.getName()  );
@@ -140,6 +149,25 @@ public class WFP_Context implements IWFP_Context {
     }
   }
 
+  /**
+   * 
+   * @param pName
+   * @return
+   * @throws WFP_Exception 
+   */
+  @Override
+  public IWFP_Input addInput( final String pName ) throws WFP_Exception {
+    try {
+      final Node n = mContext.getNode().addNode( pName, "jecars:inputresource" );
+      n.setProperty( "jcr:mimeType", "text/plain" );
+      n.setProperty( "jcr:data", "" );
+      return new WFP_Input( n );
+    } catch( RepositoryException re ) {
+      throw new WFP_Exception( re );
+    }
+  }
+
+  
   /** addOutput
    * 
    * @param pName
@@ -165,7 +193,7 @@ public class WFP_Context implements IWFP_Context {
       return new WFP_Output( mContext, n );
     } catch( RepositoryException re ) {
       throw new WFP_Exception( re );
-    }    
+    }
   }
 
   

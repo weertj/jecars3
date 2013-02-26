@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 NLR - National Aerospace Laboratory
+ * Copyright 2012-2013 NLR - National Aerospace Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.List;
 import java.util.logging.Level;
 import org.jecars.CARS_Utils;
 import org.jecars.wfplugin.IWFP_Context;
 import org.jecars.wfplugin.IWFP_Input;
 import org.jecars.wfplugin.IWFP_Interface;
+import org.jecars.wfplugin.IWFP_Node;
 import org.jecars.wfplugin.IWFP_Output;
 import org.jecars.wfplugin.IWFP_Tool;
 import org.jecars.wfplugin.WFP_Exception;
@@ -36,7 +38,7 @@ import org.jecars.wfplugin.WFP_InterfaceResult;
 public class WFPT_DataContainer implements IWFP_Interface {
 
   static public final String BASEDIRECTORY  = "BaseDirectory";
-  static public final String DIRECTORY      = "Directory";
+  static public final String DATADIRECTORY  = "Directory";
   static public final String APPEND         = "Append";
 
   /** start
@@ -51,10 +53,23 @@ public class WFPT_DataContainer implements IWFP_Interface {
     // **** Check workflow for overrule parameterw
     final boolean append = Boolean.parseBoolean(pTool.getParameter( APPEND, "false" ));
     final String basedirectory = pTool.getParameter( BASEDIRECTORY, null );
-    final String directory = pTool.getParameter( DIRECTORY, null );
+    final String directory = pTool.getParameter( DATADIRECTORY, null );
     if (directory==null) {
-      pTool.reportException( Level.SEVERE, new WFP_Exception( "WFPT_DataContainer: Directory parameter not set") );
-      return WFP_InterfaceResult.STOP();
+      try {
+        // **** Check if the data folder is set
+        final List<IWFP_Node> nodes = pTool.getTask().getNode( "data" ).getNodes();
+        if (nodes.isEmpty()) {
+          pTool.reportException( Level.SEVERE, new WFP_Exception( "WFPT_DataContainer: Directory parameter not set") );
+          return WFP_InterfaceResult.STOP();          
+        } else {
+          for( final IWFP_Node n : nodes ) {
+            pContext.copyInput( n );
+          }
+        }
+      } catch( WFP_Exception we ) {
+        pTool.reportException( Level.SEVERE, we );
+        return WFP_InterfaceResult.ERROR();        
+      }
     } else {
       try {          
         File dc;
@@ -84,7 +99,8 @@ public class WFPT_DataContainer implements IWFP_Interface {
         }
       
       } catch( Exception e ) {
-      pTool.reportException( Level.WARNING, e );
+        pTool.reportException( Level.SEVERE, e );
+        return WFP_InterfaceResult.ERROR();
       }
     }
       

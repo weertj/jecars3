@@ -22,6 +22,7 @@ import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.security.auth.login.CredentialExpiredException;
 import org.jecars.tools.CARS_DefaultToolInterface;
+import org.jecars.wfplugin.IWFP_Task;
 
 /** IWF_Workflow
  *
@@ -32,6 +33,7 @@ public interface IWF_Workflow extends IWF_Default {
     
   WF_Workflow copyTo( final Node pParentNode, final String pName  ) throws RepositoryException;
 
+  IWFP_Task      getTaskByName( final String pName );
   List<IWF_Task> getTaskWithoutInputs() throws RepositoryException;  
   List<IWF_Task> getTaskByType( final EWF_TaskType pTT ) throws RepositoryException;  
   List<IWF_Link> getFromLinkByTask( final IWF_Task pTask ) throws RepositoryException;
