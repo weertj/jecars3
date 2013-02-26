@@ -570,6 +570,8 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
         Node nn = cmdopt.getValue();
         if (nn.isNodeType( "jecars:parameterdata" )) {
           commands.add( getParameterString( nn.getName(), 0 ) );
+        } else if (nn.hasProperty( "jecars:string" )) {          
+          commands.add( getParameterString( nn.getName(), 0 ) );
         } else {
           commands.add( nn.getName() );
         }

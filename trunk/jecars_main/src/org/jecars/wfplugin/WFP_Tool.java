@@ -25,9 +25,7 @@ import javax.jcr.Value;
 import org.jecars.CARS_Utils;
 import org.jecars.tools.CARS_ToolInstanceEvent;
 import org.jecars.tools.workflow.IWF_Context;
-import org.jecars.tools.workflow.IWF_Task;
 import org.jecars.tools.workflow.IWF_Workflow;
-import org.jecars.tools.workflow.WF_Task;
 import org.jecars.tools.workflow.WF_WorkflowRunner;
 
 /** WFP_Tool
@@ -52,8 +50,8 @@ public class WFP_Tool extends WFP_Node implements IWFP_Tool {
   }
 
   @Override
-  public IWF_Task getTask() {
-    return new WF_Task( getNode() );
+  public IWFP_Task getTask() {
+    return new WFP_Task( getNode() );
   }
   
   @Override

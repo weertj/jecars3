@@ -25,6 +25,7 @@ public interface IWFP_Node {
   IWFP_Node             getResolvedNode() throws WFP_Exception;
 
   IWFP_Property         setProperty( String pName, String pValue ) throws WFP_Exception;
+  IWFP_Property         setProperty( String pName, long pValue   ) throws WFP_Exception;
 
   void                  remove() throws WFP_Exception;
   void                  rename( final String pName, final String pTitle ) throws WFP_Exception;

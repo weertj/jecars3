@@ -22,10 +22,35 @@ import javax.jcr.RepositoryException;
  *
  * @author weert
  */
-public class WFP_Parameter extends WFP_ContextParameter implements IWFP_Parameter {
+public class WFP_Task extends WFP_Node implements IWFP_Task {
 
-  public WFP_Parameter(Node pNode) throws RepositoryException {
-    super(pNode);
+  /** WFP_Task
+   * 
+   * @param pNode 
+   */
+  public WFP_Task( final Node pNode ) {
+    super( pNode );
+    return;
   }
+
+  /** createParameter
+   * 
+   * @param pName
+   * @return
+   * @throws WFP_Exception 
+   */
+  @Override
+  public IWFP_Parameter createParameter( final String pName ) throws WFP_Exception {
+    try {
+      final Node n = getNode().addNode( pName, "jecars:parameterdata" );
+      n.setProperty( "jcr:data", "" );
+      final IWFP_Parameter par = new WFP_Parameter( n );
+      return par;
+    } catch( RepositoryException re ) {
+//    re.printStackTrace();
+      throw new WFP_Exception( re );
+    }
+  }
+
     
 }

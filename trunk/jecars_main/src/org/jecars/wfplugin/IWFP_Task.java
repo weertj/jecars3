@@ -15,18 +15,12 @@
  */
 package org.jecars.wfplugin;
 
-import java.io.InputStream;
-import java.util.List;
-
 /**
  *
  * @author weert
  */
-public interface IWFP_Property {
-  
-  String        getName()           throws WFP_Exception;
-  String        getStringValue()    throws WFP_Exception;
-  InputStream   getStreamValue()    throws WFP_Exception;
-  List<Object>  getValues()         throws WFP_Exception;
-
+public interface IWFP_Task extends IWFP_Node {
+ 
+  IWFP_Parameter createParameter( final String pName ) throws WFP_Exception;
+    
 }

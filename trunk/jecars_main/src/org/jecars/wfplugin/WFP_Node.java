@@ -1,6 +1,17 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright 2013 NLR - National Aerospace Laboratory
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.jecars.wfplugin;
 
@@ -213,6 +224,32 @@ public class WFP_Node implements IWFP_Node {
     }
   }
 
+  /** setProperty
+   * 
+   * @param pName
+   * @param pValue
+   * @return
+   * @throws WFP_Exception 
+   */
+  @Override
+  public IWFP_Property setProperty( String pName, long pValue ) throws WFP_Exception{
+    try {
+      if (mNode.hasProperty( pName )) {
+        if (mNode.getProperty( pName ).isMultiple()) {
+          Value[] vals = {mNode.getSession().getValueFactory().createValue( pValue )};
+          return new WFP_Property( mNode.setProperty( pName, vals ) );
+        } else {
+          return new WFP_Property( mNode.setProperty( pName, pValue ) );
+        }
+      } else {
+        return new WFP_Property( mNode.setProperty( pName, pValue ) );        
+      }
+    } catch( RepositoryException re ) {
+      throw new WFP_Exception( re );
+    }
+  }
+
+  
   @Override
   public boolean hasNode(String pName) throws WFP_Exception {
     try {

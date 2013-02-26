@@ -28,7 +28,7 @@ public interface IWFP_Tool extends IWFP_Node {
   
   Level         getWorstExceptionLevel();
   String        getTaskPath();
-  IWF_Task      getTask();
+  IWFP_Task     getTask();
   IWF_Workflow  getWorkflow();
   IWFP_Node     getTaskAsNode();
   IWFP_Node     getNodeFromRoot( final String pPath ) throws WFP_Exception;

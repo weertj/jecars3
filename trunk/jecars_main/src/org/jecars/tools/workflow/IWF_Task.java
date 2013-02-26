@@ -31,7 +31,7 @@ public interface IWF_Task extends IWF_Default {
   EnumSet<EWF_TaskModifier> getModifiers() throws RepositoryException;
   List<IWF_TaskPort>        getInputs();
   List<IWF_TaskPort>        getOutputs();
-
+  
   //  void         startTask() throws RepositoryException;
 
 }

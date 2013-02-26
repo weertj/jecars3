@@ -55,7 +55,20 @@ public class WFP_Input extends WFP_Node implements IWFP_Input {
     return mName;
   }
 
-
+  /** addMixin
+   * 
+   * @param pMixin
+   * @throws WFP_Exception 
+   */
+  @Override
+  public void addMixin( final String pMixin ) throws WFP_Exception {
+    try {
+      getNode().addMixin( pMixin );
+    } catch( RepositoryException re ) {
+      throw new WFP_Exception( re );        
+    }    
+    return;
+  }
 
   /** setContents
    * 
@@ -163,6 +176,24 @@ public class WFP_Input extends WFP_Node implements IWFP_Input {
     }
   }
 
+  /** setProperty
+   * 
+   * @param pName
+   * @param pValue
+   * @return
+   * @throws WFP_Exception 
+   */
+  @Override
+  public IWFP_Property setProperty( final String pName, final long pValue ) throws WFP_Exception {
+    try {
+      if (getNode().canAddMixin( "jecars:mixin_unstructured" )) {
+        getNode().addMixin( "jecars:mixin_unstructured" );
+      }
+      return new WFP_Property( getNode().setProperty( pName, pValue ) );
+    } catch( RepositoryException re ) {
+      throw new WFP_Exception( re );
+    }
+  }
   
   /** save
    * 

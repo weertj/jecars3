@@ -27,7 +27,7 @@ public interface IWFP_Input extends IWFP_Node {
 //  String    getProperty( final String pName ) throws WFP_Exception;
 //  IWFP_Property setProperty( final String pName, final String pValue ) throws WFP_Exception;
 //  void      save() throws WFP_Exception;
-  
+  void        addMixin( String pMixin ) throws WFP_Exception;
   InputStream openStream()  throws WFP_Exception;
   String      getContentsAsString() throws WFP_Exception;
   void        setContents( final InputStream pIS ) throws WFP_Exception;
