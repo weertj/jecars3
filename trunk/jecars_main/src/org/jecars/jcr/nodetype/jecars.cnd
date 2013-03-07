@@ -638,7 +638,6 @@
                                                            // "JAVATASK"
 - jecars:host                  (Path)                      // path to host to be used for execution
 - jecars:taskpath              (Path)                      // path to jecars:Tool, jecars:Workflow, this, etc.
-- jecars:reltaskpath           (String)                    // relative path to jecars:Tool, jecars:Workflow, this, etc.
 - jecars:javaclasspath         (String)                    // Points to java class when type is JAVATASK.
 - jecars:Modifiers             (String)                    // Comma seperated list of modifiers
                                                            //   ALLOWERROR  = The task allows error, which means that the workflow
