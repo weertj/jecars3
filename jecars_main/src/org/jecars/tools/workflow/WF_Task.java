@@ -48,12 +48,11 @@ public class WF_Task extends WF_Default implements IWF_Task {
    */
   @Override
   public Node getToolTemplateNode() throws RepositoryException {
-    if (getNode().hasProperty( "jecars:reltaskpath")) {
-      return getNode().getNode( getNode().getProperty( "jecars:reltaskpath" ).getString() );
-      
+    final String taskPath = getNode().getProperty( "jecars:taskpath" ).getString();
+    if (taskPath.startsWith("/")) {
+      return getNode().getSession().getNode( taskPath );      
     } else {
-      final String taskPath = getNode().getProperty( "jecars:taskpath" ).getString();
-      return getNode().getSession().getNode( taskPath );
+      return getNode().getNode( taskPath );
     }
   }
   
