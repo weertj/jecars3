@@ -41,10 +41,20 @@ public class WF_Task extends WF_Default implements IWF_Task {
     return this==NULL;
   }
   
+  /** getToolTemplateNode
+   * 
+   * @return
+   * @throws RepositoryException 
+   */
   @Override
   public Node getToolTemplateNode() throws RepositoryException {
-    final String taskPath = getNode().getProperty( "jecars:taskpath" ).getString();
-    return getNode().getSession().getNode( taskPath );
+    if (getNode().hasProperty( "jecars:reltaskpath")) {
+      return getNode().getNode( getNode().getProperty( "jecars:reltaskpath" ).getString() );
+      
+    } else {
+      final String taskPath = getNode().getProperty( "jecars:taskpath" ).getString();
+      return getNode().getSession().getNode( taskPath );
+    }
   }
   
   /** getType
@@ -90,15 +100,6 @@ public class WF_Task extends WF_Default implements IWF_Task {
     return tps;
   }
   
-//  @Override
-//  public void startTask() throws RepositoryException {
-//    
-//    final String taskPath = getNode().getProperty( "jecars:taskpath" ).getString();
-//    
-//    
-//    return;
-//  }
-
   /** getModifiers
    * 
    * @return
