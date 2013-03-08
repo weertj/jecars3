@@ -285,6 +285,15 @@ public class JC_ToolNode extends JC_DefaultNode {
     return config;
   }
   
+  /** getConfig
+   * 
+   * @return
+   * @throws JC_Exception 
+   */
+  public JC_Nodeable getConfig() throws JC_Exception {
+    return getNode( "jecars:Config" );
+  }
+  
   /** setRunningExpireMinutes
    * 
    * @param pNo
@@ -292,7 +301,7 @@ public class JC_ToolNode extends JC_DefaultNode {
    */
   public void setRunningExpireMinutes( int pNo ) throws JC_Exception {
     final JC_Nodeable config = getNode( "jecars:Config" );
-    config.setProperty( "jecars:RunningExpireMinutes", JC_Params.UNSTRUCT_PREFIX_LONG + pNo );
+    config.setProperty( "jecars:RunningExpireMinutes", pNo );
     return;
   }
 
@@ -303,7 +312,8 @@ public class JC_ToolNode extends JC_DefaultNode {
    */
   public void setClosedExpireMinutes( int pNo ) throws JC_Exception {
     final JC_Nodeable config = getNode( "jecars:Config" );
-    config.setProperty( "jecars:ClosedExpireMinutes", JC_Params.UNSTRUCT_PREFIX_LONG + pNo );
+//    config.setProperty( "jecars:ClosedExpireMinutes", JC_Params.UNSTRUCT_PREFIX_LONG + pNo );
+    config.setProperty( "jecars:ClosedExpireMinutes", pNo );
     return;
   }
 
