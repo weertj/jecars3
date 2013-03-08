@@ -39,7 +39,7 @@ import org.jecars.client.observation.JC_ObservationManager;
  */
 public interface JC_Clientable {
 
-  final static public String VERSION_ID = "v3.0 Beta-10";
+  final static public String VERSION_ID = "v3.0 Beta-12";
   final static public String VERSION = "JeCARS 'Elderberry' Client Development " + VERSION_ID;
 
   @Deprecated
