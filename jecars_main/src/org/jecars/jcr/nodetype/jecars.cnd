@@ -517,6 +517,7 @@
 - jecars:IsScheduled            (Boolean)
 - jecars:DelayInSecs            (Long)
 - jecars:IsSingle               (Boolean)
+- jecars:ParentTool             (Path)
 - jecars:ToolTemplate           (Path)
 - jecars:ToolClass              (String)
 - jecars:LastToolSignal         (String)

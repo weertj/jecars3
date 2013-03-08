@@ -61,6 +61,14 @@ public class WF_Workflow extends WF_Default implements IWF_Workflow {
   public Node getNode() {
     return super.getNode();
   }
+
+  @Override
+  public Node getConfig() throws RepositoryException {
+    if (getNode().hasNode( "jecars:Config" )) {
+      return getNode().getNode( "jecars:Config" );
+    }
+    return null;
+  }
   
   
   

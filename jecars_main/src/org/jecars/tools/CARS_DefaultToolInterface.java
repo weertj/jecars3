@@ -92,7 +92,7 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
   private transient List<CARS_ToolInstanceListener>   mListeners    = null;
   private transient String                            mUUID         = null;
   private transient Node                              mConfigNode   = null;
-  private transient Map<String,String>                mToolArgs     = null;
+  private transient Map<String,String>                mToolArgs      = null;
   private transient boolean                           mStoreEvents   = false;
   private transient boolean                           mReplaceEvents = false;
   private transient boolean                           mIsScheduled   = false;
@@ -241,6 +241,12 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
 //          LOG.log( Level.WARNING, null, te );
 //          reportException( ee, Level.WARNING );
 //        }
+        try {
+          setExpireDateTool( getTool(), getClosedExpireMinutes() );
+        } catch (Exception ee) {
+          LOG.log( Level.WARNING, null, ee );
+          reportException( ee, Level.WARNING );
+        }
         setState( CARS_ToolInterface.STATE_CLOSED_ABNORMALCOMPLETED );
       } catch (Exception e) {
         // **** Exception
@@ -639,6 +645,30 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
     return;
   }
 
+  @Override
+  public Node getRootTool() throws RepositoryException {
+    Node pn = getTool();
+    Node n;
+    while( (n=getParentTool(pn))!=null ) {
+      pn = n;
+    }
+    return pn;  
+  }
+  
+  /** getParentTool
+   * 
+   * @return
+   * @throws RepositoryException 
+   */
+  @Override
+  public Node getParentTool( Node pNode ) throws RepositoryException {
+    Node n = pNode;
+    if ((n!=null) && (n.hasProperty( "jecars:ParentTool" ))) {
+      return n.getProperty( "jecars:ParentTool" ).getNode();
+    }
+    return null;
+  }
+  
   /** Get the tool node
    * @return the tool
    * @throws Exception when an error occurs

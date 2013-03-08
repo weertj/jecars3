@@ -16,6 +16,7 @@
 package org.jecars.tools;
 
 import java.io.*;
+import java.math.BigDecimal;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.security.InvalidParameterException;
@@ -332,7 +333,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
           ndf.setProperty( "jecars:Available", true );
           ndf.setProperty( "jcr:data", "" );
           ndf.addMixin( "jecars:mix_filelink" );
-          ndf.setProperty( "jecars:PathToFile", f.getAbsolutePath() );
+          ndf.setProperty( "jecars:PathToFile", CARS_Utils.getAbsolutePath( f ) );
         }
       }
     }
@@ -347,10 +348,21 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
   @Override
   protected void toolInput() throws Exception {
     Node config = getConfigNode();
-
+    
     // **** Copy the config node to the current tool
     if (!hasConfigNode()) {
       copyConfigNodeToTool( config );
+      // **** Check for overuling config
+      Node rootTool = getRootTool();
+      if (rootTool!=null) {
+        if (rootTool.hasNode( "jecars:Config" )) {
+          config = getConfigNode();
+          Node rootToolConfig = rootTool.getNode( "jecars:Config" );
+          if (rootToolConfig.hasProperty( WORKINGDIRECTORY )) {
+            config.setProperty( WORKINGDIRECTORY, rootToolConfig.getProperty( WORKINGDIRECTORY ).getString() );
+          }
+        }
+      }
     }
     config = getConfigNode();
 
@@ -404,14 +416,16 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
               final NodeIterator ni = linkedNode.getNodes();              
               while (ni.hasNext()) {
                 final Node nextNode = ni.nextNode();
-                copyInputResourceToWorkingDir(nextNode);
+                CARS_Utils.copyInputResourceToDirectory( nextNode, mWorkingDirectory );
+//                copyInputResourceToWorkingDir(nextNode);
                 final File inputResFile = new File( mWorkingDirectory, nextNode.getName() );
                 copiedInputs.put( nextNode.getName(), inputResFile );          
               }
             } else {
-             copyInputResourceToWorkingDir(linkedNode);
-             final File inputResFile = new File( mWorkingDirectory, linkedNode.getName() );
-             copiedInputs.put( linkedNode.getName(), inputResFile );
+              CARS_Utils.copyInputResourceToDirectory( linkedNode, mWorkingDirectory );
+//             copyInputResourceToWorkingDir(linkedNode);
+              final File inputResFile = new File( mWorkingDirectory, linkedNode.getName() );
+              copiedInputs.put( linkedNode.getName(), inputResFile );
             }
           }
         }
@@ -456,6 +470,8 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
    * @throws IllegalStateException
    * @throws RepositoryException 
    */
+  @Deprecated
+  /*
     private void copyInputResourceToWorkingDir(final Node linkedNode) throws IOException, IllegalStateException, RepositoryException {
         File      sourceFile = null;
         Binary           bin = null;
@@ -499,7 +515,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
             }
         }
     }
-
+*/
 
 
   /** toolRun
@@ -507,6 +523,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
    * @throws Exception
    */
   @Override
+  @SuppressWarnings("LoggerStringConcat")
   protected void toolRun() throws Exception {
 
     // **** file snapshot
@@ -612,11 +629,15 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
 //        error.getStreamSession().logout();
 //        input.getStreamSession().logout();        
       }
-      reportStatusMessage( "External tool is ending result = " + err );
-      if (err!=0) {
-        LOG.warning( "External tool has produced an error " + err );
+      synchronized( WF_WorkflowRunner.WRITERACCESS ) {
+        reportStatusMessage( "External tool " + getTool().getPath() + " is ending result = " + err );
+        if (err!=0) {
+          LOG.warning( "External tool " + getTool().getPath() + " has produced an error " + err );
+          getTool().save();
+          throw new CARS_ToolException( "External tool " + getTool().getPath() + " has produced an error " + err );
+        }
+        getTool().save();
       }
-      getTool().save();
     } else {
       throw new InvalidParameterException( "No execpath" );
     }
@@ -673,7 +694,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
                   output.setProperty( "jecars:Partial", false );
                   output.setProperty( "jecars:Available", true );
                   output.addMixin( "jecars:mix_filelink" );
-                  output.setProperty( "jecars:PathToFile", file.getAbsolutePath() );
+                  output.setProperty( "jecars:PathToFile", CARS_Utils.getAbsolutePath( file ) );
                   saveSession = output.getSession();
                   if (saveCounter--<0) {
                     saveSession.save();
@@ -743,7 +764,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
                 output.setProperty( "jecars:ContentLength", len );
                 output.setProperty( "jecars:Partial", true );
                 output.addMixin( "jecars:mix_filelink" );
-                output.setProperty( "jecars:PathToFile", file.getAbsolutePath() );
+                output.setProperty( "jecars:PathToFile", CARS_Utils.getAbsolutePath( file ) );
                 saveSession = output.getSession();
                 if (saveCounter--<0) {
                   saveSession.save();

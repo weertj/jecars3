@@ -19,6 +19,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,6 +41,8 @@ import org.jecars.CARS_EventManager;
 import org.jecars.CARS_Factory;
 import org.jecars.CARS_Main;
 import org.jecars.CARS_Utils;
+import org.jecars.backup.JB_ExportData;
+import org.jecars.backup.JB_Options;
 import org.jecars.output.CARS_InputStream;
 import org.jecars.tools.*;
 
@@ -225,8 +228,7 @@ public class CARS_AdminApp extends CARS_DefaultInterface {
         }
       } else if (pLeaf.equals( "/AdminApp/BackupFacility/jecars:StartBackup" )) {
         // **** Backup facility
-       // **** TODO Elderberry
-//        backupFacility( pLeaf, pParentNode.getParent() );
+        backupFacility( pLeaf, pParentNode.getParent() );
       } else if (pLeaf.equals( "/AdminApp/Config" )) {
         jecars_Config( pMain );
 //      } else if (pLeaf.equals( "/AdminApp/ObservationServer" )) {
@@ -467,8 +469,6 @@ public class CARS_AdminApp extends CARS_DefaultInterface {
    * @param pParentNode
    * @throws Exception
    */
-  // **** TODO Elderberry
-  /*
   protected void backupFacility( String pLeaf, Node pParentNode ) throws Exception {
       if (pParentNode.hasProperty( "jecars:BackupDirectory" )) {
         String exportPath = "/";
@@ -495,7 +495,7 @@ public class CARS_AdminApp extends CARS_DefaultInterface {
       }
     return;
   }
-  */
+  
   
   /** Init the JeCARS system
    */

@@ -769,6 +769,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
           save();
         }          
         final Node n = newWF.getNode();
+        n.setProperty( "jecars:ParentTool", getWorkflow().getNode().getPath() );
         
         // **** Copy items from the jecars:workflowtask node
         final NodeIterator nni = pTask.getNode().getNodes();
@@ -896,6 +897,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
         final Node ttn = pTask.getToolTemplateNode();
         final Node tool = getNode().addNode( "Tool_" + getStepNumber(), "jecars:Tool" );
         synchronized( WRITERACCESS ) {
+          tool.setProperty( "jecars:ParentTool", getWorkflow().getNode().getPath() );
           tool.setProperty( "jecars:ToolTemplate", ttn.getPath() );
           tool.addMixin( "jecars:interfaceclass" );
           tool.setProperty( "jecars:InterfaceClass", "org.jecars.tools.CARS_ToolInterfaceApp" );

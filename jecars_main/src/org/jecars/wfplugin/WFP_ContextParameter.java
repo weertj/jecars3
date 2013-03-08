@@ -33,7 +33,7 @@ public class WFP_ContextParameter extends WFP_Node implements IWFP_ContextParame
   }
 
   @Override
-  protected Node getNode() {
+  public Node getJCRNode() {
     return mLinkedNode;
   }  
   

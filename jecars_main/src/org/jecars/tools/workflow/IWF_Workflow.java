@@ -30,7 +30,9 @@ import org.jecars.wfplugin.IWFP_Task;
 public interface IWF_Workflow extends IWF_Default {
 
   CARS_DefaultToolInterface getToolInterface();
-    
+  
+  Node getConfig() throws RepositoryException;
+  
   WF_Workflow copyTo( final Node pParentNode, final String pName  ) throws RepositoryException;
 
   IWFP_Task      getTaskByName( final String pName );

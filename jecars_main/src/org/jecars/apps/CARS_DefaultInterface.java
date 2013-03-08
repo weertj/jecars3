@@ -89,8 +89,9 @@ public class CARS_DefaultInterface implements CARS_Interface, EventListener {
    */
   @Override
   public void init( final CARS_Main pMain, final Node pInterfaceNode ) throws Exception {
-    gLog.log( Level.INFO, "Application source init: " + pInterfaceNode.getPath() );
-    reportVersionInfo( pMain, getVersion(), null );
+    // **** TODO, init version never used.
+//    gLog.log( Level.INFO, "Application source init: " + pInterfaceNode.getPath() );
+//    reportVersionInfo( pMain, getVersion(), null );
     return;
   }
 

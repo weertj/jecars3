@@ -5,13 +5,16 @@
 package org.jecars.wfplugin;
 
 import java.util.List;
+import javax.jcr.Node;
 
 /**
  *
  * @author weert
  */
 public interface IWFP_Node {
-    
+
+  Node                  getJCRNode();
+  
   IWFP_Node             addNode( final String pName, final String pNodeType ) throws WFP_Exception;
   void                  addMixin( final String pN ) throws WFP_Exception;
   String                getPath();

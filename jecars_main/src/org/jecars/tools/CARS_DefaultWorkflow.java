@@ -25,7 +25,11 @@ import org.jecars.CARS_ActionContext;
 import org.jecars.CARS_Factory;
 import org.jecars.CARS_Main;
 import org.jecars.tools.workflow.WF_WorkflowRunner;
+import org.jecars.wfplugin.IWFP_Context;
+import org.jecars.wfplugin.WFP_Context;
 import org.jecars.wfplugin.WFP_InterfaceResult;
+import org.jecars.wfplugin.WFP_Tool;
+import org.jecars.wfplugin.tools.WFPT_Archive;
 
 /** CARS_DefaultWorkflow
  *
@@ -182,8 +186,7 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
                 final Node newrunnerNode = newmain.getSession().getNode( runner.getPath() );              
                 final WF_WorkflowRunner wrun = new WF_WorkflowRunner( newmain, newrunnerNode );
                 currentRunners.add( wrun );
-                runWorkflowRunner wr = new runWorkflowRunner();
-                wr.mRunner = wrun;
+                runWorkflowRunner wr = new runWorkflowRunner( wrun );
                 final Thread t = new Thread( wr );
                 t.setPriority( Thread.currentThread().getPriority() );
                 t.setName( wrun.getPath() );
@@ -214,9 +217,26 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
     return;
   }
 
+  /** runWorkflowRunner
+   * 
+   */
   private class runWorkflowRunner implements Runnable {
-    protected WF_WorkflowRunner mRunner = null;
+    
+    private final transient WF_WorkflowRunner mRunner;
 
+    /** runWorkflowRunner
+     * 
+     * @param pRunner 
+     */
+    public runWorkflowRunner( final WF_WorkflowRunner pRunner ) {
+      mRunner = pRunner;
+      return;
+    }
+
+    
+    /** run
+     * 
+     */
     @Override
     public void run() {
       String currentSource = "";
@@ -255,7 +275,29 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
             mRunner.getWorkflow().save();
           }
         }
-        mRunner.destroy();        
+
+        // **** Check for the archive option
+        try {
+          Node config = mRunner.getWorkflow().getConfig();
+          if (config!=null && config.hasProperty( "jecars:ArchiveDirectory" )) {
+            Thread.sleep( 5000 );
+            String archive = config.getProperty( "jecars:ArchiveDirectory" ).getString();
+            WFPT_Archive archiveTool = new WFPT_Archive();
+            final WFP_Tool       tool = new WFP_Tool( null, mRunner.getWorkflow() );
+            final IWFP_Context context = new WFP_Context( mRunner.getContext(), getMain() );
+            if (config.hasProperty( "jecars:JeCARSBackupDirectory" )) {
+              String backup = config.getProperty( "jecars:JeCARSBackupDirectory" ).getString();
+              context.addTransientObject( WFPT_Archive.JECARSBACKUPDIRECTORY, backup );
+            }
+            context.addTransientObject( WFPT_Archive.NODEFORARCHIVE, mRunner.getWorkflow().getNode() );
+            context.addTransientObject( WFPT_Archive.ARCHIVEDIRECTORY, archive );
+            archiveTool.start( tool, context );
+          }
+        } catch( RepositoryException re ) {
+          reportException( re, Level.SEVERE );
+        } finally {
+          mRunner.destroy();
+        }
       } catch( Exception e ) {
         CARS_ToolInstanceEvent tie = reportExceptionEvent( e, Level.SEVERE );
         try {
@@ -272,7 +314,7 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
         } catch( RepositoryException re ) {
           reportException( re, Level.WARNING );
         }
-      }
+      }      
       return;
     }
 
