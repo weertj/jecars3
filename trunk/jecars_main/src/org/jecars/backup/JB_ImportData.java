@@ -184,7 +184,7 @@ public class JB_ImportData {
     switch( type ) {
       case PropertyType.BINARY: {
         File f = new File( pOptions.getImportDirectory(), pValue );
-        System.out.println( "Import BINARY file -> " + f.getAbsolutePath() );
+        System.out.println( "Import BINARY file -> " + CARS_Utils.getAbsolutePath(f) );
         if (pNode.hasProperty( pName )==false) {
           FileInputStream fis = new FileInputStream( f );
           try {

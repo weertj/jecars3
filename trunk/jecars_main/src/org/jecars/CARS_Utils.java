@@ -18,6 +18,7 @@ package org.jecars;
 import com.google.gdata.util.common.base.CharEscapers;
 import com.google.gdata.util.common.base.Escaper;
 import java.io.*;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -43,6 +44,17 @@ public class CARS_Utils {
   private CARS_Utils() {
   }
 
+  /** getAbsolutePath
+   * 
+   * @param pF
+   * @return 
+   */
+  static public String getAbsolutePath( final File pF ) {
+    String ab = pF.getAbsolutePath();
+    ab = ab.replace( '\\', '/' );
+    return ab;
+  }
+  
   /** getNodeByString
    * @param pSession
    * @param pValue
@@ -539,4 +551,63 @@ public class CARS_Utils {
     return pN;
   }
 
+  
+  /** copyInputResourceToDirectory
+   * 
+   * @param pLinkedNode
+   * @param pDirectory
+   * @throws IOException
+   * @throws IllegalStateException
+   * @throws RepositoryException 
+   */
+  static public File copyInputResourceToDirectory( final Node pLinkedNode, final File pDirectory ) throws IOException, IllegalStateException, RepositoryException {
+      File    inputResFile = null;
+      File      sourceFile = null;
+      Binary           bin = null;
+      InputStream       is = null;
+      FileOutputStream fos = null;
+      try {
+        String name = pLinkedNode.getName();
+        if (!name.contains( ":") && (!pLinkedNode.isNodeType( "jecars:parameterdata" ))) {
+          if (pLinkedNode.hasProperty("jecars:URL")) {
+            final String path = pLinkedNode.getProperty("jecars:URL").getValue().getString();
+            final URL u = new URL(path);
+            if (path.startsWith("file:/")) {
+              sourceFile = new File(URLDecoder.decode(u.getFile(), "UTF-8"));
+            } else {
+              is = u.openStream();
+            }
+          } else  if (pLinkedNode.hasProperty("jecars:PathToFile")) {
+            sourceFile = new File(pLinkedNode.getProperty("jecars:PathToFile").getValue().getString());
+          } else if (pLinkedNode.hasProperty( "jcr:data" )) {
+            bin = pLinkedNode.getProperty("jcr:data").getBinary();
+            is = bin.getStream();
+          }
+          inputResFile = new File( pDirectory, name );
+          if (sourceFile == null) {
+            if (is==null) {
+              // **** No contents
+            } else {
+              fos = new FileOutputStream(inputResFile);
+              sendInputStreamToOutputStream(50000, is, fos);
+            }
+          } else {
+            sendInputToOutputNIOBuffer(sourceFile, inputResFile);
+          }
+        }
+      } finally {
+        if (bin != null) {
+          bin.dispose();
+        }
+        if (fos != null) {
+          fos.close();
+        }
+        if (is != null) {
+          is.close();
+        }
+      }
+      return inputResFile;
+    }
+
+  
 }

@@ -91,7 +91,17 @@ public interface CARS_ToolInterface {
    * @return the tool
    * @throws Exception when an error occurs
    */
-  public Node   getTool() throws Exception;
+  Node   getTool() throws Exception;
+  
+  /** getParentTool
+   * 
+   * @param pToolNode retrieved by getTool()
+   * @return
+   * @throws RepositoryException 
+   */
+  Node getParentTool( Node pToolNode ) throws RepositoryException;
+  
+  Node   getRootTool() throws RepositoryException;
   
   /** getToolTemplatePath
    * 

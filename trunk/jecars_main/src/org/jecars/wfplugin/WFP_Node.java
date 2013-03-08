@@ -45,11 +45,16 @@ public class WFP_Node implements IWFP_Node {
     return;
   }
  
+  protected Node getNode() {
+    return mNode;
+  }
+  
   /** getNode
    * 
    * @return 
    */
-  protected Node getNode() {
+  @Override
+  public Node getJCRNode() {
     return mNode;
   }
   

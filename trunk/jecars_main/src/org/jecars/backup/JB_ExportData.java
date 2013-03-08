@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 NLR - National Aerospace Laboratory
+ * Copyright 2007-2013 NLR - National Aerospace Laboratory
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import javax.jcr.*;
 import javax.jcr.version.OnParentVersionAction;
 import javax.jcr.version.Version;
+import org.jecars.CARS_Utils;
 
 /**
  * JB_ExportData
@@ -40,23 +41,32 @@ public class JB_ExportData {
     
   static final String EOL = "\n";
   
+  /** exportToDirectory
+   * 
+   * @param pStartNode
+   * @param pOptions
+   * @throws FileNotFoundException
+   * @throws RepositoryException
+   * @throws IOException
+   * @throws Exception 
+   */
   public void exportToDirectory( Node pStartNode, JB_Options pOptions ) throws FileNotFoundException, RepositoryException, IOException, Exception {    
     
     mExportedVersions.clear();
 
-    if (pOptions.getExportDirectory().exists()==false) {
-      if (pOptions.getExportDirectory().mkdirs()==false) {
+    if (!pOptions.getExportDirectory().exists()) {
+      if (!pOptions.getExportDirectory().mkdirs()) {
         throw new Exception( "Cannot create directory: " + pOptions.getExportDirectory().getCanonicalPath() );
       }
     }
     
-    if (pOptions.getExportNamespaces()==true) {
+    if (pOptions.getExportNamespaces()) {
       // **** Export the namespaces
       File namespaceExportFile = new File( pOptions.getExportDirectory(), pOptions.getExportNamespacesFilename() );
       FileOutputStream fos = new FileOutputStream( namespaceExportFile );
       DataOutputStream dos = new DataOutputStream( fos );
       try {
-        System.out.println( "Export namespaces using JB file: " + namespaceExportFile.getAbsolutePath() );    
+        System.out.println( "Export namespaces using JB file: " + CARS_Utils.getAbsolutePath(namespaceExportFile) );    
         String[] nms = pStartNode.getSession().getNamespacePrefixes();
         for( int i=0; i<nms.length; i++ ) {
           dos.writeBytes( nms[i] );
@@ -70,7 +80,7 @@ public class JB_ExportData {
       }
     }
     
-    if (pOptions.getExportNodeTypes()==true) {
+    if (pOptions.getExportNodeTypes()) {
       // **** Export the nodetypes
       File f = new File( pOptions.getExportDirectory(), pOptions.getExportNodeTypesFilename() );
       FileOutputStream fos = new FileOutputStream( f );
@@ -86,7 +96,7 @@ public class JB_ExportData {
 
     
     File mainExportFile = new File( pOptions.getExportDirectory(), pOptions.getExportJeCARSFilename() );
-    System.out.println( "Using JB file: " + mainExportFile.getAbsolutePath() );    
+    System.out.println( "Using JB file: " + CARS_Utils.getAbsolutePath(mainExportFile) );    
     FileOutputStream fos = new FileOutputStream( mainExportFile );
     try {
       exportToStream( pStartNode, fos, pOptions );
@@ -97,7 +107,14 @@ public class JB_ExportData {
     return;
   }
   
-  
+  /** exportToStream
+   * 
+   * @param pStartNode
+   * @param pStream
+   * @param pOptions
+   * @throws RepositoryException
+   * @throws IOException 
+   */
   public void exportToStream( Node pStartNode, OutputStream pStream, JB_Options pOptions ) throws RepositoryException, IOException {
     
     DataOutputStream dos = new DataOutputStream( pStream );    
@@ -117,10 +134,25 @@ public class JB_ExportData {
     return; 
   }
 
+  /** encodeString
+   * 
+   * @param pValue
+   * @return
+   * @throws UnsupportedEncodingException 
+   */
   protected String encodeString( String pValue ) throws UnsupportedEncodingException {    
     return URLEncoder.encode( pValue, "UTF-8" );
   }
   
+  /** encodeValue
+   * 
+   * @param pValue
+   * @return
+   * @throws ValueFormatException
+   * @throws IllegalStateException
+   * @throws RepositoryException
+   * @throws UnsupportedEncodingException 
+   */
   protected String encodeValue( Value pValue ) throws ValueFormatException, IllegalStateException, RepositoryException, UnsupportedEncodingException {
     String s = null;
     switch( pValue.getType() ) {
@@ -132,13 +164,25 @@ public class JB_ExportData {
     }
     return s;
   }
-  
+   
+  /** isSysProperty
+   * 
+   * @param pPropName
+   * @return 
+   */
   protected boolean isSysProperty( String pPropName ) {
     if (pPropName.equals( "jcr:mixinTypes"  )) return true;
     if (pPropName.equals( "jcr:primaryType" )) return true;    
     return false;
   }
   
+  /** exportSysProperties
+   * 
+   * @param pNode
+   * @param pStream
+   * @throws RepositoryException
+   * @throws IOException 
+   */
   protected void exportSysProperties( Node pNode, DataOutputStream pStream ) throws RepositoryException, IOException {
     if (pNode.hasProperty( "jcr:mixinTypes" )) {
       Value[] v = pNode.getProperty( "jcr:mixinTypes" ).getValues();
@@ -151,6 +195,14 @@ public class JB_ExportData {
   }
 
   /** Export version
+   * 
+   * @param pBaseNode
+   * @param pLevel
+   * @param pVersion
+   * @param pStream
+   * @param pOptions
+   * @throws RepositoryException
+   * @throws IOException 
    */
   protected void exportVersionNode( Node pBaseNode, int pLevel, Version pVersion, DataOutputStream pStream, JB_Options pOptions ) throws RepositoryException, IOException {
 
@@ -179,6 +231,13 @@ public class JB_ExportData {
   }
 
   /** Export node
+   * 
+   * @param pLevel
+   * @param pNode
+   * @param pStream
+   * @param pOptions
+   * @throws RepositoryException
+   * @throws IOException 
    */
   protected void exportNode( int pLevel, Node pNode, DataOutputStream pStream, JB_Options pOptions ) throws RepositoryException, IOException {
 
@@ -233,6 +292,14 @@ public class JB_ExportData {
   }
 
   /** Export properties
+   * 
+   * @param pLevel
+   * @param pNode
+   * @param pStream
+   * @param pOptions
+   * @param pBaseNode
+   * @throws RepositoryException
+   * @throws IOException 
    */
   protected void exportProperties( int pLevel, Node pNode, DataOutputStream pStream, JB_Options pOptions, Node pBaseNode ) throws RepositoryException, IOException {
     // **** Export sys properties first
@@ -271,15 +338,22 @@ public class JB_ExportData {
   }
 
   /** Write property
+   * 
+   * @param p
+   * @param pStream
+   * @param pOptions
+   * @throws RepositoryException
+   * @throws IOException 
    */
   protected void writeProperty( Property p, DataOutputStream pStream, JB_Options pOptions ) throws RepositoryException, IOException {       
-    if (isSysProperty( p.getName() )==false) {
-      if (p.getDefinition().isMultiple()==false) {
-        Value v = p.getValue();
+    if (!isSysProperty( p.getName() )) {
+      if (!p.getDefinition().isMultiple()) {
+        // **** Single value property
+        final Value v = p.getValue();
 //        System.out.println( "-=a " + p.getPath());
         if (v.getType()==PropertyType.BINARY) {
           // **** Binary data
-          if (pOptions.getExportBinary()==true) {
+          if (pOptions.getExportBinary()) {
             pStream.writeBytes( "-" + p.getName() + "\t" + PropertyType.nameFromValue(v.getType()) );
             System.out.println( "Export BINARY property " + p.getPath() );
             pStream.writeBytes( "\t" + exportBinaryProperty( p, pOptions ) + EOL );
@@ -291,7 +365,20 @@ public class JB_ExportData {
           }
         } else {
           pStream.writeBytes( "-" + p.getName() + "\t" + PropertyType.nameFromValue(v.getType()) );
-          pStream.writeBytes( "\t" + encodeValue( v ) + EOL );
+          if ("jecars:PathToFile".equals( p.getName() )) {
+            final File changeToFile = pOptions.changeFilePathRoot();
+            String s = p.getValue().getString();
+            if (changeToFile!=null) {
+              int ix = s.lastIndexOf( '/' );
+              if (ix!=-1) {
+                s = s.substring( s.lastIndexOf( '/' ) );
+                s = CARS_Utils.getAbsolutePath(changeToFile) + s;
+              }
+            }
+            pStream.writeBytes( "\t" + encodeString(s) + EOL );
+          } else {
+            pStream.writeBytes( "\t" + encodeValue( v ) + EOL );
+          }
         }
       } else {
         Value[] v = p.getValues();
@@ -318,13 +405,23 @@ public class JB_ExportData {
     return;
   }
   
+  /** exportBinaryProperty
+   * 
+   * @param pProperty
+   * @param pOptions
+   * @return
+   * @throws RepositoryException
+   * @throws UnsupportedEncodingException
+   * @throws FileNotFoundException
+   * @throws IOException 
+   */
   protected String exportBinaryProperty( Property pProperty, JB_Options pOptions ) throws RepositoryException, UnsupportedEncodingException, FileNotFoundException, IOException {
     File exportDir = pOptions.getExportDirectory();
     
     File binFile = new File( exportDir, pOptions.getNextBinaryExportFilename() );
     FileOutputStream binFos = new FileOutputStream( binFile );
     try {
-      InputStream is = pProperty.getStream();
+      InputStream is = pProperty.getBinary().getStream();
       byte[] buffer = new byte[50000];
       int read;
       while( (read=is.read(buffer))!=-1 ) {

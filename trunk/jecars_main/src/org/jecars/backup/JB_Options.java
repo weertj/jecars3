@@ -44,12 +44,31 @@ public class JB_Options {
   private boolean    mImportNamespaces = true;
   private boolean    mImportNodeTypes = true;
   
+  private File       mChangeFilePathRoot = null;
+  
   public JB_Options() {
     setExportVersionHistory( true );
     return;
   }
 
-  public void setExportVersionHistory( boolean pExport ) {
+  /** changeFilePathRoot
+   * 
+   * @return 
+   */
+  public File changeFilePathRoot() {
+    return mChangeFilePathRoot;    
+  }
+  
+  /** changeFilePathRoot
+   * 
+   * @param pF
+   * @return 
+   */
+  public File changeFilePathRoot( final File pF ) {
+    return mChangeFilePathRoot=pF;
+  }
+    
+  final public void setExportVersionHistory( boolean pExport ) {
     mExportVersionHistory = pExport;
     if (pExport==true) addIncludePath( "/jcr:system/jcr:versionStorage.*" );
     return;
