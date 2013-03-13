@@ -80,7 +80,7 @@ public class CARS_WorkflowsXMLInterfaceApp extends CARS_DefaultInterface {
     
     /**
      *  Store a binary stream - our implementation: parse the XML stream, 
-     *  and add (TODO? : replace) child nodes by a JeCARS node hierchy
+     *  and add (TODO? : replace) child nodes by a JeCARS node hierarchy
      *  generated from the XML
      *
      * @param pMain
@@ -98,10 +98,11 @@ public class CARS_WorkflowsXMLInterfaceApp extends CARS_DefaultInterface {
                 // encountered when e.g.creating the node, but not yet sending the xml to it
                 return false;
             } else {
-                if (("text/xml".equals( pMimeType ) || (pNode.getPrimaryNodeType().isNodeType( "jecars:Workflow" )))) {
+                if ("text/xml".equalsIgnoreCase( pMimeType ) || 
+                    "application/xml".equalsIgnoreCase( pMimeType )) {
                   WF_XmlReader reader = new WF_XmlReader();
                   boolean replaceNodes = false; // todo: add a replace option?
-                  reader.addJcrNode(pBody, pNode.getParent(), replaceNodes);
+                  reader.addJcrNode(pBody, pNode, replaceNodes);
                   return true; // node has been changed
                 } else {
                   return super.setBodyStream(pMain, pInterfaceNode, pNode, pBody, pMimeType);
