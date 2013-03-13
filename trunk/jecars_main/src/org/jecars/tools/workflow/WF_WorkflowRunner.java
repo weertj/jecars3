@@ -859,8 +859,12 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
               final Node nn;
               if (tnode.isNodeType( "jecars:parameterresource" )) {
 //                nn = context.getNode().addNode( tnode.getName(), "jecars:parameterresource" );                
-                Node resparaN = CARS_Utils.getLinkedNode(tnode);
-                ws.copy( resparaN.getPath(), context.getNode().getPath() + "/" + resparaN.getName() );
+                final Node resparaN = CARS_Utils.getLinkedNode(tnode);
+                final String paramn = context.getNode().getPath() + "/" + resparaN.getName();
+                if (context.getNode().hasNode( resparaN.getName() )) {
+                  context.getNode().getNode( resparaN.getName() ).remove();
+                }
+                ws.copy( resparaN.getPath(), paramn );
               } else {
                 if (context.getNode().hasNode( tnode.getName() )) {
                   context.getNode().getNode( tnode.getName() ).remove();
