@@ -119,6 +119,13 @@ public class JC_Workflow1Test {
         entrytask.addParameterData( EJC_ContextParameter.WFP_OUTPUT_FOLDER ).addParameter( "testoutput" );
 
         // ********************************************************
+        // **** Loopcounter
+        JC_WorkflowTaskNode loopcounter = templateWorkflow.addJavaTask( "Loopcounter", "org.jecars.wfplugin.tools.WFPT_LoopCounter" );
+        templateWorkflow.save();
+        JC_WorkflowTaskPortNode loopcounter_in0  = loopcounter.addInputPort(  "In",  null, ".*", ".*" );
+        JC_WorkflowTaskPortNode loopcounter_out0 = loopcounter.addOutputPort( "Out", null, ".*", ".*" );
+
+        // ********************************************************
         // **** The switch
         JC_WorkflowTaskNode theswitch = templateWorkflow.addJavaTask( "Switch", "org.jecars.wfplugin.tools.WFPT_Switch" );
         templateWorkflow.save();
@@ -150,7 +157,8 @@ public class JC_Workflow1Test {
         JC_WorkflowTaskPortNode sleep_in1  = sleep1.addInputPort(  "In",  null, ".*", ".*" );
         JC_WorkflowTaskPortNode sleep_out1 = sleep1.addOutputPort( "Out", null, ".*", ".*" );
         templateWorkflow.save();        
-        templateWorkflow.addLink( "ToSwitch",   entrytask, tentryout, theswitch, theswitch_in0, 0 );
+        templateWorkflow.addLink( "ToCounter",   entrytask, tentryout, loopcounter, loopcounter_in0, 0 );
+        templateWorkflow.addLink( "ToSwitch",   loopcounter, loopcounter_out0, theswitch, theswitch_in0, 0 );
         templateWorkflow.addLink( "ToSleep0",   theswitch, theswitch_out0, sleep0, sleep_in0, 0 );
         templateWorkflow.addLink( "ToSleep1_Sec",   theswitch, theswitch_out1, sleep1_SecondPath, sleep_in_2_1, 0 );
         templateWorkflow.addLink( "FromSleep1_Sec", sleep1_SecondPath, sleep_out_1, sleep1, sleep_in1, 0 );

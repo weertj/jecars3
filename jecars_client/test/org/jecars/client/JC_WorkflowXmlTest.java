@@ -142,7 +142,7 @@ public class JC_WorkflowXmlTest {
         assertTrue(file.canRead());
         System.out.println("Using XML input file="+file.getAbsolutePath());
         FileInputStream fis = new FileInputStream(file);
-        String contentType = "application/xml"; 
+        String contentType = "text/xml"; 
         
         // upload the input file
         JC_Streamable stream = JC_DefaultStream.createStream(fis, contentType); 
