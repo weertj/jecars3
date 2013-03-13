@@ -15,14 +15,12 @@
             <node name="inputs" primaryType="jecars:workflowtaskports">
                 <node name="0" primaryType="jecars:workflowtaskport">
                     <property name="jecars:nodetype" type="String" value=""/>
-                    <property name="jecars:sequencenumber" type="Long" value="0"/>
                     <property name="jecars:nodename" type="String" value=""/>
                 </node>
             </node>
             <node name="outputs" primaryType="jecars:workflowtaskports">
                 <node name="0" primaryType="jecars:workflowtaskport">
                     <property name="jecars:nodetype" type="String" value=".*"/>
-                    <property name="jecars:sequencenumber" type="Long" value="0"/>
                     <property name="jecars:nodename" type="String" value=".*"/>
                 </node>
             </node>
@@ -50,14 +48,12 @@
             <node name="inputs" primaryType="jecars:workflowtaskports">
                 <node name="0" primaryType="jecars:workflowtaskport">
                     <property name="jecars:nodetype" type="String" value="jecars:inputresource"/>
-                    <property name="jecars:sequencenumber" type="Long" value="0"/>
                     <property name="jecars:nodename" type="String" value=""/>
                 </node>
             </node>
             <node name="outputs" primaryType="jecars:workflowtaskports">
                 <node name="0" primaryType="jecars:workflowtaskport">
                     <property name="jecars:nodetype" type="String" value=".*"/>
-                    <property name="jecars:sequencenumber" type="Long" value="0"/>
                     <property name="jecars:nodename" type="String" value="auto.*"/>
                 </node>
             </node>
@@ -76,14 +72,12 @@ aG91bGQgbm90IGJlIGhlcmUgd2hlbiB5b3VyIG1vdGhlciBpcyBvdXQh]]>
             <node name="from" primaryType="jecars:workflowlinkendpoint">
                 <property name="jecars:endpoint" type="Path" value="../../../tasks/Entry-1"/>
                 <node name="0" primaryType="jecars:workflowtaskportref">
-                    <property name="jecars:portindex" type="Long" value="0"/>
                     <property name="jecars:portref" type="Path" value="../../../../tasks/Entry-1/outputs/0"/>
                 </node>
             </node>
             <node name="to" primaryType="jecars:workflowlinkendpoint">
                 <property name="jecars:endpoint" type="Path" value="../../../tasks/someTool"/>
                 <node name="0" primaryType="jecars:workflowtaskportref">
-                    <property name="jecars:portindex" type="Long" value="0"/>
                     <property name="jecars:portref" type="Path" value="../../../../tasks/someTool/inputs/0"/>
                 </node>
             </node>
@@ -92,14 +86,12 @@ aG91bGQgbm90IGJlIGhlcmUgd2hlbiB5b3VyIG1vdGhlciBpcyBvdXQh]]>
             <node name="from" primaryType="jecars:workflowlinkendpoint">
                 <property name="jecars:endpoint" type="Path" value="../../../tasks/someTool"/>
                 <node name="0" primaryType="jecars:workflowtaskportref">
-                    <property name="jecars:portindex" type="Long" value="0"/>
                     <property name="jecars:portref" type="Path" value="../../../../tasks/someTool/outputs/0"/>
                 </node>
             </node>
             <node name="to" primaryType="jecars:workflowlinkendpoint">
                 <property name="jecars:endpoint" type="Path" value="../../../tasks/Exit-1"/>
                 <node name="0" primaryType="jecars:workflowtaskportref">
-                    <property name="jecars:portindex" type="Long" value="0"/>
                     <property name="jecars:portref" type="Path" value="../../../../tasks/Entry-1/inputs/0"/>
                 </node>
             </node>
