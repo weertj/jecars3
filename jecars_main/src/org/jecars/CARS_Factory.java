@@ -388,6 +388,7 @@ abstract public class CARS_Factory {
         gSystemCarsSession.refresh( false );
       } catch( RepositoryException re ) {};
       gSystemCarsSession.logout();
+      gSystemCarsSession = null;
 //      gRepository.shutdown();
       return;
     }
