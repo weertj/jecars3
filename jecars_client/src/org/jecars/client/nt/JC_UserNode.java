@@ -465,18 +465,47 @@ public class JC_UserNode extends JC_DefaultNode {
       return groupList;
     }
     
+    /** getRoleFeatures
+     *
+     * @return
+     * @throws JC_Exception 
+     */
     public List<JC_Nodeable> getRoleFeatures() throws JC_Exception {
       final List<JC_Nodeable> fList = new ArrayList<JC_Nodeable>();
       final JC_Clientable c = getClient();
+      final String userPath = c.getUserNode().getPath();
       final JC_Params params = c.createParams( JC_RESTComm.GET ).cloneParams();
-      params.setDeep( true );
       final JC_Filter filter = JC_Filter.createFilter();
-      filter.addCategory( "jecars:Feature" );
+      filter.addCategory( "jecars:Group" );
       final JC_Nodeable groups = c.getSingleNode( "/JeCARS/default/Groups" );      
-      for( final JC_Nodeable feature : groups.getNodes( params, filter, null )) {
-        fList.add( feature );
+      for( final JC_Nodeable groupN : groups.getNodes( params, filter, null )) {
+        final JC_GroupNode group = (JC_GroupNode)groupN.morphToNodeType();
+        if (group.isRole()) {
+          for( JC_Nodeable member : group.getMembers() ) {
+            if (userPath.equals( member.getPath() )) {
+              final JC_Params fparams = c.createParams( JC_RESTComm.GET ).cloneParams();
+              fparams.setDeep( true );
+              final JC_Filter ffilter = JC_Filter.createFilter();
+              ffilter.addCategory( "jecars:Feature" );
+              for( final JC_Nodeable feature : group.getNodes( fparams, ffilter, null )) {
+                fList.add( feature );
+              }            
+            }
+          }
+        }
       }
       return fList;      
+//      final List<JC_Nodeable> fList = new ArrayList<JC_Nodeable>();
+//      final JC_Clientable c = getClient();
+//      final JC_Params params = c.createParams( JC_RESTComm.GET ).cloneParams();
+//      params.setDeep( true );
+//      final JC_Filter filter = JC_Filter.createFilter();
+//      filter.addCategory( "jecars:Feature" );
+//     final JC_Nodeable groups = c.getSingleNode( "/JeCARS/default/Groups" );      
+//      for( final JC_Nodeable feature : groups.getNodes( params, filter, null )) {
+//        fList.add( feature );
+//      }
+//      return fList;      
     }
     
     
