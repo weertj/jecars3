@@ -730,7 +730,13 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
             while( ni.hasNext() ) {
               Node dataNode = ni.nextNode();
               try {
-                wfNode.getSession().move( dataNode.getPath(), wfNode.getPath() + "/" + dataNode.getName() );
+                final String newNodePath = wfNode.getPath() + "/" + dataNode.getName();
+                // **** If the data node already exists in the parent workflow, replace it
+                if (wfNode.hasNode( dataNode.getName() )) {
+                  wfNode.getNode( dataNode.getName() ).remove();
+                }
+                wfNode.getSession().move( dataNode.getPath(), newNodePath );
+//                wfNode.getSession().move( dataNode.getPath(), wfNode.getPath() + "/" + dataNode.getName() );
                 final Node n = wfNode.getNode( dataNode.getName() );
                 if (!n.isNodeType( "jecars:mix_outputresource" )) {
                   n.addMixin( "jecars:mix_outputresource" );
@@ -970,9 +976,13 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
           while( ni.hasNext() ) {
             final Node tnode = ni.nextNode();
 //          ws.copy( tnode.getPath(), toPath + "/" + tnode.getName() );
-            Node nn = context.getNode().addNode( tnode.getName(), "jecars:root" );
-            nn.addMixin( "jecars:mix_link" );
-            nn.setProperty( "jecars:Link" , tnode.getPath() );        
+            // **** Check if the node must be copied to the current context            
+            if ((!"jecars:Events".equals(tnode.getName())) &&
+                (!"jecars:Config".equals(tnode.getName()))) {
+              final Node nn = context.getNode().addNode( tnode.getName(), "jecars:root" );
+              nn.addMixin( "jecars:mix_link" );
+              nn.setProperty( "jecars:Link" , tnode.getPath() );
+            }
           }
           save();
         }
