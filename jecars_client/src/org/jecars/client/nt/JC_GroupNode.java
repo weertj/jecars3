@@ -121,13 +121,15 @@ public class JC_GroupNode extends JC_DefaultNode {
   public Collection<JC_Nodeable>getMembers() throws JC_Exception {
     if (mCachedMembers==null) {
       mCachedMembers = new ArrayList<JC_Nodeable>();
-      final JC_MultiValueProperty mvp = (JC_MultiValueProperty)getProperty( GROUPMEMBERS );
-      final JC_Clientable client = getClient();
-      final JC_Nodeable root = client.getRootNode();
-      final Collection<String>m = mvp.getValues();
-      for (String member : m ) {
-        if (root.hasNode(member.substring(1))) {
-          mCachedMembers.add( root.getNode( member.substring(1) ) );
+      if (hasProperty( GROUPMEMBERS )) {
+        final JC_MultiValueProperty mvp = (JC_MultiValueProperty)getProperty( GROUPMEMBERS );
+        final JC_Clientable client = getClient();
+        final JC_Nodeable root = client.getRootNode();
+        final Collection<String>m = mvp.getValues();
+        for (String member : m ) {
+          if (root.hasNode(member.substring(1))) {
+            mCachedMembers.add( root.getNode( member.substring(1) ) );
+          }
         }
       }
     }
