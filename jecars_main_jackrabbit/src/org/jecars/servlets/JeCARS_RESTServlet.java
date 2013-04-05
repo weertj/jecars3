@@ -40,6 +40,9 @@ import javax.security.auth.login.CredentialExpiredException;
 import javax.servlet.*;
 import javax.servlet.http.*;
 import nl.msd.jdots.JD_Taglist;
+import org.apache.jackrabbit.api.JackrabbitRepository;
+import org.apache.jackrabbit.core.RepositoryImpl;
+import org.apache.jackrabbit.core.TransientRepository;
 import org.jecars.CARS_ActionContext;
 import org.jecars.CARS_Definitions;
 import org.jecars.CARS_EventManager;
@@ -80,8 +83,8 @@ public class JeCARS_RESTServlet extends HttpServlet {
   static private final Object           MD_LOCK = new Object();
   static private       String           gCurrentFullContext = null;
   
-  static protected volatile AUTH_TYPE           gCURRENT_AUTH  = AUTH_TYPE.BASIC;
-//  static protected volatile AUTH_TYPE           gCURRENT_AUTH  = AUTH_TYPE.DIGEST;
+//  static protected volatile AUTH_TYPE           gCURRENT_AUTH  = AUTH_TYPE.BASIC;
+  static protected volatile AUTH_TYPE           gCURRENT_AUTH  = AUTH_TYPE.DIGEST;
   static protected volatile EnumSet<AUTH_TYPE>  gALLOWED_AUTH  = EnumSet.of( AUTH_TYPE.DIGEST, AUTH_TYPE.BASIC );
 
   static public final JeCARS_WebDAVServlet WEBDAV = new JeCARS_WebDAVServlet();
@@ -274,6 +277,7 @@ public class JeCARS_RESTServlet extends HttpServlet {
     gLog.log( Level.INFO, "Servlet destroy request " );
     CARS_DefaultToolInterface.destroy();
     CARS_Factory.shutdown();
+    ((JackrabbitRepository)CARS_Factory.getRepository()).shutdown();
     return;
   }
   
