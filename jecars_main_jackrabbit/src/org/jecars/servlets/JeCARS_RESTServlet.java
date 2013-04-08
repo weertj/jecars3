@@ -83,8 +83,8 @@ public class JeCARS_RESTServlet extends HttpServlet {
   static private final Object           MD_LOCK = new Object();
   static private       String           gCurrentFullContext = null;
   
-//  static protected volatile AUTH_TYPE           gCURRENT_AUTH  = AUTH_TYPE.BASIC;
-  static protected volatile AUTH_TYPE           gCURRENT_AUTH  = AUTH_TYPE.DIGEST;
+  static protected volatile AUTH_TYPE           gCURRENT_AUTH  = AUTH_TYPE.BASIC;
+//  static protected volatile AUTH_TYPE           gCURRENT_AUTH  = AUTH_TYPE.DIGEST;
   static protected volatile EnumSet<AUTH_TYPE>  gALLOWED_AUTH  = EnumSet.of( AUTH_TYPE.DIGEST, AUTH_TYPE.BASIC );
 
   static public final JeCARS_WebDAVServlet WEBDAV = new JeCARS_WebDAVServlet();
