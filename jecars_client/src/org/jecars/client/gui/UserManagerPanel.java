@@ -21,6 +21,9 @@ import java.awt.Component;
 import java.awt.Font;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
 import javax.swing.JLabel;
@@ -358,6 +361,15 @@ public class UserManagerPanel extends javax.swing.JPanel {
       return;
     }
 
+    static class compareJCNode implements Comparator<JC_Nodeable> {
+
+      @Override
+      public int compare(JC_Nodeable o1, JC_Nodeable o2) {
+        return o1.getName().compareTo(o2.getName());
+      }
+      
+    }
+    
     /** refreshUsers
      *
      * @throws org.jecars.client.JC_Exception
@@ -370,7 +382,9 @@ public class UserManagerPanel extends javax.swing.JPanel {
       JC_Filter filter = JC_Filter.createFilter();
       filter.addCategory( "jecars:User" );
       Collection<JC_Nodeable> usersN = mUsers.getNodes( null, filter, null );
-      for ( JC_Nodeable userN : usersN) {
+      List<JC_Nodeable> listUsersN = new ArrayList<JC_Nodeable>( usersN );
+      Collections.sort( listUsersN, new compareJCNode());
+      for ( JC_Nodeable userN : listUsersN) {
         dlm.addElement( userN );
       }
       return;
@@ -388,7 +402,9 @@ public class UserManagerPanel extends javax.swing.JPanel {
       JC_Filter filter = JC_Filter.createFilter();
       filter.addCategory( "jecars:Group" );
       Collection<JC_Nodeable> groupsN = mGroups.getNodes( null, filter, null );
-      for ( JC_Nodeable groupN : groupsN) {
+      List<JC_Nodeable> listGroupsN = new ArrayList<JC_Nodeable>( groupsN );
+      Collections.sort( listGroupsN, new compareJCNode());
+      for ( JC_Nodeable groupN : listGroupsN) {
         dlm.addElement( groupN );
       }
       refreshMembersOfGroup();
