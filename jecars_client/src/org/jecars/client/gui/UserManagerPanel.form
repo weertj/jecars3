@@ -19,7 +19,7 @@
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="1" max="-2" attributes="0">
-                  <Component id="jPanel1" alignment="0" pref="983" max="32767" attributes="1"/>
+                  <Component id="jPanel1" alignment="0" max="32767" attributes="1"/>
                   <Component id="jPanel3" alignment="0" max="32767" attributes="1"/>
               </Group>
               <EmptySpace max="32767" attributes="0"/>
@@ -524,7 +524,7 @@
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" attributes="0">
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="mRemoveMembership" pref="165" max="32767" attributes="1"/>
+                      <Component id="mRemoveMembership" max="32767" attributes="1"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="mAddMemberShip" min="-2" pref="159" max="-2" attributes="1"/>
                       <EmptySpace max="-2" attributes="0"/>
@@ -560,7 +560,10 @@
             </Component>
             <Component class="javax.swing.JButton" name="mRemoveMembership">
               <Properties>
-                <Property name="text" type="java.lang.String" value="Remove User Membership"/>
+                <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+                  <Color blue="0" green="99" red="0" type="rgb"/>
+                </Property>
+                <Property name="text" type="java.lang.String" value="Remove User Membership (As Role)"/>
                 <Property name="enabled" type="boolean" value="false"/>
               </Properties>
               <Events>
@@ -569,6 +572,9 @@
             </Component>
             <Component class="javax.swing.JButton" name="mAddMemberShipAsRole">
               <Properties>
+                <Property name="foreground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+                  <Color blue="0" green="99" red="0" type="rgb"/>
+                </Property>
                 <Property name="text" type="java.lang.String" value="Add User Membership (As Role)"/>
                 <Property name="actionCommand" type="java.lang.String" value="Add Membership"/>
                 <Property name="enabled" type="boolean" value="false"/>
@@ -616,7 +622,7 @@
         </Component>
         <Component class="javax.swing.JButton" name="mRemoveMember">
           <Properties>
-            <Property name="text" type="java.lang.String" value="Remove Member"/>
+            <Property name="text" type="java.lang.String" value="Remove Group Member"/>
             <Property name="enabled" type="boolean" value="false"/>
           </Properties>
           <Events>
@@ -637,7 +643,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="jLabel7" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="mAddGroupMemberName" pref="362" max="32767" attributes="0"/>
+                      <Component id="mAddGroupMemberName" max="32767" attributes="0"/>
                       <EmptySpace min="-2" pref="8" max="-2" attributes="0"/>
                       <Component id="mAddGroupMembership" min="-2" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
@@ -699,8 +705,8 @@
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="102" alignment="1" attributes="0">
                       <Group type="103" groupAlignment="1" attributes="0">
-                          <Component id="jLabel8" alignment="0" pref="82" max="32767" attributes="1"/>
-                          <Component id="jLabel5" alignment="1" pref="90" max="32767" attributes="1"/>
+                          <Component id="jLabel8" alignment="0" max="32767" attributes="1"/>
+                          <Component id="jLabel5" alignment="1" max="32767" attributes="1"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" max="-2" attributes="0">
