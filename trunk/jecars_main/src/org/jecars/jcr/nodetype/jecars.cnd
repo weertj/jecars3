@@ -722,3 +722,11 @@
 - jecars:x      (Long) mandatory
 - jecars:y      (Long) mandatory
 
+
+// **************************************************************
+// **** JavaFX nodetypes
+
+[jecars:mixin_fxmlpanels] mixin
+- jecars:fxmleditpanel  (String)
+
+
