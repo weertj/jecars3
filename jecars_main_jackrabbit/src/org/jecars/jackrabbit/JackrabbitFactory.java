@@ -113,8 +113,8 @@ public class JackrabbitFactory extends CARS_Factory {
     
     final JD_Taglist tags = CARS_ActionContext.getOutputGenerators();
     synchronized( tags ) {
-      tags.replaceData( "backup", new CARS_OutputGenerator_Backup() );
-      LOG.info( "OutputGenerator 'backup' added" );
+//      tags.replaceData( "backup", new CARS_OutputGenerator_Backup() );
+//      LOG.info( "OutputGenerator 'backup' added" );
       tags.replaceData( "wfxml", new CARS_OutputGenerator_WorkflowXML() );
       LOG.info( "OutputGenerator 'wfxml' added" );
     }
