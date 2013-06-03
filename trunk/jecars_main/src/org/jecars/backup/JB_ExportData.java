@@ -115,16 +115,16 @@ public class JB_ExportData {
    * @throws RepositoryException
    * @throws IOException 
    */
-  public void exportToStream( Node pStartNode, OutputStream pStream, JB_Options pOptions ) throws RepositoryException, IOException {
+  public void exportToStream( final Node pStartNode, final OutputStream pStream, final JB_Options pOptions ) throws RepositoryException, IOException {
     
-    DataOutputStream dos = new DataOutputStream( pStream );    
+    final DataOutputStream dos = new DataOutputStream( pStream );    
     
-    if (pStartNode.getPath().equals("/")==true) {
+    if (pStartNode.getPath().equals("/")) {
       // **** Write the children
-      NodeIterator ni = pStartNode.getNodes();
+      final NodeIterator ni = pStartNode.getNodes();
       if (ni.getSize()>0) {
         while( ni.hasNext() ) {
-          Node n = ni.nextNode();        
+          final Node n = ni.nextNode();        
           exportNode( 1, n, dos, pOptions );
         }
       }
@@ -134,6 +134,21 @@ public class JB_ExportData {
     return; 
   }
 
+  /** exportToStreamAsJeCARS
+   * 
+   * @param pStartNode
+   * @param pStream
+   * @param pOptions
+   * @throws RepositoryException
+   * @throws IOException 
+   */
+  public void exportToStreamAsJeCARS( final Node pStartNode, final OutputStream pStream, final JB_Options pOptions ) throws RepositoryException, IOException {    
+    final DataOutputStream dos = new DataOutputStream( pStream );    
+    exportNode( 1, pStartNode, dos, pOptions );
+    return; 
+  }
+
+  
   /** encodeString
    * 
    * @param pValue
@@ -323,14 +338,22 @@ public class JB_ExportData {
     }
     
     // **** Write the children
-    NodeIterator ni = pNode.getNodes();
-    if (ni.getSize()>0) {
-      pStream.writeBytes( "[\n" );
-      while( ni.hasNext() ) {
-        Node n = ni.nextNode();        
-        exportNode( pLevel+1, n, pStream, pOptions );
+    if (!pOptions.getOnlyOneLevel()) {
+      if (pOptions.getOnlyOneLevelChildren()) {
+        pOptions.setOnlyOneLevel( true );
       }
-      pStream.writeBytes( "]\n" );
+      NodeIterator ni = pNode.getNodes();
+      if (ni.getSize()>0) {
+        pStream.writeBytes( "[\n" );
+        while( ni.hasNext() ) {
+          Node n = ni.nextNode();
+          exportNode( pLevel+1, n, pStream, pOptions );
+        }
+        pStream.writeBytes( "]\n" );
+      }
+      if (pOptions.getOnlyOneLevelChildren()) {
+        pOptions.setOnlyOneLevel( false );
+      }
     }
 
       

@@ -46,6 +46,9 @@ public class JB_Options {
   
   private File       mChangeFilePathRoot = null;
   
+  private boolean    mOnlyOneLevel = false;
+  private boolean    mOnlyOneLevelChildren = false;
+  
   public JB_Options() {
     setExportVersionHistory( true );
     return;
@@ -77,6 +80,25 @@ public class JB_Options {
   public boolean getExportVersionHistory() {
     return mExportVersionHistory;
   }
+  
+  public void setOnlyOneLevel( boolean pS ) {
+    mOnlyOneLevel = pS;
+    return;
+  }
+
+  public boolean getOnlyOneLevel() {
+    return mOnlyOneLevel;
+  }
+
+  public void setOnlyOneLevelChildren( boolean pS ) {
+    mOnlyOneLevelChildren = pS;
+    return;
+  }
+
+  public boolean getOnlyOneLevelChildren() {
+    return mOnlyOneLevelChildren;
+  }
+
   
   public void setExportBinary( boolean pExport ) {
     mExportBinary = pExport;

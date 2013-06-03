@@ -196,6 +196,10 @@ public class CARS_ActionContext {
         LOG.info( "OutputGenerator 'xmltable' added" );
         gOutputGenerators.replaceData( "binary", new CARS_OutputGenerator_Binary() );
         LOG.info( "OutputGenerator 'binary' added" );
+        gOutputGenerators.replaceData( "backup", new CARS_OutputGenerator_Backup() );
+        LOG.info( "OutputGenerator 'backup' added" );
+        gOutputGenerators.replaceData( "jecars", new CARS_OutputGenerator_JeCARS() );
+        LOG.info( "OutputGenerator 'jecars' added" );
       }
     }
     if (gVersionManagers.isEmpty()) {
