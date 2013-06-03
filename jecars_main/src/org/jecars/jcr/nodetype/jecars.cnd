@@ -614,8 +614,8 @@
 [jecars:mixin_workflowtaskport] mixin
 - jecars:propertyname          (String)            // if this port refers to a property of the task
                                             // note: either use propertyname or nodename/nodetype
-- jecars:nodename              (String)            // if this port refers to a task’s child node with a known name
-- jecars:nodetype              (String)            // if this port refers to a task’s child node with a known type
+- jecars:nodename              (String)            // if this port refers to a task's child node with a known name
+- jecars:nodetype              (String)            // if this port refers to a task's child node with a known type
 //- jecars:sequencenumber        (Long)              // in case the above properties map to multiple nodes,
 //                                            //    and we only want to identify the 1st, the 2nd, 3rd, etc.
 //                                            // It is advisable that the sequencenumber will also be the nodename
@@ -648,18 +648,19 @@
 + outputs               (jecars:mixin_workflowtaskports)=jecars:workflowtaskports autocreated  // 
 + data                  (jecars:datafolder)=jecars:datafolder autocreated  //
 + *                     (jecars:parameterresource) multiple
++ *                     (jecars:mixin_workflowtaskports)=jecars:workflowtaskports 
 [jecars:workflowtask] > jecars:root, jecars:mixin_workflowtask
 
 // ----- 
 [jecars:mixin_workflowtasks] mixin
-+ *     (jecars:mixin_workflowtask) // note: ‘this’ is a special name
++ *     (jecars:mixin_workflowtask) // note: this is a special name
 [jecars:workflowtasks] > jecars:root, jecars:mixin_workflowtasks
 
 
 // -----------------------------------------------------------------------------
 // ------- a workflowtaskportref is a reference to a workflowtaskport ----------
 [jecars:mixin_workflowtaskportref] mixin
-- jecars:portref                (Path)  mandatory       // relative path from a task’s root to a workflowtaskport
+- jecars:portref                (Path)  mandatory       // relative path from a task's root to a workflowtaskport
 //- jecars:portindex              (Long)  mandatory       // in case
 [jecars:workflowtaskportref] > jecars:root, jecars:mixin_workflowtaskportref
 
@@ -721,6 +722,11 @@
 [jecars:mixin_2dposition] mixin
 - jecars:x      (Long) mandatory
 - jecars:y      (Long) mandatory
+
+[jecars:mixin_gravyposition] mixin
+- jecars:x      (Double) mandatory
+- jecars:y      (Double) mandatory
+- jecars:z      (Double)
 
 
 // **************************************************************

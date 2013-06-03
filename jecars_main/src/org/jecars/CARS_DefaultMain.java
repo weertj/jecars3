@@ -849,7 +849,14 @@ public class CARS_DefaultMain implements CARS_Main {
           case PropertyType.LONG:      { prop = pNode.setProperty( pPropName, Long.parseLong(pValue) ); break; }
           case PropertyType.DOUBLE:    { prop = pNode.setProperty( pPropName, Double.parseDouble(pValue) ); break; }
 //          case PropertyType.PATH:      { prop = pNode.setProperty( pPropName, CARS_Utils.getNodeByString( pNode.getSession(), pValue ).getPath() ); break; }
-          case PropertyType.PATH:      { prop = pNode.setProperty( pPropName, pValue ); break; }
+          case PropertyType.PATH:      {
+            if ((pValue==null) || "".equals( pValue )) {              
+              prop = pNode.setProperty( pPropName, (String)null );
+            } else {
+              prop = pNode.setProperty( pPropName, pValue );
+            }
+            break;
+          }
           case PropertyType.BINARY:    { prop = pNode.setProperty( pPropName, pValue ); break; }
           case PropertyType.DATE:      { prop = pNode.setProperty( pPropName, CARS_ActionContext.getCalendarFromString( pValue) ); break; }
           default: throw new Exception( "Property type: " + pd.getName() + " not supported" );
