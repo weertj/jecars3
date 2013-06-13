@@ -536,6 +536,30 @@ public class CARS_Utils {
     return pN;
   }
 
+  /** getLinkedProperty
+   * 
+   * @param pMain
+   * @param pN
+   * @param pPropertyName
+   * @return
+   * @throws Exception 
+   */
+  static public Property getLinkedProperty( final CARS_Main pMain, final Node pN, final String pPropertyName ) throws Exception {
+    if (pN.hasProperty( pPropertyName )) {
+      return pN.getProperty( pPropertyName );
+    } else if (pN.hasProperty( "jecars:Link" )) {
+      final Node n = pMain.getNode( pN.getProperty( CARS_ActionContext.gDefLink ).getString(), null, false );
+      if (n==null) {
+        return null;
+      } else {
+        return getLinkedProperty( pMain, pMain.getNode( pN.getProperty( CARS_ActionContext.gDefLink ).getString(), null, false ), pPropertyName );
+      }
+    } else {
+      return null;
+    }
+  }
+
+  
   /** getLinkedNode
    * 
    * @param pMain
