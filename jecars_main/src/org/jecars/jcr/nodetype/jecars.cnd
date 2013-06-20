@@ -724,8 +724,8 @@
 - jecars:y      (Long) mandatory
 
 [jecars:mixin_gravyposition] mixin
-- jecars:x      (Double) mandatory
-- jecars:y      (Double) mandatory
+- jecars:x      (Double)
+- jecars:y      (Double)
 - jecars:z      (Double)
 
 
