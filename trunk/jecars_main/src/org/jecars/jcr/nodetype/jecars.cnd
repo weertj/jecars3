@@ -727,6 +727,8 @@
 - jecars:x      (Double)
 - jecars:y      (Double)
 - jecars:z      (Double)
+- jecars:width  (Double)
+- jecars:height (Double)
 
 
 // **************************************************************
