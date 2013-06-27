@@ -177,7 +177,6 @@ public class CARS_OutputGenerator_HTML extends CARS_DefaultOutputGenerator imple
         sb.append( "jcr:data\t\t<i>&lt;Value of mimeType="+pNode.getProperty("jcr:mimeType").getValue().getString()+"&gt;</i>\n" );
       } else if (prop.getName().equals("jecars:Link")) {
           // **** show a link as a href with path -  ...
-          String link = HtmlToText.htmlToPlainText(prop.getValue().getString());
           sb.append( prop.getName() ).append( "\t\t<a href='").append(pContext.getBaseContextURL()).append(prop.getValue().getString()).append("?alt=html").
                   append("'>").append( HtmlToText.htmlToPlainText(prop.getValue().getString())).append("</a>").
                   append( "\t<i>(" ).append( PropertyType.nameFromValue(prop.getType()) ).append( ")</i>\n" );
