@@ -574,7 +574,33 @@ public class CARS_Utils {
     }
     return pN;
   }
-
+ 
+  /** getAbsoluteFilePath
+   * 
+   * @param pN
+   * @return
+   * @throws RepositoryException 
+   */
+  static public String getAbsoluteFilePathFromNode( final Node pN ) throws RepositoryException {
+    String path = "";
+    if (pN.hasProperty( "jecars:URL")) {
+      path = pN.getProperty( "jecars:URL" ).getString();
+      if (path.startsWith( "file:/" )) {
+        path = path.substring( "file:/".length() );
+      }
+      return path;
+    }
+    while( !(pN.hasProperty( "jecars:StorageDirectory" )) && (pN.getParent()!=null) ) {
+      path = pN.getName() + "/" + path;
+    }
+    final String st =  pN.getProperty( "jecars:StorageDirectory" ).getString();
+    if (st.endsWith("/")) {
+      path = st + path;      
+    } else {
+      path = st + "/" + path;
+    }
+    return path;
+  }
   
   /** copyInputResourceToDirectory
    * 
