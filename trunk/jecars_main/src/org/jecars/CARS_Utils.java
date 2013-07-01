@@ -590,14 +590,18 @@ public class CARS_Utils {
       }
       return path;
     }
-    while( !(pN.hasProperty( "jecars:StorageDirectory" )) && (pN.getParent()!=null) ) {
-      path = pN.getName() + "/" + path;
+    Node n = pN;
+    while( !(n.hasProperty( "jecars:StorageDirectory" )) && (n.getParent()!=null) ) {
+      path = n.getName() + "/" + path;
+      n = n.getParent();
     }
-    final String st =  pN.getProperty( "jecars:StorageDirectory" ).getString();
-    if (st.endsWith("/")) {
-      path = st + path;      
-    } else {
-      path = st + "/" + path;
+    if (n.hasProperty( "jecars:StorageDirectory" )) {
+      final String st = n.getProperty( "jecars:StorageDirectory" ).getString();
+      if (st.endsWith("/")) {
+        path = st + path;      
+      } else {
+        path = st + "/" + path;
+      }
     }
     return path;
   }
