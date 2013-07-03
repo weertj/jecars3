@@ -600,6 +600,9 @@ public class CARS_Utils {
       if (st.startsWith( "(ABS)" )) {
         st = st.substring( "(ABS)".length() );
       }
+      if (st.endsWith( "\\" )) {
+        st = st.substring( 0, st.length()-1 );
+      }
       if (st.endsWith("/")) {
         path = st + path;      
       } else {
