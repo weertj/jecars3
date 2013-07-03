@@ -575,7 +575,7 @@ public class CARS_Utils {
     return pN;
   }
  
-  /** getAbsoluteFilePath
+  /** getAbsoluteFilePathFromNode
    * 
    * @param pN
    * @return
@@ -596,7 +596,10 @@ public class CARS_Utils {
       n = n.getParent();
     }
     if (n.hasProperty( "jecars:StorageDirectory" )) {
-      final String st = n.getProperty( "jecars:StorageDirectory" ).getString();
+      String st = n.getProperty( "jecars:StorageDirectory" ).getString();
+      if (st.startsWith( "(ABS)" )) {
+        st = st.substring( "(ABS)".length() );
+      }
       if (st.endsWith("/")) {
         path = st + path;      
       } else {
