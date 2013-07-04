@@ -588,11 +588,11 @@ public class CARS_Utils {
       if (path.startsWith( "file:/" )) {
         path = path.substring( "file:/".length() );
       }
-      return path;
+      return path.replace("/", File.separator);
     }
     Node n = pN;
     while( !(n.hasProperty( "jecars:StorageDirectory" )) && (n.getParent()!=null) ) {
-      path = n.getName() + "/" + path;
+      path = n.getName() + File.separator + path;
       n = n.getParent();
     }
     if (n.hasProperty( "jecars:StorageDirectory" )) {
@@ -600,17 +600,18 @@ public class CARS_Utils {
       if (st.startsWith( "(ABS)" )) {
         st = st.substring( "(ABS)".length() );
       }
-      if (st.endsWith( "\\" )) {
+      if (st.endsWith(File.separator )) {
         st = st.substring( 0, st.length()-1 );
       }
-      if (st.endsWith("/")) {
+      if (st.endsWith(File.separator)) {
         path = st + path;      
       } else {
-        path = st + "/" + path;
+        path = st + File.separator + path;
       }
     }
     return path;
   }
+
   
   /** copyInputResourceToDirectory
    * 
