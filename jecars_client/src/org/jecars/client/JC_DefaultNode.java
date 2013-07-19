@@ -1089,7 +1089,8 @@ public class JC_DefaultNode extends JC_DefaultItem implements JC_Nodeable {
   @Override
   public JC_Nodeable resolve() throws JC_Exception {
     if (hasProperty( "jecars:Link"  )) {
-      final JC_Nodeable n = getClient().getNode( getProperty( "jecars:Link" ).getValueString() );
+//      final JC_Nodeable n = getClient().getNode( getProperty( "jecars:Link" ).getValueString() );
+      final JC_Nodeable n = getClient().getSingleNode( getProperty( "jecars:Link" ).getValueString() );
       if (n.getPath().equals( getPath() )) {
         return n;
       } else {
@@ -1715,7 +1716,7 @@ public class JC_DefaultNode extends JC_DefaultItem implements JC_Nodeable {
    */
   @Override
   public JC_Propertyable setProperty( final String pName, final String pValue ) throws JC_Exception {
-    return _setProperty( pName, (Object)pValue );
+    return _setProperty( pName, (String)pValue );
   }
 
   /** setProperty
@@ -2789,7 +2790,7 @@ public class JC_DefaultNode extends JC_DefaultItem implements JC_Nodeable {
    * @throws org.jecars.client.JC_Exception
    */
   @Override
-  public String getNodeType() throws JC_Exception {
+  public String getNodeType() {
     return mNodeType;
   }
   
