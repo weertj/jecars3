@@ -552,9 +552,8 @@ public interface JC_Nodeable extends JC_Itemable, JC_WebDAVable {
   /** getNodeType
    * 
    * @return
-   * @throws org.jecars.client.JC_Exception
    */
-  public String getNodeType() throws JC_Exception;
+  public String getNodeType();
  
   /** morphToNodeType
    * 
