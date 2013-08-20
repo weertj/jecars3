@@ -305,6 +305,10 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
               newSession.logout();
             }
           } else {
+            // **** Do not destroy the main but reset the results.
+            if (mMain.getContext()!=null) {
+              mMain.getContext().resetResults();
+            }
             mRebuildToolSession = false;
           }
         } catch( Exception e ) {
