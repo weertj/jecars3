@@ -1368,7 +1368,11 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
    * @param pParams optional taglist contains parameter for generating the output
    * @return Collection of object of class type pObjectClass or empty or null.
    * @throws Exception when an error occurs
-   */
+
+        // **** TODO
+        // **** Dit gaat mis als er meedere objecten zijn omdat getResultObject() de (eerste) gecached inputstream teruggeeft
+
+  */
   @Override
   public Collection<?> getAsObject( final String pNodename, final Class pObjectClass, final JD_Taglist pParamsTL ) throws Exception {
     final Collection<Object> col = new ArrayList<Object>();
@@ -1380,7 +1384,8 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
         final CARS_ToolInterface ti = CARS_ToolsFactory.getTool( mMain, n, null, false );
         col.addAll( ti.getOutputsAsObject( pObjectClass, pParamsTL ) );
       } else {
-        
+        // **** TODO
+        // **** Dit gaat mis als er meedere objecten zijn omdat getResultObject() de (eerste) gecached inputstream teruggeeft
         final Object result = getMain().getContext().getResultObject( n );
         if (result!=null) {
           if (pObjectClass.equals( InputStream.class )) {
