@@ -16,10 +16,12 @@
 package org.jecars.apps;
 
 import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Calendar;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
+import javax.jcr.PathNotFoundException;
 import javax.jcr.Session;
 import nl.msd.jdots.JD_Taglist;
 import org.jecars.CARS_Definitions;
@@ -174,6 +176,7 @@ public class CARS_DirectoryApp extends CARS_DefaultInterface implements CARS_Int
       }
     } else {
       // **** no file/directory
+      throw new PathNotFoundException( f.getAbsolutePath() + " NOT FOUND" );
     }
     return;
   }
