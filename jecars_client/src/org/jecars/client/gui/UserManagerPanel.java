@@ -518,6 +518,7 @@ public class UserManagerPanel extends javax.swing.JPanel {
     mRemoveMember = new javax.swing.JButton();
     jPanel7 = new javax.swing.JPanel();
     mAddGroupMembership = new javax.swing.JButton();
+    mAddGroupMembershipAsRole = new javax.swing.JButton();
     mAddGroupMemberName = new javax.swing.JTextField();
     jLabel7 = new javax.swing.JLabel();
     mRemoveGroup = new javax.swing.JPanel();
@@ -888,6 +889,15 @@ public class UserManagerPanel extends javax.swing.JPanel {
       }
     });
 
+    mAddGroupMembershipAsRole.setForeground(new java.awt.Color(0, 153, 0));
+    mAddGroupMembershipAsRole.setText("Add Group Membership (As Role)");
+    mAddGroupMembershipAsRole.setEnabled(false);
+    mAddGroupMembershipAsRole.addActionListener(new java.awt.event.ActionListener() {
+      public void actionPerformed(java.awt.event.ActionEvent evt) {
+        mAddGroupMembershipAsRoleActionPerformed(evt);
+      }
+    });
+
     mAddGroupMemberName.addKeyListener(new java.awt.event.KeyAdapter() {
       public void keyReleased(java.awt.event.KeyEvent evt) {
         mAddGroupMemberNameKeyReleased(evt);
@@ -904,10 +914,12 @@ public class UserManagerPanel extends javax.swing.JPanel {
         .addContainerGap()
         .addComponent(jLabel7)
         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-        .addComponent(mAddGroupMemberName)
-        .addGap(8, 8, 8)
+        .addComponent(mAddGroupMemberName, javax.swing.GroupLayout.PREFERRED_SIZE, 188, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
         .addComponent(mAddGroupMembership)
-        .addContainerGap())
+        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+        .addComponent(mAddGroupMembershipAsRole, javax.swing.GroupLayout.PREFERRED_SIZE, 201, javax.swing.GroupLayout.PREFERRED_SIZE)
+        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
     );
     jPanel7Layout.setVerticalGroup(
       jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -916,7 +928,8 @@ public class UserManagerPanel extends javax.swing.JPanel {
         .addGroup(jPanel7Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
           .addComponent(mAddGroupMembership)
           .addComponent(mAddGroupMemberName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-          .addComponent(jLabel7))
+          .addComponent(jLabel7)
+          .addComponent(mAddGroupMembershipAsRole))
         .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
     );
 
@@ -1274,17 +1287,25 @@ public class UserManagerPanel extends javax.swing.JPanel {
             if (groupN.getGroupname().equals( agmn )) {
               mAddGroupMembership.setEnabled( false );
               mAddGroupMembership.setToolTipText( "Group " + agmn + " cannot be member of itself" );
+              mAddGroupMembershipAsRole.setEnabled( false );
+              mAddGroupMembershipAsRole.setToolTipText( "Group " + agmn + " cannot be member of itself" );
             } else {
               mAddGroupMembership.setEnabled( true );
               mAddGroupMembership.setToolTipText( "Group " + agmn + " will be member of " + groupN.getGroupname() );
+              mAddGroupMembershipAsRole.setEnabled( true );
+              mAddGroupMembershipAsRole.setToolTipText( "Group " + agmn + " will be member of " + groupN.getGroupname() );
             }
           } else {
             mAddGroupMembership.setEnabled( false );
             mAddGroupMembership.setToolTipText( "Group " + agmn + " not found" );
+            mAddGroupMembershipAsRole.setEnabled( false );
+            mAddGroupMembershipAsRole.setToolTipText( "Group " + agmn + " not found" );
           }
         } else {
           mAddGroupMembership.setEnabled( false );
           mAddGroupMembership.setToolTipText( "Select a group" );
+          mAddGroupMembershipAsRole.setEnabled( false );
+          mAddGroupMembershipAsRole.setToolTipText( "Select a group" );
         }
       } catch( JC_Exception e ) {
         reportError( e );
@@ -1431,6 +1452,25 @@ public class UserManagerPanel extends javax.swing.JPanel {
       return;
     }//GEN-LAST:event_mIsRoleActionPerformed
 
+  private void mAddGroupMembershipAsRoleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mAddGroupMembershipAsRoleActionPerformed
+    try {
+      final JC_GroupNode groupN = (JC_GroupNode)mGroupsList.getSelectedValue();
+      if (groupN!=null) {
+        final JC_GroupNode g = mGroups.getGroup( mAddGroupMemberName.getText() );
+        groupN.addGroup( g );
+        groupN.save();
+        groupN.addPermissionNode( "P_" + g.getName(), g, JC_PermissionNode.RS_ALLREADACCESS );
+        groupN.save();
+        refreshUsers();
+        refreshGroups();
+        refreshMembersOfGroup();
+      }
+    } catch( JC_Exception je ) {
+      reportError( je );
+    }
+    return;
+  }//GEN-LAST:event_mAddGroupMembershipAsRoleActionPerformed
+
 
   // Variables declaration - do not modify//GEN-BEGIN:variables
   private javax.swing.JLabel jLabel1;
@@ -1453,6 +1493,7 @@ public class UserManagerPanel extends javax.swing.JPanel {
   private javax.swing.JScrollPane jScrollPane2;
   private javax.swing.JTextField mAddGroupMemberName;
   private javax.swing.JButton mAddGroupMembership;
+  private javax.swing.JButton mAddGroupMembershipAsRole;
   private javax.swing.JButton mAddMemberShip;
   private javax.swing.JButton mAddMemberShipAsRole;
   private javax.swing.JButton mClearData;
