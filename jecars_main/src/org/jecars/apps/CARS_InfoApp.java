@@ -71,8 +71,8 @@ public class CARS_InfoApp extends CARS_DefaultInterface {
       if ("/InfoApp/WhoAmI".equals( pLeaf )) {
         final Node user = pMain.getLoginUser();
         pParentNode.setProperty( "jecars:Username", user.getName() );
+        // **** /InfoApp/GroupMembers
       }
-
     }
 
     return;

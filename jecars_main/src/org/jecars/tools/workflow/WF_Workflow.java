@@ -178,7 +178,7 @@ public class WF_Workflow extends WF_Default implements IWF_Workflow {
     newRunner.addMixin( "jecars:mixin_unstructured" );
     newRunner.setProperty( "jecars:InterfaceClass", "org.jecars.tools.CARS_WorkflowRunnerInterfaceApp" );    
     newRunner.setProperty( "jecars:SingleStep", 0 );
-    IWF_WorkflowRunner wr = new WF_WorkflowRunner( pMaster.getMain(), newRunner );
+    IWF_WorkflowRunner wr = new WF_WorkflowRunner( pMaster.getMain(), newRunner, false );
     wr.setProgress( 0 );
     save();
     return wr;

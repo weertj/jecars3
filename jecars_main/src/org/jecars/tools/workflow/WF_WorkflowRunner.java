@@ -48,10 +48,11 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
   private final CARS_Main       mMain;
   private final WFP_Context     mTransientContext;
   private       Thread          mRunnerThread = null;
+  private       boolean         mRerunMode = false;
   
   static {
     try {
-      NULL = new WF_WorkflowRunner( null, null );
+      NULL = new WF_WorkflowRunner( null, null, false );
     } catch( RepositoryException re ) {
       // **** Will never happen
       re.printStackTrace();
@@ -63,10 +64,11 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
    * @param pMain
    * @param pNode 
    */
-  public WF_WorkflowRunner( final CARS_Main pMain, final Node pNode ) throws RepositoryException {
+  public WF_WorkflowRunner( final CARS_Main pMain, final Node pNode, final boolean pRerun ) throws RepositoryException {
     super(pNode);    
     mMain = pMain;
     mTransientContext = new WFP_Context(null, pMain );
+    mRerunMode = pRerun;
     return;
   }
  
@@ -139,7 +141,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
    * @throws RepositoryException 
    */
   @Override
-  public void restart() throws RepositoryException {
+  public void restart( final boolean pReRun ) throws RepositoryException {
 //    System.out.println("restart " + getNode().getPath() );
     synchronized( WRITERACCESS ) {
       getNode().setProperty( "jecars:SingleStep", 0 );
@@ -147,14 +149,16 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
       save();
       setCurrentTask( "" );
       setCurrentLink( "" );
-    
-      removeTools();
-      save();
-      // **** Move context_0 (if available) to context    
-      getContext().restore( 0 );
-      removeContexts();
+
+      if (!pReRun) {
+        removeTools();
+        save();
+        // **** Move context_0 (if available) to context    
+        getContext().restore( 0 );
+        removeContexts();
+        setProgress( 0 );
+      }
       setState( CARS_ToolInterface.STATE_OPEN_NOTRUNNING );
-      setProgress( 0 );
       save();
     }
     return;
@@ -484,11 +488,13 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
     final Session session = getNode().getSession();
     final Workspace ws = session.getWorkspace();
     final String newws = getNode().getPath() + "/context_" + getStepNumber();
-    if (session.nodeExists( newws )) {
-      session.getNode( newws ).remove();
-      save();
+    if (!mRerunMode) {
+      if (session.nodeExists( newws )) {
+        session.getNode( newws ).remove();
+        save();
+      }
+      ws.copy( ws.getName(), getContext().getNode().getPath(), newws );
     }
-    ws.copy( ws.getName(), getContext().getNode().getPath(), newws );
     // **** Check if the context must be expired
     Node bckContext = session.getNode( newws );
     if (bckContext.hasProperty( "jecars:UsedInLink" )) {
@@ -676,6 +682,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
       // **************
       // **** START
       case START: {
+        if (mRerunMode) break;
         handleContextParameters( pTask );
         break;
       }
@@ -689,6 +696,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
       // *****************
       // **** RUN JAVATASK
       case JAVATASK: {
+        if (mRerunMode) break;
         handleContextParameters( pTask );
         res.replaceBy( runJavaTask( pTask, mTransientContext ));
         break;
@@ -697,6 +705,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
       // ***************
       // **** END 
       case END: {
+        if (mRerunMode) break;
         res.setState( WFP_InterfaceResult.STATE.STOP );
 //        final List<Node> nl = getContext().getDataNodes();
         final Node outputNode = handleContextParameters( pTask );
@@ -902,8 +911,22 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
         
       // ***************
       // **** RUN TASK
-      case TASK: {
+      case TASK: {        
+        if (mRerunMode) {
+          if (getNode().hasNode( "Tool_" + getStepNumber() )) {
+            final Node tool = getNode().getNode( "Tool_" + getStepNumber() );
+            if (tool.getProperty( "jecars:State" ).getString().equals( "open.rerun" )) {
+              // **** Start the run from this point
+              mRerunMode = false;
+            }
+          }
+          if (mRerunMode) break;
+        }
         handleContextParameters( pTask );
+        // **** Remove old tool node if available
+        if (getNode().hasNode( "Tool_" + getStepNumber() )) {
+          getNode().getNode( "Tool_" + getStepNumber() ).remove();
+        }
         final Node ttn = pTask.getToolTemplateNode();
         final Node tool = getNode().addNode( "Tool_" + getStepNumber(), "jecars:Tool" );
         synchronized( WRITERACCESS ) {
@@ -935,7 +958,15 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
           synchronized( WRITERACCESS ) {
             // **** Copy the datanodes
             for( final Node dataNode : nl ) {
-              toolNode.getSession().move( dataNode.getPath(), toolNode.getPath() + "/" + dataNode.getName() );
+//              if (dataNode.hasProperty( "jecars:Link" )) {
+//                Node input = toolNode.addNode( dataNode.getName(), "jecars:inputresource" );
+//                input.addMixin( "jecars:mix_link" );
+//                input.setProperty( "jcr:data", "" );
+//                input.setProperty( "jecars:Link", dataNode.getProperty( "jecars:Link" ).getString() );
+//                dataNode.remove();
+//              } else {
+                toolNode.getSession().move( dataNode.getPath(), toolNode.getPath() + "/" + dataNode.getName() );
+//              }
             }
             
             toolNode.getSession().save();        
@@ -981,6 +1012,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
                 (!"jecars:Config".equals(tnode.getName()))) {
               final Node nn = context.getNode().addNode( tnode.getName(), "jecars:root" );
               nn.addMixin( "jecars:mix_link" );
+              nn.addMixin( "jecars:mix_inputresource" );
               nn.setProperty( "jecars:Link" , tnode.getPath() );
             }
           }

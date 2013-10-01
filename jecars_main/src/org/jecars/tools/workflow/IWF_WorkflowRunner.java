@@ -29,7 +29,7 @@ public interface IWF_WorkflowRunner {
 
   IWF_Context getContext() throws RepositoryException;
   
-  void restart()    throws Exception;
+  void restart( final boolean pReRun ) throws RepositoryException;
   WFP_InterfaceResult singleStep() throws Exception;
   
   boolean isMainRunner();

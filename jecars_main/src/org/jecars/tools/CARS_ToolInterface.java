@@ -51,6 +51,7 @@ public interface CARS_ToolInterface {
   final static String STATEREQUEST_PAUSE    = "pause";
   final static String STATEREQUEST_RESUME   = "resume";
   final static String STATEREQUEST_STOP     = "stop";
+  final static String STATEREQUEST_RERUN    = "rerun";
 
   final static String STATE_NONE                                = "none";
   final static String STATE_UNKNOWN                             = "unknown";

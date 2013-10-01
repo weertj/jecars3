@@ -24,6 +24,7 @@ import javax.jcr.*;
 import org.jecars.CARS_ActionContext;
 import org.jecars.CARS_Factory;
 import org.jecars.CARS_Main;
+import static org.jecars.tools.CARS_ToolInterface.STATEREQUEST_RERUN;
 import org.jecars.tools.workflow.WF_WorkflowRunner;
 import org.jecars.wfplugin.IWFP_Context;
 import org.jecars.wfplugin.WFP_Context;
@@ -141,9 +142,10 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
     final List<WF_WorkflowRunner> currentRunners = new ArrayList<WF_WorkflowRunner>();
     final CARS_Main main = getMain().getFactory().createMain( CARS_ActionContext.createActionContext(getMain().getContext()) );
     final Node runnerNode = main.getSession().getNode( getTool().getNode( "runners/Main" ).getPath() );
-    final WF_WorkflowRunner mainwr = new WF_WorkflowRunner( main, runnerNode );
+    final boolean RERUN = (STATEREQUEST_RERUN.equals(getStateRequest()));
+    final WF_WorkflowRunner mainwr = new WF_WorkflowRunner( main, runnerNode, RERUN );
     try {
-        mainwr.restart();
+        mainwr.restart( RERUN );
         final List<Node> nodesInError = new ArrayList<Node>();
         do {
           final NodeIterator rin = getTool().getNode( "runners" ).getNodes();
@@ -184,7 +186,7 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
               if (isNew) {
                 final CARS_Main newmain = main.getFactory().createMain( CARS_ActionContext.createActionContext(getMain().getContext()) );
                 final Node newrunnerNode = newmain.getSession().getNode( runner.getPath() );              
-                final WF_WorkflowRunner wrun = new WF_WorkflowRunner( newmain, newrunnerNode );
+                final WF_WorkflowRunner wrun = new WF_WorkflowRunner( newmain, newrunnerNode, RERUN );
                 currentRunners.add( wrun );
                 runWorkflowRunner wr = new runWorkflowRunner( wrun );
                 final Thread t = new Thread( wr );
