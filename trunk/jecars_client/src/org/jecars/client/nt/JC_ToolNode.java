@@ -48,6 +48,7 @@ public class JC_ToolNode extends JC_DefaultNode {
   final static public String STATEREQUEST_RESUME    = "resume";
   final static public String STATEREQUEST_PAUSE     = "pause";
   final static public String STATEREQUEST_STOP      = "stop";
+  final static public String STATEREQUEST_RERUN     = "rerun";
 
   final static public String STATE_NONE                                = "none";
   final static public String STATE_UNKNOWN                             = "unknown";
@@ -75,6 +76,12 @@ public class JC_ToolNode extends JC_DefaultNode {
    */
   public void start() throws JC_Exception {
     setProperty( "jecars:StateRequest", STATEREQUEST_START );
+    save();
+    return;
+  }
+
+  public void rerun() throws JC_Exception {
+    setProperty( "jecars:StateRequest", STATEREQUEST_RERUN );
     save();
     return;
   }
