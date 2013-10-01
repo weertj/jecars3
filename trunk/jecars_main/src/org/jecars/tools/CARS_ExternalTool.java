@@ -470,7 +470,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
    * @throws IllegalStateException
    * @throws RepositoryException 
    */
-  @Deprecated
+  //@Deprecated
   /*
     private void copyInputResourceToWorkingDir(final Node linkedNode) throws IOException, IllegalStateException, RepositoryException {
         File      sourceFile = null;
@@ -601,6 +601,14 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
  
       reportStatusMessage( "Starting tool " + getTool().getPath() + " as " + commands );
       
+      // **** Remove error.txt & stdout.txt before running
+      if (getTool().hasNode( "error.txt" )) {
+        getTool().getNode( "error.txt" ).remove();
+      }
+      if (getTool().hasNode( "stdout.txt" )) {
+        getTool().getNode( "stdout.txt" ).remove();
+      }
+      
       reportProgress( 0 );      
       int err;
       try {
@@ -680,7 +688,18 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
             outputLink = outputAsLink.getBoolean();
           }
           int saveCounter = SAVEOUTPUTSPER;
+          long lastModWorkDir = workDir.lastModified();
           for( final File file : files ) {
+            // **** If the file was already available, check if it is updated
+            if (mPreRunFiles.contains(file)) {
+              if (file.lastModified()>lastModWorkDir) {
+                // **** Is updated remove it, and remove from the PreRun list
+                if (getTool().hasNode( file.getName() )) {
+                  getTool().getNode( file.getName() ).remove();
+                }
+                mPreRunFiles.remove( file );
+              }
+            }
             if (!mPreRunFiles.contains(file)) {
               if (outputLink) {
                   

@@ -85,13 +85,13 @@ public class CARS_WorkflowRunnerInterfaceApp extends CARS_DefaultInterface {
         if ("RESTART".equals( p.getString() )) {
           final CARS_Main newmain = pMain.getFactory().createMain( CARS_ActionContext.createActionContext(pMain.getContext()) );
           final Node newrunnerNode = newmain.getSession().getNode( pNode.getPath() );              
-          WF_WorkflowRunner wrun = new WF_WorkflowRunner( newmain, newrunnerNode );
-          wrun.restart();
+          WF_WorkflowRunner wrun = new WF_WorkflowRunner( newmain, newrunnerNode, false );
+          wrun.restart( false );
           wrun.destroy();
         } else if ("SINGLESTEP".equals( p.getString() )) {
           final CARS_Main newmain = pMain.getFactory().createMain( CARS_ActionContext.createActionContext(pMain.getContext()) );
           final Node newrunnerNode = newmain.getSession().getNode( pNode.getPath() );              
-          WF_WorkflowRunner wrun = new WF_WorkflowRunner( newmain, newrunnerNode );
+          WF_WorkflowRunner wrun = new WF_WorkflowRunner( newmain, newrunnerNode, false );
 //          WF_WorkflowRunner wrun = new WF_WorkflowRunner( pMain, pNode );
           wrun.singleStep();
           wrun.destroy();

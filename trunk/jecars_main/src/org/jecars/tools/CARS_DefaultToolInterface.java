@@ -49,6 +49,7 @@ import javax.jcr.Value;
 import nl.msd.jdots.JD_Taglist;
 import org.jecars.*;
 import org.jecars.jaas.CARS_Credentials;
+import static org.jecars.tools.CARS_ToolInterface.STATEREQUEST_START;
 
 /**
  *  CARS_DefaultToolInterface
@@ -823,6 +824,21 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
 //        thread.setName( getTool().getPath() );
 //        thread.start();        
       }
+    } else if (pStateRequest.equals(STATEREQUEST_RERUN)) {
+      if (isScheduledTool()) {
+        LOG.info( "Running as scheduled executor: " + this );
+        mScheduledFuture = gScheduledExecutorService.scheduleWithFixedDelay( new ToolRunnable(), getDelayInSecs(), getDelayInSecs(), TimeUnit.SECONDS );
+      } else if (isSingleTool()) {
+        LOG.info( "Running as single executor: " + this );
+        mFuture = gSingleExecutorService.submit( new ToolRunnable() );
+      } else {
+        LOG.info( "Running as executor: " + this );
+        mFuture = gExecutorService.submit( new ToolRunnable() );
+//        Thread thread = new Thread( new ToolRunnable() );
+//        thread.setPriority( getThreadPriority() );
+//        thread.setName( getTool().getPath() );
+//        thread.start();        
+      }
     } else if (pStateRequest.equals(STATEREQUEST_PAUSE)) {
       // **** PAUSE REQUEST
       setState( STATE_PAUSED );
@@ -1282,6 +1298,11 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
       n = ni.nextNode();
       if (n.isNodeType( "jecars:mix_inputresource" )) {
         nodes.add( n );
+//      } else {
+//        Node linked = CARS_Utils.getLinkedNode( n );
+//        if (linked.isNodeType( "jecars:mix_inputresource" )) {
+//          nodes.add( n );
+//        }
       }
     }
     return nodes;
