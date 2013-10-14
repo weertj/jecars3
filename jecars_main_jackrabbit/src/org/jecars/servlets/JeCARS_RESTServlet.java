@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2012 NLR - National Aerospace Laboratory
+ * Copyright 2007-2013 NLR - National Aerospace Laboratory
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,13 @@ package org.jecars.servlets;
 import com.google.gdata.data.DateTime;
 import com.google.gdata.util.ParseException;
 import com.google.gdata.util.common.base.StringUtil;
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.net.HttpURLConnection;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -36,18 +42,19 @@ import java.util.logging.Logger;
 import javax.jcr.AccessDeniedException;
 import javax.jcr.RepositoryException;
 import javax.security.auth.login.CredentialExpiredException;
-
-import javax.servlet.*;
-import javax.servlet.http.*;
+import javax.servlet.ServletException;
+import javax.servlet.ServletInputStream;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import nl.msd.jdots.JD_Taglist;
 import org.apache.jackrabbit.api.JackrabbitRepository;
-import org.apache.jackrabbit.core.RepositoryImpl;
-import org.apache.jackrabbit.core.TransientRepository;
 import org.jecars.CARS_ActionContext;
 import org.jecars.CARS_Definitions;
 import org.jecars.CARS_EventManager;
 import org.jecars.CARS_Factory;
 import org.jecars.CARS_LongPollRequestException;
+import org.jecars.CARS_Security;
 import org.jecars.apps.CARS_AccountsApp;
 import org.jecars.jaas.CARS_Digest;
 import org.jecars.jackrabbit.JackrabbitFactory;
@@ -244,6 +251,19 @@ public class JeCARS_RESTServlet extends HttpServlet {
         CARS_Factory.gJecarsProperties.setProperty( "jecars.CNDFiles", initVar );
       }
 
+      // **** Security elements
+      int i = 0;
+      while( getInitParameter( "SECURITY_ALLOWED_EXPORT_PATH." + i )!=null ) {
+        CARS_Security.addAllowedExportPath( getInitParameter( "SECURITY_ALLOWED_EXPORT_PATH." + i ));
+        i++;
+      }
+      i = 0;
+      while( getInitParameter( "SECURITY_ALLOWED_CLASS_PATH." + i )!=null ) {
+        CARS_Security.addAllowedJavaClass( getInitParameter( "SECURITY_ALLOWED_CLASS_PATH." + i ));
+        i++;
+      }
+
+      
       gLog.log( Level.INFO, "Trying to read /WEB-INF/classes/" + CARS_Factory.JECARSPROPERTIESNAME );
       final InputStream is = getServletContext().getResourceAsStream( "/WEB-INF/classes/" + CARS_Factory.JECARSPROPERTIESNAME );
       if (is==null) {
