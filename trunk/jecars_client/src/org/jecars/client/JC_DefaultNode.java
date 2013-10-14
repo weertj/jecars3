@@ -1067,6 +1067,10 @@ public class JC_DefaultNode extends JC_DefaultItem implements JC_Nodeable {
         }
       }
     }
+    if (mNodeProps.contains( PROPS.GOTNODES )) {
+      final JC_HttpException e = JC_Utils.createCommException( null, "while retrieving object ", pName );
+      throw e;
+    }
     final JC_Clientable client = getClient();
     final JC_DefaultNode nodeable = (JC_DefaultNode)client.createNodeClass( JC_Clientable.CREATENODE_DEFAULT );
     nodeable.setParent(this);
