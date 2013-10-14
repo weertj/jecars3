@@ -17,6 +17,7 @@ package org.jecars.wfplugin;
 
 import java.util.List;
 import java.util.logging.Level;
+import org.jecars.tools.CARS_ToolInstanceEvent;
 import org.jecars.tools.workflow.IWF_Task;
 import org.jecars.tools.workflow.IWF_Workflow;
 
@@ -32,10 +33,10 @@ public interface IWFP_Tool extends IWFP_Node {
   IWF_Workflow  getWorkflow();
   IWFP_Node     getTaskAsNode();
   IWFP_Node     getNodeFromRoot( final String pPath ) throws WFP_Exception;
-  void          reportProgress(  final float pProgress );
-  void          reportException( final Level pLevel, final Throwable pT );
-  void          reportMessage(   final Level pLevel, final String pMessage );
-  void          reportMessage(   final Level pLevel, final String pMessage, final int pRemoveAfterMinutes );
+  CARS_ToolInstanceEvent          reportProgress(  final float pProgress );
+  CARS_ToolInstanceEvent          reportException( final Level pLevel, final Throwable pT );
+  CARS_ToolInstanceEvent          reportMessage(   final Level pLevel, final String pMessage );
+  CARS_ToolInstanceEvent          reportMessage(   final Level pLevel, final String pMessage, final int pRemoveAfterMinutes );
 
   List<IWFP_ContextParameter>   getContextParameters( final IWFP_Context pContext, final String pRegex, final String pParameterName, final boolean pMakeLocalCopy ) throws WFP_Exception;
   IWFP_ContextParameter         getContextParameter(  final IWFP_Context pContext, final String pRegex, final String pParameterName, final boolean pMakeLocalCopy ) throws WFP_Exception;

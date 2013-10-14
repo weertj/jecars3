@@ -1542,7 +1542,7 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
   /** Report this event to the listeners
    * @param pEvent The to be reported event
    */
-  synchronized protected void reportToInstanceListeners( CARS_ToolInstanceEvent pEvent ) {
+  synchronized protected CARS_ToolInstanceEvent reportToInstanceListeners( CARS_ToolInstanceEvent pEvent ) {
     try {
       // **** Check for storing events
       final CARS_EventManager em = CARS_Factory.getEventManager();
@@ -1649,7 +1649,7 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
         }
       }
     }
-    return;
+    return pEvent;
   }
   
   /** Remove a instance listener, if this listener isn't added the method returns quiet.
@@ -1669,13 +1669,12 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
    * @param pProgress [0.0-1.0]
    */
   @Override
-  public void reportProgress( final double pProgress ) throws Exception {
+  public CARS_ToolInstanceEvent reportProgress( final double pProgress ) throws Exception {
     getTool().setProperty( "jecars:PercCompleted", 100.0*pProgress );
     getTool().setProperty( "jecars:Modified", Calendar.getInstance() );
     getTool().save();
-    reportToInstanceListeners(
+    return reportToInstanceListeners(
             CARS_DefaultToolInstanceEvent.createEvent( this, CARS_ToolInstanceEvent.EVENTTYPE_PROGRESS, pProgress) );
-    return;
   }
 
   /** Report output text
@@ -1745,10 +1744,9 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
    *                   (NOTE) currently only the true option is supported
    */
   @Override
-  public void reportMessage( java.util.logging.Level pLevel, String pHtmlMessage, boolean pBlocking ) {
-    reportToInstanceListeners( 
+  public CARS_ToolInstanceEvent reportMessage( java.util.logging.Level pLevel, String pHtmlMessage, boolean pBlocking ) {
+    return reportToInstanceListeners( 
        CARS_DefaultToolInstanceEvent.createEventMessage( this, pLevel, pHtmlMessage, pBlocking ));
-    return;
   }
 
   /** Report a message to the user.
@@ -1788,10 +1786,9 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
    * @param pLevel
    */
   @Override
-  public void reportException( final Throwable pThrow, final Level pLevel ) {
+  public CARS_ToolInstanceEvent reportException( final Throwable pThrow, final Level pLevel ) {
     final CARS_ToolInstanceEvent tie = CARS_DefaultToolInstanceEvent.createEvent( this, pThrow, pLevel );
-    reportToInstanceListeners( tie );
-    return;
+    return reportToInstanceListeners( tie );
   }
 
   /** reportExceptionEvent
@@ -1836,10 +1833,9 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
    *  @param pHtmlMessage the message itself, this message may contain html markups.
    */
   @Override
-  public void reportStatusMessage( final String pHtmlMessage ) {
-    reportToInstanceListeners( 
+  public CARS_ToolInstanceEvent reportStatusMessage( final String pHtmlMessage ) {
+    return reportToInstanceListeners( 
        CARS_DefaultToolInstanceEvent.createEvent( this, CARS_ToolInstanceEvent.EVENTTYPE_STATUSMESSAGE, pHtmlMessage ));
-    return;
   }
 
   

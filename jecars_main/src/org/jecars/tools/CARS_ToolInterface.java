@@ -311,7 +311,7 @@ public interface CARS_ToolInterface {
   public void removeInstanceListener( CARS_ToolInstanceListener pListener );
   
   
-  void reportException( final Throwable pThrow, final Level pLevel );
+  CARS_ToolInstanceEvent reportException( final Throwable pThrow, final Level pLevel );
   CARS_ToolInstanceEvent reportExceptionEvent( final Throwable pThrow, final Level pLevel );
 
   /** Report progress
@@ -319,7 +319,7 @@ public interface CARS_ToolInterface {
    * @param pProgress [0.0-1.0]
    * @throws java.lang.Exception
    */
-  public void reportProgress( double pProgress ) throws Exception;
+  CARS_ToolInstanceEvent reportProgress( double pProgress ) throws Exception;
 
   /** Report output text to a standard output or log box.
    * @param pOutput Standard output text string
@@ -340,7 +340,7 @@ public interface CARS_ToolInterface {
    *                   when false the program continue
    *                   (NOTE) currently only the true option is supported
    */
-  void reportMessage( java.util.logging.Level pLevel, String pHtmlMessage, boolean pBlocking );
+  CARS_ToolInstanceEvent reportMessage( java.util.logging.Level pLevel, String pHtmlMessage, boolean pBlocking );
 
   /** Report a message to the user.
    * @param pLevel the "level" of the message;
@@ -362,7 +362,7 @@ public interface CARS_ToolInterface {
   /** Report a status to the user.
    *  @param pHtmlMessage the message itself, this message may contain html markups.
    */
-  public void reportStatusMessage( String pHtmlMessage );
+  CARS_ToolInstanceEvent reportStatusMessage( String pHtmlMessage );
 
   /** Add an input node object
    * @param pNode
