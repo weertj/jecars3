@@ -18,12 +18,14 @@ package org.jecars.client.nt;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
 import org.jecars.client.JC_Clientable;
 import org.jecars.client.JC_DefaultNode;
 import org.jecars.client.JC_DefaultStream;
@@ -176,13 +178,40 @@ public class JC_ToolNode extends JC_DefaultNode {
     return true;
   }
 
+  /** getBestEventsException
+   * 
+   * @param pMessages
+   * @param pEvents
+   * @return 
+   */
+  public Throwable getBestEventsException( final StringBuilder pMessages, List<JC_ToolEventNode>pEvents ) {
+    Throwable eexp = null;
+    // **** Get best exception
+    try {
+      for( JC_ToolEventNode ten : pEvents ) {          
+        if ((ten.getLevel()==Level.WARNING.intValue()) && (ten.getException()!=null)) {
+          eexp = ten.getException();
+        }
+      }
+      for( JC_ToolEventNode ten : pEvents ) {          
+        if ((ten.getLevel()== Level.SEVERE.intValue()) && (ten.getException()!=null)) {
+          eexp = ten.getException();
+        }
+      }
+    } catch( Exception e ) {
+      return e;
+    }
+    return eexp;
+  }
+
+  
   /** getToolEvents
    *
    * @return
    * @throws org.jecars.client.JC_Exception
    * @throws java.io.UnsupportedEncodingException
    */
-  public ArrayList<JC_ToolEventNode> getToolEvents() throws JC_Exception, UnsupportedEncodingException, CloneNotSupportedException {
+  public ArrayList<JC_ToolEventNode> getToolEvents() throws JC_Exception, UnsupportedEncodingException {
     final ArrayList<JC_ToolEventNode> events = new ArrayList<JC_ToolEventNode>();
     final JC_Clientable client = getClient();
     final JC_Params params = client.createParams( JC_RESTComm.GET ).cloneParams();
