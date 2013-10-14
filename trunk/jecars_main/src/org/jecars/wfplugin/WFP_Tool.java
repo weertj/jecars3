@@ -84,13 +84,12 @@ public class WFP_Tool extends WFP_Node implements IWFP_Tool {
    * @param pProgress 
    */
   @Override
-  public void reportProgress( final float pProgress ) {
+  public CARS_ToolInstanceEvent reportProgress( final float pProgress ) {
     try {
-      mWorkflow.getToolInterface().reportProgress( pProgress );
+      return mWorkflow.getToolInterface().reportProgress( pProgress );
     } catch( Exception e ) {
-      reportException( Level.SEVERE, e );
+      return reportException( Level.SEVERE, e );
     }
-    return;
   }
 
   /** reportException
@@ -99,7 +98,7 @@ public class WFP_Tool extends WFP_Node implements IWFP_Tool {
    * @param pT 
    */
   @Override
-  public void reportException( final Level pLevel, final Throwable pT ) {
+  public CARS_ToolInstanceEvent reportException( final Level pLevel, final Throwable pT ) {
     final CARS_ToolInstanceEvent tie = mWorkflow.getToolInterface().reportExceptionEvent( pT, pLevel );
     try {
       synchronized( WF_WorkflowRunner.WRITERACCESS ) {
@@ -113,7 +112,7 @@ public class WFP_Tool extends WFP_Node implements IWFP_Tool {
     if (pLevel.intValue()>mWorstExceptionLevel.intValue()) {
       mWorstExceptionLevel = pLevel;
     }
-    return;
+    return tie;
   }
 
   /** reportMessage
@@ -122,11 +121,11 @@ public class WFP_Tool extends WFP_Node implements IWFP_Tool {
    * @param pMessage 
    */
   @Override
-  public void reportMessage( final Level pLevel, final String pMessage ) {
+  public CARS_ToolInstanceEvent reportMessage( final Level pLevel, final String pMessage ) {
     try {
-      mWorkflow.getToolInterface().reportMessage( pLevel, pMessage, false );
+      return mWorkflow.getToolInterface().reportMessage( pLevel, pMessage, false );
     } catch( Exception e ) {
-      reportException( Level.SEVERE, e );
+      return reportException( Level.SEVERE, e );
     }
   }
 
@@ -137,15 +136,15 @@ public class WFP_Tool extends WFP_Node implements IWFP_Tool {
    * @param pRemoveAfterMinutes 
    */
   @Override
-  public void reportMessage( final Level pLevel, final String pMessage, final int pRemoveAfterMinutes ) {
+  public CARS_ToolInstanceEvent reportMessage( final Level pLevel, final String pMessage, final int pRemoveAfterMinutes ) {
     try {
       CARS_ToolInstanceEvent tie = mWorkflow.getToolInterface().reportMessageEvent( pLevel, pMessage, false );
       CARS_Utils.setExpireDate( tie.getEventNode(), pRemoveAfterMinutes );
       tie.getEventNode().save();
+      return tie;
     } catch( Exception e ) {
-      reportException( Level.SEVERE, e );
+      return reportException( Level.SEVERE, e );
     }
-    return;
   }  
   
 

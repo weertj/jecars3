@@ -26,6 +26,7 @@ import java.util.concurrent.Future;
 import java.util.logging.Level;
 import javax.jcr.*;
 import org.jecars.CARS_Main;
+import org.jecars.CARS_Security;
 import org.jecars.CARS_Utils;
 import org.jecars.tools.CARS_FileClassLoader;
 import org.jecars.tools.CARS_ToolInterface;
@@ -570,7 +571,15 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
     final IWFP_Interface iface;
     if (pTask.getNode().hasProperty( "jecars:javaclasspath" )) {
       try {
-        final Class ji = Class.forName( pTask.getNode().getProperty( "jecars:javaclasspath" ).getString() );
+        String javaclasspath = pTask.getNode().getProperty( "jecars:javaclasspath" ).getString();
+        if (!CARS_Security.isJavaClassAllowed( javaclasspath )) {
+          synchronized( WRITERACCESS ) {
+            setState( CARS_ToolInterface.STATE_CLOSED_ABNORMALCOMPLETED_TERMINATED );
+            save();
+          }
+          throw new AccessDeniedException( "Class instance not allowed: " + javaclasspath );
+        }
+        final Class ji = Class.forName( javaclasspath );
         iface = (IWFP_Interface)ji.newInstance();        
       } catch( Throwable t ) {
         throw new RepositoryException( t );
