@@ -846,10 +846,11 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
           }
           // **** Wait until ready
           final Future futureres = ti.getFuture();
-          while(!futureres.isDone()) {
-            Thread.sleep( 1000 );
-          }
-          System.out.println("task ended " + n.getPath() + " RESULT: " + futureres.get() );
+          futureres.get();
+//          while(!futureres.isDone()) {
+//            Thread.sleep( 1000 );
+//          }
+//          System.out.println("task ended " + n.getPath() + " RESULT: " + futureres.get() );
         }
         
         // **** Empty context        
@@ -983,9 +984,11 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
           }
           // **** Wait until ready
           final Future futureres = ti.getFuture();
-          while(!futureres.isDone()) {
-            Thread.sleep( 1000 );
-          }
+          futureres.get();
+//          while(!futureres.isDone()) {
+//            Thread.sleep( 1000 );
+//          }
+//  System.out.println("WORKFLOWRUNNER TOOL EXIT  time=" + System.currentTimeMillis() );
           System.out.println("task ended result: " + futureres.get());
         }
         
