@@ -17,7 +17,9 @@ public class CARS_Security {
 
   private static final Logger       LOG                 = Logger.getLogger(CARS_Security.class.getName());  
   private static final List<String> ALLOWED_EXPORT_PATH = new ArrayList<String>( 8 );
+  private static       boolean      ALWAYS_ALLOW_EXPORT_PATH = true;
   private static final List<String> ALLOWED_JAVA_CLASSES = new ArrayList<String>( 8 );
+  private static       boolean      ALWAYS_ALLOW_JAVA_CLASSES = true;
 
   /** addAllowedExportPath
    * 
@@ -31,13 +33,25 @@ public class CARS_Security {
     return;
   }
   
+  /** exportPathAllowed
+   * 
+   * @param pAllowed 
+   */
+  static public void exportPathAllowed( final boolean pAllowed ) {
+    ALWAYS_ALLOW_EXPORT_PATH = pAllowed;
+    return;
+  }
+  
   /** isExportPathAllowed
    * 
    * @param pPath
    * @return 
    */
   static public boolean isExportPathAllowed( final String pPath ) {
-    return ALLOWED_EXPORT_PATH.contains( pPath );
+    if (!ALWAYS_ALLOW_EXPORT_PATH) {
+      return ALLOWED_EXPORT_PATH.contains( pPath );
+    }
+    return true;
   }
 
   /** addAllowedJavaClass
@@ -52,13 +66,26 @@ public class CARS_Security {
     return;
   }
   
+  /** javaClassesAllowed
+   * 
+   * @param pAllowed 
+   */
+  static public void javaClassesAllowed( final boolean pAllowed ) {
+    ALWAYS_ALLOW_JAVA_CLASSES = pAllowed;
+    return;
+  }
+
+  
   /** isExportPathAllowed
    * 
    * @param pClassPath 
    * @return 
    */
   static public boolean isJavaClassAllowed( final String pClassPath ) {
-    return ALLOWED_JAVA_CLASSES.contains( pClassPath );
+    if (!ALWAYS_ALLOW_JAVA_CLASSES) {
+      return ALLOWED_JAVA_CLASSES.contains( pClassPath );
+    }
+    return true;
   }
 
   /** CARS_Security
