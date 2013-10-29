@@ -372,7 +372,7 @@ public class JC_RESTComm implements Serializable {
   /** sendMessageGET
    */
   public JD_Taglist sendMessageGET( final JC_Clientable pClient, final HttpURLConnection pConn ) throws ProtocolException, IOException {
-//    gLog.log( Level.INFO, "GET: " + pConn.getURL() );
+//    System.out.println( "GET: " + pConn.getURL() );
     JD_Taglist tags = new JD_Taglist();
     tags.putData( "JC_Clientable", pClient );
     pConn.setRequestMethod( GET );

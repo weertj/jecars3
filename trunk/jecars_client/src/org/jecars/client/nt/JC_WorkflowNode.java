@@ -283,10 +283,10 @@ public class JC_WorkflowNode extends JC_ToolNode {
     final JC_WorkflowNode tool = (JC_WorkflowNode)pParentNode.addNode( pToolName, pToolType, pTemplateTool ).morphToNodeType();
     tool.save();
     tool.setProperty( "jecars:ToolTemplate", pTemplateTool );
-    if (pToolUser!=null) {
-      tool.addMixin( "jecars:permissionable" );
-      JC_PermissionNode.addRights( tool, pToolUser, JC_PermissionNode.RS_ALLRIGHTS );
-    }
+//    if (pToolUser!=null) {
+//      tool.addMixin( "jecars:permissionable" );
+//      JC_PermissionNode.addRights( tool, pToolUser, JC_PermissionNode.RS_ALLRIGHTS );
+//    }
     tool.setProperty( "jecars:StoreEvents", true );
     tool.save();
 
