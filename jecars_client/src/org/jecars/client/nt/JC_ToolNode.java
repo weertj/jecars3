@@ -616,10 +616,10 @@ public class JC_ToolNode extends JC_DefaultNode {
                     final String pToolType ) throws JC_Exception {
     final JC_ToolNode tool = (JC_ToolNode)pParentNode.addNode( pToolName, pToolType ).morphToNodeType();
     tool.setProperty( "jecars:ToolTemplate", pTemplateTool );
-    if (pToolUser!=null) {
-      tool.addMixin( "jecars:permissionable" );
-      JC_PermissionNode.addRights( tool, pToolUser, JC_PermissionNode.RS_ALLRIGHTS );
-    }
+//    if (pToolUser!=null) {
+//      tool.addMixin( "jecars:permissionable" );
+//      JC_PermissionNode.addRights( tool, pToolUser, JC_PermissionNode.RS_ALLRIGHTS );
+//    }
     if (pExpireMinutes>0) {
       final Calendar c = Calendar.getInstance();
       c.add( Calendar.MINUTE, pExpireMinutes );
