@@ -194,16 +194,22 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
           mToolNode = newSession.getNode( mToolPath );
         }
         // **** TODO When the tools is renamed or rewritten there is a InvalidItemStateException.... reread the tool
+//   System.out.println("TOOL 1 " + System.currentTimeMillis() );
         setExpireDateTool( getTool(), getRunningExpireMinutes() );
         moveToolTo( "open" );
 //        _toolInit();
+//   System.out.println("TOOL 2 " + System.currentTimeMillis() );
         _initEventFolder();
+//   System.out.println("TOOL 3 " + System.currentTimeMillis() );
         setState( CARS_ToolInterface.STATE_OPEN_RUNNING_INIT );
         toolInit();
+//   System.out.println("TOOL 4 " + System.currentTimeMillis() );
         setState( CARS_ToolInterface.STATE_OPEN_RUNNING_PARAMETERS );
         toolParameters();
+//   System.out.println("TOOL 5 " + System.currentTimeMillis() );
         setState( CARS_ToolInterface.STATE_OPEN_RUNNING_INPUT );
         toolInput();
+//   System.out.println("TOOL 6 " + System.currentTimeMillis() );
         if (pauseCheck()) {
           inPauseState();
           return;
@@ -453,64 +459,50 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
     }
     if (storeEvents()) {
         if (mToolNode.hasNode( "jecars:Events" )==false) {
-          Node events = mToolNode.addNode( "jecars:Events", "jecars:ToolEvents" );
+         Node events = mToolNode.addNode( "jecars:Events", "jecars:ToolEvents" );
           mToolNode.save();
           Node ev = events.getNode( "jecars:EventsSEVERE" );
           ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
           ev.setProperty( "jecars:ExpireHourSEVERE", -1 );      // **** Events will be expired by the tool node
-          ev.save();
           ev = events.getNode( "jecars:EventsWARNING" );
           ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
           ev.setProperty( "jecars:ExpireHourWARNING", -1 );      // **** Events will be expired by the tool node
-          ev.save();
           ev = events.getNode( "jecars:EventsINFO" );
           ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
           ev.setProperty( "jecars:ExpireHourINFO", -1 );      // **** Events will be expired by the tool node
-          ev.save();
           ev = events.getNode( "jecars:EventsCONFIG" );
           ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
           ev.setProperty( "jecars:ExpireHourCONFIG", -1 );      // **** Events will be expired by the tool node
-          ev.save();
-          ev = events.getNode( "jecars:EventsFINE" );
           ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
           ev.setProperty( "jecars:ExpireHourFINE", -1 );      // **** Events will be expired by the tool node
-          ev.save();
           ev = events.getNode( "jecars:EventsFINER" );
           ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
           ev.setProperty( "jecars:ExpireHourFINER", -1 );      // **** Events will be expired by the tool node
-          ev.save();
           ev = events.getNode( "jecars:EventsFINEST" );
           ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
           ev.setProperty( "jecars:ExpireHourFINEST", -1 );      // **** Events will be expired by the tool node
-          ev.save();
           ev = events.getNode( "jecars:EventsUNKNOWN" );
           ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
           ev.setProperty( "jecars:ExpireHourUNKNOWN", -1 );      // **** Events will be expired by the tool node
-          ev.save();
           ev = events.getNode( "jecars:EventsSTATE" );
           ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
           ev.setProperty( "jecars:ExpireHourSTATE", -1 );      // **** Events will be expired by the tool node
-          ev.save();
           ev = events.getNode( "jecars:EventsINSTANCE" );
           ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
           ev.setProperty( "jecars:ExpireHourINSTANCE", -1 );      // **** Events will be expired by the tool node
-          ev.save();
           ev = events.getNode( "jecars:EventsOUTPUT" );
           ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
           ev.setProperty( "jecars:ExpireHourOUTPUT", -1 );      // **** Events will be expired by the tool node
-          ev.save();
           ev = events.getNode( "jecars:EventsMESSAGE" );
           ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
           ev.setProperty( "jecars:ExpireHourMESSAGE", -1 );      // **** Events will be expired by the tool node
-          ev.save();
           ev = events.getNode( "jecars:EventsSTATUS" );
           ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
           ev.setProperty( "jecars:ExpireHourSTATUS", -1 );      // **** Events will be expired by the tool node
-          ev.save();
           ev = events.getNode( "jecars:EventsPROGRESS" );
           ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
           ev.setProperty( "jecars:ExpireHourPROGRESS", -1 );      // **** Events will be expired by the tool node
-          ev.save();
+          mToolNode.getSession().save();
         }
     }
     return;
