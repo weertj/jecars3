@@ -256,11 +256,15 @@ public class JeCARS_RESTServlet extends HttpServlet {
       while( getInitParameter( "SECURITY_ALLOWED_EXPORT_PATH." + i )!=null ) {
         CARS_Security.addAllowedExportPath( getInitParameter( "SECURITY_ALLOWED_EXPORT_PATH." + i ));
         i++;
+        // **** When there are security entries, disable the allowed
+        CARS_Security.exportPathAllowed( false );
       }
       i = 0;
       while( getInitParameter( "SECURITY_ALLOWED_CLASS_PATH." + i )!=null ) {
         CARS_Security.addAllowedJavaClass( getInitParameter( "SECURITY_ALLOWED_CLASS_PATH." + i ));
         i++;
+        // **** When there are security entries, disable the allowed
+        CARS_Security.javaClassesAllowed( false );
       }
 
       
