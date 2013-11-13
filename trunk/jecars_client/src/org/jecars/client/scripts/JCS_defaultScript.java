@@ -46,6 +46,8 @@ public class JCS_defaultScript {
   public String mCodeBase        = "";
   public String mBoolOption      = "";
   public String mHelpOption      = "";
+  public String mCommand         = "";
+  public String mProps           = "";
   public boolean mShowLogin      = false;
 
   public PrintStream mConfigOutput = System.out;
@@ -131,6 +133,12 @@ public class JCS_defaultScript {
       }
       if (arg.startsWith( "-showlogin=" )) {
         mShowLogin = Boolean.parseBoolean( arg.substring( 11 ) );
+      }
+      if (arg.startsWith( "-cmd=" )) {
+        mCommand = arg.substring( 5 );
+      }
+      if (arg.startsWith( "-props=" )) {
+        mProps = arg.substring( 7 );
       }
     }
     return;
