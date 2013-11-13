@@ -600,6 +600,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
       }
  
       reportStatusMessage( "Starting tool " + getTool().getPath() + " as " + commands );
+//  System.out.println("START TOOL  time=" + System.currentTimeMillis()  );
       
       // **** Remove error.txt & stdout.txt before running
       if (getTool().hasNode( "error.txt" )) {
@@ -618,6 +619,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
         error.start();
         input.start();
         err = process.waitFor();
+//  System.out.println("START TOOL END  time=" + System.currentTimeMillis()  );
         error.join( 4000 );
         input.join( 4000 );
         process.destroy();
@@ -650,6 +652,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
       throw new InvalidParameterException( "No execpath" );
     }
     super.toolRun();
+//  System.out.println("START TOOL EXIT  time=" + System.currentTimeMillis()  );
     return;
   }
 

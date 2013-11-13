@@ -90,13 +90,13 @@ public class WFPT_DataContainer implements IWFP_Interface {
           is.close();
         }
         
-        // **** To output
-        for( final File dcf : dc.listFiles() ) {
-            final IWFP_Output output = pContext.addOutput( dcf.getName() );
-            FileInputStream fis = new FileInputStream( dcf );
-            output.setContents( fis );
-            fis.close();
-        }
+        // **** To output  TODO Temporary disable.... missing use-case
+//        for( final File dcf : dc.listFiles() ) {
+//            final IWFP_Output output = pContext.addOutput( dcf.getName() );
+//            FileInputStream fis = new FileInputStream( dcf );
+//            output.setContents( fis );
+//            fis.close();
+//        }
       
       } catch( Exception e ) {
         pTool.reportException( Level.SEVERE, e );

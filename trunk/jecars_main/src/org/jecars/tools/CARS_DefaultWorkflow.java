@@ -204,7 +204,8 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
             }
             break;
           }
-          Thread.sleep( 2000 );      
+//          Thread.sleep( 200 );
+          Thread.sleep( 2000 );      // **** TODO
         } while( !currentRunners.isEmpty() );
 
         // **** Check for the runner errors
@@ -277,6 +278,8 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
             mRunner.getWorkflow().save();
           }
         }
+//      System.out.println("WORKFLOW END  time=" + System.currentTimeMillis()  );
+//        System.out.println("  STATE = " + mRunner.getWorkflow().getNode().getProperty( "jecars:State" ).getString() );
 
         // **** Check for the archive option
         try {
@@ -294,7 +297,7 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
             context.addTransientObject( WFPT_Archive.NODEFORARCHIVE, mRunner.getWorkflow().getNode() );
             context.addTransientObject( WFPT_Archive.ARCHIVEDIRECTORY, archive );
             archiveTool.start( tool, context );
-          }
+          }          
         } catch( RepositoryException re ) {
           reportException( re, Level.SEVERE );
         } finally {
