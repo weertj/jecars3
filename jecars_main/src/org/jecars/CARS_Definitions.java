@@ -21,14 +21,14 @@ public class CARS_Definitions {
   static public final String P_ADDNODE     = "add_node";
   static public final String P_REMOVE      = "remove";
     
-  final static public String VERSION_ID    = "v3.1.2";
+  final static public String VERSION_ID    = "v3.2.0";
   final static public String PRODUCTNAME   = "JeCARS 'Elderberry'";
   final static public String VERSION       = PRODUCTNAME + " " + VERSION_ID;
   final static public String MAINFOLDER    = "JeCARS";
   final static public String DEFAULTNS1    = "jecars";
   final static public String DEFAULTNS     = "jecars:";
   final static public String DEFAULTAUTHOR = "jecars.org";
-  final static public String DEFAULTRIGHTS = "(C) 2006-2013";
+  final static public String DEFAULTRIGHTS = "(C) 2006-2014";
 
     
   static public final String ACCOUNTKEYSPATH    = "accounts/ClientLogin";

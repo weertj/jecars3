@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2012 NLR - National Aerospace Laboratory
+ * Copyright 2010-2014 NLR - National Aerospace Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,14 @@
  */
 package org.jecars.tools;
 
-import java.io.*;
-import java.math.BigDecimal;
-import java.net.URL;
-import java.net.URLDecoder;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -56,18 +60,76 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
   static final public String WORKINGDIRECTORY               = "jecars:WorkingDirectory";
   static final public String GENERATEUNIQUEWORKINGDIRECTORY = "jecars:GenerateUniqueWorkingDirectory";
 
-  private final transient List<File> mPreRunFiles = new ArrayList<File>();
+  private final transient List<File> mPreRunFiles = new ArrayList<>();
 
-  private final transient List<File> mInputs = new ArrayList<File>();
+  private final transient List<File> mInputs = new ArrayList<>();
 
   private transient File mWorkingDirectory = null;
 
   private transient long mToolStartTime = 0;
   private transient long mToolAverageRunningTime = 0;
 
+    /** IOStreamThreadFile
+   *
+   */
+  private class IOStreamThreadFile extends Thread {
+    final private String      mName;
+    final private InputStream mInput;
+    final private File        mOutput;
+
+    /** IOStreamThreadFile
+     * 
+     * @param pName
+     * @param pIs 
+     */
+    private IOStreamThreadFile( final String pName, final InputStream pIs, final File pOutput ) {
+      super();
+      setName( pName + '_' + IOSTREAMTHREAD_ID.incrementAndGet() );
+      mName  = pName;
+      mInput = pIs;
+      mOutput = pOutput;
+      return;
+    }
+
+    /** finish
+     * 
+     */
+    public void finish() {
+      
+      return;
+    }
+    
+    /** run
+     * 
+     */
+    @Override
+    public void run() {    
+      try {
+//        System.out.println("START PIPE " + mName + " " + System.currentTimeMillis());
+        try(InputStreamReader isr = new InputStreamReader(mInput)) {
+          try(BufferedReader br = new BufferedReader(isr)) {
+            String line;
+            try (FileOutputStream fos = new FileOutputStream(mOutput)) {
+              while ( (line = br.readLine()) != null) {
+                fos.write( line.getBytes() );
+                fos.write( '\n' );
+              }
+            }
+          }
+        }
+      } catch (IOException ioe) {
+        reportException( ioe, Level.WARNING );
+      }
+//   System.out.println("END PIPE " + mName + " " + System.currentTimeMillis());
+      return;
+    }
+
+  }
+
   /** IOStreamThread
    *
    */
+ /*
   private class IOStreamThread extends Thread {
     final private String      mName;
     final private InputStream mInput;
@@ -77,12 +139,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
       return mStreamSession;
     }
 
-    /** IOStreamThread
-     * 
-     * @param pName
-     * @param pIs 
-     */
-    public IOStreamThread( final String pName, final InputStream pIs ) {
+  public IOStreamThread( final String pName, final InputStream pIs ) {
       super();
       setName( pName + '_' + IOSTREAMTHREAD_ID.incrementAndGet() );
       mName  = pName;
@@ -90,12 +147,10 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
       return;
     }
 
-    /** run
-     * 
-     */
     @Override
-    public void run() {        
+    public void run() {    
       try {
+//        System.out.println("START PIPE " + mName + " " + System.currentTimeMillis());
         final InputStreamReader isr = new InputStreamReader(mInput);
         final BufferedReader br = new BufferedReader(isr);
         String line;
@@ -113,6 +168,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
           }
           while ( (line = br.readLine()) != null) {
             sbuf.append( line ).append( '\n' );
+//   System.out.println("PIPE " + mName + " " + line + " : " + System.currentTimeMillis());
             synchronized( WF_WorkflowRunner.WRITERACCESS ) {
               output = replaceOutput( tool, mName, sbuf.toString() );
               output.setProperty( "jecars:LastLine", line );
@@ -128,6 +184,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
           }
 //        final Node output = replaceOutput( getTool(), mName, sbuf.toString() );
           synchronized( WF_WorkflowRunner.WRITERACCESS ) {
+//   System.out.println("PIPE LAST " + mName + " " + line + " : " + System.currentTimeMillis());
             output = replaceOutput( tool, mName, sbuf.toString() );
             output.setProperty( "jecars:Partial", false );
             streamSession.save();
@@ -139,6 +196,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
       } catch (Exception ioe) {
         reportException( ioe, Level.WARNING );
       }
+//   System.out.println("END PIPE " + mName + " " + System.currentTimeMillis());
       return;
     }
 
@@ -169,7 +227,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
 //    }
 
   }
-
+*/
 
 
   /** getWorkingDirectory
@@ -188,6 +246,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
   protected void toolInit() throws Exception {
     CARS_ToolSignalManager.addToolSignalListener( this );
     super.toolInit();
+//  System.out.println("TOOL INIT 1 " + System.currentTimeMillis());
     getTool().addMixin( "jecars:mix_datafolder" );
     final Session syssession = CARS_Factory.getSystemToolsSession();
     synchronized( syssession ) {        
@@ -272,23 +331,23 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
    */
   protected void processInputDataStream( final InputStream pInput, final String pFilename ) throws IOException {
     final File inputF = new File( mWorkingDirectory, pFilename );
-    final FileOutputStream fos = new FileOutputStream( inputF );
-    try {
+    try (FileOutputStream fos = new FileOutputStream( inputF )) {
       CARS_Utils.sendInputStreamToOutputStream( 50000, pInput, fos );
       mInputs.add( inputF );
-    } finally {
-      fos.close();
     }
     return;
   }
 
+  /** processDataStream
+   * 
+   * @param pInput
+   * @param pFilename
+   * @throws IOException 
+   */
   protected void processDataStream( final InputStream pInput, final String pFilename ) throws IOException {
     final File inputF = new File( mWorkingDirectory, pFilename );
-    final FileOutputStream fos = new FileOutputStream( inputF );
-    try {
+    try (FileOutputStream fos = new FileOutputStream( inputF )) {
       CARS_Utils.sendInputStreamToOutputStream( 50000, pInput, fos );
-    } finally {
-      fos.close();
     }
     return;
   }
@@ -306,11 +365,11 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
       final Node n = ni.nextNode();
       if (n.isNodeType( "nt:resource" )) {
         pDir.mkdirs();
-        FileOutputStream fos = new FileOutputStream( new File( pDir, n.getName() ) );
-        final Binary bin = n.getProperty( "jcr:data" ).getBinary();
-        CARS_Utils.sendInputStreamToOutputStream( 10000, bin.getStream(), fos );
-        bin.dispose();
-        fos.close();
+        try (FileOutputStream fos = new FileOutputStream( new File( pDir, n.getName() ) )) {
+          final Binary bin = n.getProperty( "jcr:data" ).getBinary();
+          CARS_Utils.sendInputStreamToOutputStream( 10000, bin.getStream(), fos );
+          bin.dispose();
+        }
       } else {
         copyNodeToDirectory( n, new File( pDir, n.getName() ) );
       }
@@ -318,6 +377,13 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
     return;
   }
 
+  /** copyDirectoryToNode
+   * 
+   * @param pDir
+   * @param pNode
+   * @throws IOException
+   * @throws RepositoryException 
+   */
   protected void copyDirectoryToNode( final File pDir, final Node pNode ) throws IOException, RepositoryException {
     final File[] fi = pDir.listFiles();
     for( final File f : fi ) {
@@ -348,6 +414,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
   @Override
   protected void toolInput() throws Exception {
     Node config = getConfigNode();
+//  System.out.println("TOOL INPUT 1 " + System.currentTimeMillis());
     
     // **** Copy the config node to the current tool
     if (!hasConfigNode()) {
@@ -525,7 +592,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
   @Override
   @SuppressWarnings("LoggerStringConcat")
   protected void toolRun() throws Exception {
-
+//    System.out.println("TOOL RUN 1 " + System.currentTimeMillis());
     // **** file snapshot
     final File workDir = getWorkingDirectory();
     final File[] files = workDir.listFiles();
@@ -533,6 +600,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
       mPreRunFiles.add( file );
     }
 
+//    System.out.println("TOOL RUN 2 " + System.currentTimeMillis());
 
     final Node config = getConfigNode();
     if (config.hasProperty( "jecars:ExecPath" )) {
@@ -557,9 +625,10 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
         }
       }
       reportMessage( Level.CONFIG, "ExecPath=" + execPath, false );
+//    System.out.println("TOOL RUN 3 " + System.currentTimeMillis());
 // ****** @Deprecated START
       final String cmdParam = getParameterString( "commandLine", 0 );
-      final List<String> commands = new ArrayList<String>();
+      final List<String> commands = new ArrayList<>(8);
       commands.add( execPath );
       if (cmdParam!=null) {
         String[] cmdParams = cmdParam.split( " " );
@@ -571,6 +640,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
         commands.add( input.getAbsolutePath() );
       }
 // ****** @Deprecated  END
+//    System.out.println("TOOL RUN 4 " + System.currentTimeMillis());
       
       // **********************************
       // **** Command option parsing
@@ -593,6 +663,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
           commands.add( nn.getName() );
         }
       }
+//    System.out.println("TOOL RUN 4 " + System.currentTimeMillis());
               
       final ProcessBuilder pb = new ProcessBuilder( commands );
       if (config.hasProperty( WORKINGDIRECTORY )) {
@@ -600,6 +671,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
       }
  
       reportStatusMessage( "Starting tool " + getTool().getPath() + " as " + commands );
+//    System.out.println("TOOL RUN 5 " + System.currentTimeMillis());
 //  System.out.println("START TOOL  time=" + System.currentTimeMillis()  );
       
       // **** Remove error.txt & stdout.txt before running
@@ -609,20 +681,44 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
       if (getTool().hasNode( "stdout.txt" )) {
         getTool().getNode( "stdout.txt" ).remove();
       }
+   // **** TEMP
+//   Node dfn = getTool().addNode( "stdout.txt", "jecars:datafile" );
+//   dfn.setProperty( "jcr:data", "This file is intentionally left blank" );
+//   dfn.setProperty( "jcr:mimeType", "text/plain");
+//   dfn = getTool().addNode( "error.txt", "jecars:datafile" );
+//   dfn.setProperty( "jcr:data", "This file is intentionally left blank" );
+//   dfn.setProperty( "jcr:mimeType", "text/plain");
+//   dfn.getSession();
+   // **** TEMP
       
       reportProgress( 0 );      
       int err;
+      IOStreamThreadFile error = null;
+      IOStreamThreadFile input = null;
       try {
         final Process process = pb.start();
-        final IOStreamThread error = new IOStreamThread( "error.txt",  process.getErrorStream() );
-        final IOStreamThread input = new IOStreamThread( "stdout.txt", process.getInputStream() );
+//    System.out.println("TOOL RUN 6 " + System.currentTimeMillis());
+        
+//        InputStream is = process.getInputStream();
+//      InputStreamReader isr = new InputStreamReader(is);
+//      BufferedReader br = new BufferedReader(isr);
+//      String line;
+//      while ((line = br.readLine()) != null) {
+////        System.out.println(line);
+//      }
+        error = new IOStreamThreadFile( "__error.txt",  process.getErrorStream(), new File( mWorkingDirectory, "__error.txt" ) );
+        input = new IOStreamThreadFile( "__stdout.txt", process.getInputStream(), new File( mWorkingDirectory, "__stdout.txt" ) );
         error.start();
         input.start();
+        addFileToOutput( new File( mWorkingDirectory, "__error.txt" ) );
+        addFileToOutput( new File( mWorkingDirectory, "__stdout.txt" ) );
+//    System.out.println("TOOL RUN 6.1 " + System.currentTimeMillis());
         err = process.waitFor();
 //  System.out.println("START TOOL END  time=" + System.currentTimeMillis()  );
         error.join( 4000 );
         input.join( 4000 );
         process.destroy();
+//    System.out.println("TOOL RUN 7 " + System.currentTimeMillis());
         synchronized( WF_WorkflowRunner.WRITERACCESS ) {
           reportProgress( 1 );
           try {
@@ -634,11 +730,18 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
       } catch( Throwable e ) {
         reportException( e, Level.SEVERE );
         super.toolRun();
-        throw new Exception(e);
+        throw e;
       } finally {
+        if (error!=null) {
+          error.finish();
+        }
+        if (input!=null) {
+          input.finish();
+        }
 //        error.getStreamSession().logout();
 //        input.getStreamSession().logout();        
       }
+//    System.out.println("TOOL RUN 8 " + System.currentTimeMillis());
       synchronized( WF_WorkflowRunner.WRITERACCESS ) {
         reportStatusMessage( "External tool " + getTool().getPath() + " is ending result = " + err );
         if (err!=0) {
@@ -648,10 +751,12 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
         }
         getTool().save();
       }
+//    System.out.println("TOOL RUN 9 " + System.currentTimeMillis());
     } else {
       throw new InvalidParameterException( "No execpath" );
     }
     super.toolRun();
+//    System.out.println("TOOL RUN END " + System.currentTimeMillis());
 //  System.out.println("START TOOL EXIT  time=" + System.currentTimeMillis()  );
     return;
   }
@@ -670,6 +775,29 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
     return;
   }
 
+  /** addFileToOutput
+   * 
+   * @param pFile
+   * @return
+   * @throws RepositoryException 
+   */
+  private Node addFileToOutput( File pFile ) throws RepositoryException {
+    final Node output = addOutputTransient( getTool(), null, pFile.getName() );
+    if (output!=null) {
+      final long len = pFile.length();
+      output.setProperty( "jecars:Title", pFile.getName() );
+//      output.setProperty( "jecars:IsLink", outputLink );
+      output.setProperty( "jecars:ContentLength", len );
+      output.setProperty( "jecars:Partial", false );
+      output.setProperty( "jecars:Available", true );
+      output.addMixin( "jecars:mix_filelink" );
+      output.setProperty( "jecars:PathToFile", CARS_Utils.getAbsolutePath( pFile ) );
+      output.getSession().save();
+    }
+    return output;
+  }
+
+  
   /** scanOutputFiles
    *
    * @throws FileNotFoundException
@@ -728,8 +856,8 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
 
                 // **** New output file... copy it
   //              reportStatusMessage( "Copy output file " + file.getName() );
-                final FileInputStream fis = new FileInputStream( file );
-                try {
+                try( final FileInputStream fis = new FileInputStream( file )) {
+//                try {
                   final Node output = addOutput( fis, file.getName() );
                   if (output!=null) {
                     output.setProperty( "jecars:IsLink", outputLink );
@@ -737,8 +865,8 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
                     output.setProperty( "jecars:Available", true );
                     saveSession = output.getSession();
                   }
-                } finally {
-                  fis.close();
+//                } finally {
+//                  fis.close();
                 }
               }
             }
@@ -747,7 +875,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
           if (saveSession!=null) {
             saveSession.save();
           }
-        }        
+        }
     }
     return;
   }

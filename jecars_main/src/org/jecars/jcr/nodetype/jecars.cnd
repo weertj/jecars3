@@ -216,6 +216,9 @@
 + * (jecars:EventsType)
 + * (jecars:Permission)
 
+[jecars:BasicEventsFolder] > jecars:EventsStoreFolder
+- jecars:StoreEventsPer     (String)='NONE' autocreated < '(NONE|YEAR|MONTH|DAY|HOUR|MINUTE)'
+
 [jecars:EventsFolder] > jecars:EventsStoreFolder
 - jecars:StoreEventsPer     (String)='MINUTE' autocreated < '(NONE|YEAR|MONTH|DAY|HOUR|MINUTE)'
 - jecars:EventsCount        (Long)='0'  mandatory autocreated
@@ -460,6 +463,7 @@
 [jecars:batches] > jecars:root
 + * (jecars:batch)=jecars:batch multiple
 
+[jecars:BasicToolEvents] > jecars:BasicEventsFolder
 
 [jecars:ToolEvents] > jecars:EventsFolder
 + jecars:EventsSEVERE    (jecars:EventsFolder)=jecars:EventsFolder autocreated
@@ -537,7 +541,7 @@
 + jecars:Parameter      (jecars:dataresource) multiple
 + jecars:Input          (jecars:dataresource) multiple
 + jecars:Output         (jecars:dataresource) multiple
-+ jecars:Events         (jecars:ToolEvents)   multiple
++ jecars:Events         (jecars:BasicToolEvents)   multiple
 
 [jecars:Tools] > jecars:root
 + * (jecars:Tools)
