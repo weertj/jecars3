@@ -189,6 +189,7 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
       Session newSession = null;
       try {
 //        getTool().save();
+// System.out.println("ToolRunnable 1 " + System.currentTimeMillis());        
         if (mRebuildToolSession) {
           newSession = createToolSession();
           mToolNode = newSession.getNode( mToolPath );
@@ -202,12 +203,15 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
         _initEventFolder();
 //   System.out.println("TOOL 3 " + System.currentTimeMillis() );
         setState( CARS_ToolInterface.STATE_OPEN_RUNNING_INIT );
+// System.out.println("ToolRunnable 2 " + System.currentTimeMillis());        
         toolInit();
 //   System.out.println("TOOL 4 " + System.currentTimeMillis() );
         setState( CARS_ToolInterface.STATE_OPEN_RUNNING_PARAMETERS );
+// System.out.println("ToolRunnable 3 " + System.currentTimeMillis());        
         toolParameters();
 //   System.out.println("TOOL 5 " + System.currentTimeMillis() );
         setState( CARS_ToolInterface.STATE_OPEN_RUNNING_INPUT );
+// System.out.println("ToolRunnable 4 " + System.currentTimeMillis());        
         toolInput();
 //   System.out.println("TOOL 6 " + System.currentTimeMillis() );
         if (pauseCheck()) {
@@ -215,7 +219,9 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
           return;
         }
         setState( CARS_ToolInterface.STATE_OPEN_RUNNING );
+// System.out.println("ToolRunnable 5 " + System.currentTimeMillis());        
         toolRun();
+// System.out.println("ToolRunnable 6 " + System.currentTimeMillis());        
         if (STATE_OPEN_ABORTING.equals( getState() )) {
           // **** Tool is aborted
           setState( CARS_ToolInterface.STATE_CLOSED_ABNORMALCOMPLETED_ABORTED );
@@ -458,9 +464,12 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
       }
     }
     if (storeEvents()) {
-        if (mToolNode.hasNode( "jecars:Events" )==false) {
-         Node events = mToolNode.addNode( "jecars:Events", "jecars:ToolEvents" );
-          mToolNode.save();
+        if (!mToolNode.hasNode( "jecars:Events" )) {
+//    System.out.println("TOOL CREATE EVENT FOLDERS " + System.currentTimeMillis() );
+          Node events = mToolNode.addNode( "jecars:Events", "jecars:BasicToolEvents" );
+//          Node events = mToolNode.addNode( "jecars:Events", "jecars:ToolEvents" );
+//          mToolNode.save();
+/*          
           Node ev = events.getNode( "jecars:EventsSEVERE" );
           ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
           ev.setProperty( "jecars:ExpireHourSEVERE", -1 );      // **** Events will be expired by the tool node
@@ -473,6 +482,7 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
           ev = events.getNode( "jecars:EventsCONFIG" );
           ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
           ev.setProperty( "jecars:ExpireHourCONFIG", -1 );      // **** Events will be expired by the tool node
+          ev = events.getNode( "jecars:EventsFINE" );
           ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
           ev.setProperty( "jecars:ExpireHourFINE", -1 );      // **** Events will be expired by the tool node
           ev = events.getNode( "jecars:EventsFINER" );
@@ -502,7 +512,9 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
           ev = events.getNode( "jecars:EventsPROGRESS" );
           ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
           ev.setProperty( "jecars:ExpireHourPROGRESS", -1 );      // **** Events will be expired by the tool node
+      */
           mToolNode.getSession().save();
+//   System.out.println("TOOL READY CREATING EVENT FOLDERS " + System.currentTimeMillis() );
         }
     }
     return;
@@ -569,7 +581,8 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
     return;
   }
 
-  /** Superclass must implement this method to actually start the tool
+  /** Superclass must implement this method to actually start the
+   * @throws java.lang.Exceptiontool
    */
   protected void toolRun() throws Exception {
     reportOutput( null );
@@ -798,7 +811,7 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
     final Property p = getTool().setProperty( "jecars:StateRequest", pStateRequest );
     getTool().save();
     mToolPath = getTool().getPath();
-
+// System.out.println("STATE REQUEST 1 " + System.currentTimeMillis());        
     _toolInitSettings();
 
     if (pStateRequest.equals(STATEREQUEST_START)) {
@@ -809,7 +822,9 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
         LOG.info( "Running as single executor: " + this );
         mFuture = gSingleExecutorService.submit( new ToolRunnable() );
       } else {
+// System.out.println("STATE REQUEST 2 " + System.currentTimeMillis());        
         LOG.info( "Running as executor: " + this );
+// System.out.println("STATE REQUEST 3 " + System.currentTimeMillis());        
         mFuture = gExecutorService.submit( new ToolRunnable() );
 //        Thread thread = new Thread( new ToolRunnable() );
 //        thread.setPriority( getThreadPriority() );
@@ -1531,6 +1546,25 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
     return;
   }
 
+  /** getOrCreateEventFolder
+   * 
+   * @param pType
+   * @return
+   * @throws RepositoryException 
+   */
+  private Node getOrCreateEventFolder( final String pType ) throws RepositoryException {
+    String fn = "jecars:Events/" + pType;
+    if (mToolNode.hasNode( fn )) {
+      return mToolNode.getNode( fn );
+    }
+    final Node ev = mToolNode.getNode( "jecars:Events" );
+    Node en = ev.addNode( pType, "jecars:EventsFolder" );
+    en.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
+    en.setProperty( "jecars:ExpireHourSEVERE", -1 );      // **** Events will be expired by the tool node
+    ev.save();
+    return en;
+  }
+  
   /** Report this event to the listeners
    * @param pEvent The to be reported event
    */
@@ -1550,52 +1584,60 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
           final static public int EVENTTYPE_PROGRESS              = 0x07;
         */
         switch( pEvent.getEventType() ) {
-          case CARS_ToolInstanceEvent.EVENTTYPE_UNKNOWN: {
-            final Node events = mToolNode.getNode( "jecars:Events/jecars:EventsUNKNOWN" );
+          case CARS_ToolInstanceEvent.EVENTTYPE_UNKNOWN: {            
+//            final Node events = mToolNode.getNode( "jecars:Events/jecars:EventsUNKNOWN" );
+            final Node events = getOrCreateEventFolder( "jecars:EventsUNKNOWN" );
             final Node ef = em.createEventNode( getMain(), getTool(), null, getTool(), events.getPath(), "TOOL", "UNKNOWN", null, "jecars:ToolEvent" );
             _setEventProperties( pEvent, ef );
             break;
           }
           case CARS_ToolInstanceEvent.EVENTTYPE_STATECHANGED: {
-            final Node events = mToolNode.getNode( "jecars:Events/jecars:EventsSTATE" );
+//            final Node events = mToolNode.getNode( "jecars:Events/jecars:EventsSTATE" );
+            final Node events = getOrCreateEventFolder( "jecars:EventsSTATE" );
             final Node ef = em.createEventNode( getMain(), getTool(), null, getTool(), events.getPath(), "TOOL", "STATE", null, "jecars:ToolEvent" );
             _setEventProperties( pEvent, ef );
             break;
           }
           case CARS_ToolInstanceEvent.EVENTTYPE_GENERALEXCEPTION: {
-            final Node events = mToolNode.getNode( "jecars:Events/jecars:Events" + pEvent.getEventLevel().toString().toUpperCase() );
+//            final Node events = mToolNode.getNode( "jecars:Events/jecars:Events" + pEvent.getEventLevel().toString().toUpperCase() );
+            final Node events = getOrCreateEventFolder( "jecars:Events" + pEvent.getEventLevel().toString().toUpperCase() );
             final Node ef = em.createEventNode( getMain(), getTool(), null, getTool(), events.getPath(), "TOOL",
                             pEvent.getEventLevel().toString().toUpperCase(), null, "jecars:ToolEventException" );
             _setEventProperties( pEvent, ef );
             break;
           }
           case CARS_ToolInstanceEvent.EVENTTYPE_TOOLINSTANCEEXCEPTION: {
-            final Node events = mToolNode.getNode( "jecars:Events/jecars:EventsINSTANCE" );
+//            final Node events = mToolNode.getNode( "jecars:Events/jecars:EventsINSTANCE" );
+            final Node events = getOrCreateEventFolder( "jecars:EventsINSTANCE" );
             final Node ef = em.createEventNode( getMain(), getTool(), null, getTool(), events.getPath(), "TOOL", "INSTANCE", null, "jecars:ToolEvent" );
             _setEventProperties( pEvent, ef );
             break;
           }
           case CARS_ToolInstanceEvent.EVENTTYPE_TOOLOUTPUTREPORT: {
-            final Node events = mToolNode.getNode( "jecars:Events/jecars:EventsOUTPUT" );
+//            final Node events = mToolNode.getNode( "jecars:Events/jecars:EventsOUTPUT" );
+            final Node events = getOrCreateEventFolder( "jecars:EventsOUTPUT" );
 //            Node ef = em.addEvent( getMain(), null, getTool(), events.getPath(), "TOOL", "OUTPUT", null, "jecars:ToolEvent" );
             final Node ef = em.createEventNode( getMain(), getTool(), null, getTool(), events.getPath(), "TOOL", "OUTPUT", null, "jecars:ToolEvent" );
             _setEventProperties( pEvent, ef );
             break;
           }
           case CARS_ToolInstanceEvent.EVENTTYPE_TOOLMESSAGE: {
-            final Node events = mToolNode.getNode( "jecars:Events/jecars:EventsMESSAGE" );
+//            final Node events = mToolNode.getNode( "jecars:Events/jecars:EventsMESSAGE" );
+            final Node events = getOrCreateEventFolder( "jecars:EventsMESSAGE" );
             final Node ef = em.createEventNode( getMain(), getTool(), null, getTool(), events.getPath(), "TOOL", "MESSAGE", null, "jecars:ToolEvent" );
             _setEventProperties( pEvent, ef );
             break;
           }
           case CARS_ToolInstanceEvent.EVENTTYPE_STATUSMESSAGE: {
-            final Node events = mToolNode.getNode( "jecars:Events/jecars:EventsSTATUS" );
+//            final Node events = mToolNode.getNode( "jecars:Events/jecars:EventsSTATUS" );
+            final Node events = getOrCreateEventFolder( "jecars:EventsSTATUS" );
             final Node ef = em.createEventNode( getMain(), getTool(), null, getTool(), events.getPath(), "TOOL", "STATUS", null, "jecars:ToolEvent" );
             _setEventProperties( pEvent, ef );
             break;
           }
           case CARS_ToolInstanceEvent.EVENTTYPE_PROGRESS: {
-            final Node events = mToolNode.getNode( "jecars:Events/jecars:EventsPROGRESS" );
+//            final Node events = mToolNode.getNode( "jecars:Events/jecars:EventsPROGRESS" );
+            final Node events = getOrCreateEventFolder( "jecars:EventsPROGRESS" );
             final Node ef = em.createEventNode( getMain(), getTool(), null, getTool(), events.getPath(), "TOOL", "PROGRESS", null, "jecars:ToolEvent" );
             _setEventProperties( pEvent, ef );
             break;
@@ -1615,28 +1657,28 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
     final Collection<CARS_ToolInstanceListener> til = getInstanceListeners();
     if (til!=null) {
       for (CARS_ToolInstanceListener ti : til) {
-        if (pEvent.getEventType()==pEvent.EVENTTYPE_STATECHANGED) {
+        if (pEvent.getEventType()==CARS_ToolInstanceEvent.EVENTTYPE_STATECHANGED) {
           ti.stateChanged( pEvent );
         }
-        if (pEvent.getEventType()==pEvent.EVENTTYPE_GENERALEXCEPTION) {
+        if (pEvent.getEventType()==CARS_ToolInstanceEvent.EVENTTYPE_GENERALEXCEPTION) {
           ti.generalException( pEvent );
         }
-        if (pEvent.getEventType()==pEvent.EVENTTYPE_TOOLINSTANCEEXCEPTION) {
+        if (pEvent.getEventType()==CARS_ToolInstanceEvent.EVENTTYPE_TOOLINSTANCEEXCEPTION) {
           ti.toolInstanceException( pEvent );
         }
-        if (pEvent.getEventType()==pEvent.EVENTTYPE_TOOLOUTPUTREPORT) {
+        if (pEvent.getEventType()==CARS_ToolInstanceEvent.EVENTTYPE_TOOLOUTPUTREPORT) {
           ti.reports( pEvent );
         }
-        if (pEvent.getEventType()==pEvent.EVENTTYPE_TOOLMESSAGE) {
+        if (pEvent.getEventType()==CARS_ToolInstanceEvent.EVENTTYPE_TOOLMESSAGE) {
           ti.reportMessage( pEvent );
         }
-        if (pEvent.getEventType()==pEvent.EVENTTYPE_STATUSMESSAGE) {
+        if (pEvent.getEventType()==CARS_ToolInstanceEvent.EVENTTYPE_STATUSMESSAGE) {
           ti.reportMessage( pEvent );
         }
-        if (pEvent.getEventType()==pEvent.EVENTTYPE_PROGRESS) {
+        if (pEvent.getEventType()==CARS_ToolInstanceEvent.EVENTTYPE_PROGRESS) {
           ti.reports( pEvent );
         }
-        if (pEvent.getEventType()==pEvent.EVENTTYPE_UNKNOWN) {
+        if (pEvent.getEventType()==CARS_ToolInstanceEvent.EVENTTYPE_UNKNOWN) {
           ti.reports( pEvent );
         }
       }
@@ -1734,6 +1776,7 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
    *  @param pBlocking when true the program will continue after the user closes down the requester.
    *                   when false the program continues with waiting for the user feedback
    *                   (NOTE) currently only the true option is supported
+   * @return 
    */
   @Override
   public CARS_ToolInstanceEvent reportMessage( java.util.logging.Level pLevel, String pHtmlMessage, boolean pBlocking ) {

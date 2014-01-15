@@ -21,7 +21,7 @@ import java.util.EnumMap;
  *
  * @author weert
  */
-public class WFP_InterfaceResult {
+public class WFP_InterfaceResult implements IWFP_InterfaceResult {
 
   static public enum STATE {OK,STOP,THREADDEATH,ERROR,OUTPUT_DECISION};
     
@@ -29,6 +29,7 @@ public class WFP_InterfaceResult {
 //  static public final WFP_InterfaceResult STOP = new WFP_InterfaceResult( false );
   
   final private transient EnumMap<STATE,String> mState = new EnumMap<STATE,String>(STATE.class);
+  private transient Throwable mError = null;
 
   public WFP_InterfaceResult() {
     return;
@@ -90,6 +91,7 @@ public class WFP_InterfaceResult {
   public WFP_InterfaceResult replaceBy( WFP_InterfaceResult pIR ) {
     mState.clear();
     mState.putAll( pIR.mState );
+    mError = pIR.getError();
     return this;
   }
 
@@ -127,6 +129,16 @@ public class WFP_InterfaceResult {
 
   public boolean isThreadDeath() {
     return mState.containsKey( STATE.THREADDEATH );
+  }
+  
+  public WFP_InterfaceResult setError( final Throwable pT ) {
+    mError = pT;
+    return this;
+  }
+
+  @Override
+  public Throwable getError() {
+    return mError;
   }
     
 }

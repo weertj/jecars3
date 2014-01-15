@@ -535,6 +535,7 @@ public class CARS_DefaultInterface implements CARS_Interface, EventListener {
     public Property setParamProperty( final CARS_Main pMain, final Node pInterfaceNode, final Node pNode, final String pPropName, final String pValue ) throws Exception {
       
       if (pNode.isNodeType( "jecars:Tool" )) {
+//    System.out.println("DEFAULT INTERFACE 1 " + System.currentTimeMillis());        
         final CARS_ToolNode toolNode = CARS_ToolNode.newInstance( pMain, pNode, false );
         final Property resultProp = toolNode.setParamProperty( pMain, pInterfaceNode, pNode, pPropName, pValue );
         if (resultProp!=null) {

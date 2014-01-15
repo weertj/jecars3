@@ -16,14 +16,16 @@
 
 package org.jecars.tools.workflow;
 
+import java.util.concurrent.Future;
 import javax.jcr.RepositoryException;
 import org.jecars.CARS_Main;
+import org.jecars.wfplugin.IWFP_InterfaceResult;
 import org.jecars.wfplugin.WFP_InterfaceResult;
 
 /**
  *
  */
-public interface IWF_WorkflowRunner {
+public interface IWF_WorkflowRunner extends IWF_Default {
  
   IWF_Workflow getWorkflow() throws RepositoryException;
 
@@ -41,7 +43,14 @@ public interface IWF_WorkflowRunner {
   void setProgress(    final double pProgress    ) throws RepositoryException;
   void setState(       final String pState       ) throws RepositoryException;
   
-  void   setThread( final Thread pT );
-  Thread getThread();
+  IWF_WorkflowRunner           setFuture( Future<IWFP_InterfaceResult>pIR );
+  Future<IWFP_InterfaceResult> getFuture();
+
+  void cancel();
+  
+//  @Deprecated
+//  void   setThread( final Thread pT );
+//  @Deprecated
+//  Thread getThread();
   
 }

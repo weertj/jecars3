@@ -32,6 +32,7 @@ import org.jecars.tools.CARS_FileClassLoader;
 import org.jecars.tools.CARS_ToolInterface;
 import org.jecars.tools.CARS_ToolsFactory;
 import org.jecars.wfplugin.IWFP_Interface;
+import org.jecars.wfplugin.IWFP_InterfaceResult;
 import org.jecars.wfplugin.WFP_Context;
 import org.jecars.wfplugin.WFP_InterfaceResult;
 import org.jecars.wfplugin.WFP_Tool;
@@ -46,10 +47,12 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
   
   static public IWF_WorkflowRunner NULL;
 
-  private final CARS_Main       mMain;
-  private final WFP_Context     mTransientContext;
-  private       Thread          mRunnerThread = null;
-  private       boolean         mRerunMode = false;
+  private final CARS_Main                     mMain;
+  private final WFP_Context                   mTransientContext;
+  @Deprecated
+//  private       Thread                        mRunnerThread = null;
+  private       Future<IWFP_InterfaceResult>  mRunnerFuture;
+  private       boolean                       mRerunMode = false;
   
   static {
     try {
@@ -86,15 +89,49 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
     }
   }
 
+  /** setFuture
+   * 
+   * @param pIR
+   * @return 
+   */
   @Override
-  public void setThread(Thread pT) {
-    mRunnerThread = pT;
-    return;
+  public IWF_WorkflowRunner setFuture( final Future<IWFP_InterfaceResult> pIR ) {
+    mRunnerFuture = pIR;
+    return this;
+  }
+
+  /** getFuture
+   * 
+   * @return 
+   */
+  @Override
+  public Future<IWFP_InterfaceResult> getFuture() {
+    return mRunnerFuture;
   }
 
   @Override
+  public void cancel() {
+//    if (mRunnerThread!=null) {
+//      mRunnerThread.interrupt();
+//    }
+    if (mRunnerFuture!=null) {
+      mRunnerFuture.cancel( true );
+    }
+    return;
+  }
+
+  @Deprecated
+//  @Override
+  public void setThread(Thread pT) {
+//    mRunnerThread = pT;
+    return;
+  }
+
+  @Deprecated
+//  @Override
   public Thread getThread() {
-    return mRunnerThread;
+//    return mRunnerThread;
+    return null;
   }
   
   
@@ -139,6 +176,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
 
   /** restart
    * 
+   * @param pReRun
    * @throws RepositoryException 
    */
   @Override
@@ -204,7 +242,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
    */
   @Override
   public WFP_InterfaceResult singleStep() throws Exception {
-//      System.out.println("single step " + getNode().getPath() );
+//      System.out.println("single step " + getNode().getPath() + " time: " + System.currentTimeMillis() );
 
     String state = getState();
     if ((state.startsWith( CARS_ToolInterface.STATE_CLOSED ))) {
@@ -233,6 +271,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
         setState( state );
         save();
       }
+   System.out.println("single step 2 " + getNode().getPath() + " time: " + System.currentTimeMillis() );
       return res;
     }
   }
@@ -355,6 +394,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
         }
       }
     } else {
+//  System.out.println("WFRUN  time: " + System.currentTimeMillis() );
 
       if (currentTask.isNULL()) {
         // *************************
@@ -372,11 +412,11 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
         final List<IWF_Link> links = workflow.getFromLinkByTask( fromTask );
 
         // **** Filter the copied items
-        final List<IWF_LinkEndPoint> leps = new ArrayList<IWF_LinkEndPoint>();
+        final List<IWF_LinkEndPoint> leps = new ArrayList<>();
         leps.add( currentLink.getFromEndPoint() );
         synchronized( WRITERACCESS ) {
           getContext().filter( this, leps );
-          final List<IWF_LinkEndPoint> lepsto = new ArrayList<IWF_LinkEndPoint>();
+          final List<IWF_LinkEndPoint> lepsto = new ArrayList<>();
           lepsto.add( currentLink.getToEndPoint() );
           getContext().filter( this, lepsto );
           // **** Execute link functions... property manipulation        
@@ -385,7 +425,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
         }
         
         // **** Convert (nodetype) the items
-        final List<IWF_LinkEndPoint> oleps = new ArrayList<IWF_LinkEndPoint>();
+        final List<IWF_LinkEndPoint> oleps = new ArrayList<>();
         for( final IWF_Link link : links ) {
           leps.add( link.getToEndPoint() );
         }
@@ -404,6 +444,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
         // ******************************
         // **** Check modifiers
         final EnumSet<EWF_TaskModifier> taskMods = currentTask.getModifiers();
+//  System.out.println("WFRUN 2 time: " + System.currentTimeMillis() );
         final WFP_InterfaceResult ires = runTask( currentTask );
         if (ires.hasState(WFP_InterfaceResult.STATE.ERROR)) {
           if (taskMods.contains( EWF_TaskModifier.ALLOWERROR )) {
@@ -416,7 +457,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
         // **** Check for a decision for the output links
         if (ires.isDecision()) {
           final String outputTaskPort = ires.getStateValue( WFP_InterfaceResult.STATE.OUTPUT_DECISION );
-          final List<IWF_Link> tbrem = new ArrayList<IWF_Link>();
+          final List<IWF_Link> tbrem = new ArrayList<>();
           for( final IWF_Link link : links ) {
             boolean toBeRemoved = true;
             for( final IWF_TaskPortRef tpr : link.getFromEndPoint().getTaskPortRefs() ) {
@@ -433,6 +474,8 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
             links.remove( link );
           }
         }
+//  System.out.println("WFRUN 3 time: " + System.currentTimeMillis() );
+//        
         if (!res.isContinueWorkflow() || links.isEmpty()) {
           // **** End of this part of the workflow reached
 //          stillRunning = false;
@@ -922,6 +965,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
       // ***************
       // **** RUN TASK
       case TASK: {        
+//  System.out.println("RUNTASK 1 time: " + System.currentTimeMillis() );
         if (mRerunMode) {
           if (getNode().hasNode( "Tool_" + getStepNumber() )) {
             final Node tool = getNode().getNode( "Tool_" + getStepNumber() );
@@ -932,6 +976,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
           }
           if (mRerunMode) break;
         }
+//  System.out.println("RUNTASK 2 time: " + System.currentTimeMillis() );
         handleContextParameters( pTask );
         // **** Remove old tool node if available
         if (getNode().hasNode( "Tool_" + getStepNumber() )) {
@@ -939,6 +984,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
         }
         final Node ttn = pTask.getToolTemplateNode();
         final Node tool = getNode().addNode( "Tool_" + getStepNumber(), "jecars:Tool" );
+//  System.out.println("RUNTASK 3 time: " + System.currentTimeMillis() );
         synchronized( WRITERACCESS ) {
           tool.setProperty( "jecars:ParentTool", getWorkflow().getNode().getPath() );
           tool.setProperty( "jecars:ToolTemplate", ttn.getPath() );
@@ -955,6 +1001,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
           }
           save();
         }
+//  System.out.println("RUNTASK 4 time: " + System.currentTimeMillis() );
 
 //        final CARS_ActionContext ac = CARS_ActionContext.createActionContext( mMain.getContext(0) );
         final Node n = mMain.getSession().getNode( tool.getPath() );
@@ -989,8 +1036,9 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
 //            Thread.sleep( 1000 );
 //          }
 //  System.out.println("WORKFLOWRUNNER TOOL EXIT  time=" + System.currentTimeMillis() );
-          System.out.println("task ended result: " + futureres.get());
+//          System.out.println("task ended result: " + futureres.get());
         }
+//  System.out.println("RUNTASK 5 time: " + System.currentTimeMillis() );
         
         // **** Empty context        
         IWF_Context context = getContext();
