@@ -90,7 +90,7 @@ public class WFPT_Restore implements IWFP_Interface {
       }
     } catch( Exception e ) {
       pTool.reportException( Level.SEVERE, e );
-      return WFP_InterfaceResult.ERROR();        
+      return WFP_InterfaceResult.ERROR().setError(e);        
     }
     
     return WFP_InterfaceResult.OK();

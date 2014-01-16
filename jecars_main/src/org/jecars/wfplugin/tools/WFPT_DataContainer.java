@@ -68,7 +68,7 @@ public class WFPT_DataContainer implements IWFP_Interface {
         }
       } catch( WFP_Exception we ) {
         pTool.reportException( Level.SEVERE, we );
-        return WFP_InterfaceResult.ERROR();        
+        return WFP_InterfaceResult.ERROR().setError(we);        
       }
     } else {
       try {          
@@ -100,7 +100,7 @@ public class WFPT_DataContainer implements IWFP_Interface {
       
       } catch( Exception e ) {
         pTool.reportException( Level.SEVERE, e );
-        return WFP_InterfaceResult.ERROR();
+        return WFP_InterfaceResult.ERROR().setError( e );
       }
     }
       

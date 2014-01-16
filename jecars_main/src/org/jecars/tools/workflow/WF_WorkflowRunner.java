@@ -920,6 +920,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
           if ((!tnode.isNodeType("jecars:permissionable")) &&
               (!tnode.isNodeType("jecars:configresource")) &&
               (!tnode.isNodeType("jecars:EventsFolder")) &&
+              (!tnode.isNodeType("jecars:EventsStoreFolder")) &&
               (!tnode.isNodeType("jecars:mixin_WorkflowRunners")) &&
               (!tnode.isNodeType("jecars:mixin_workflowtasks")) &&
               (!tnode.isNodeType("jecars:mixin_workflowlinks"))) {
@@ -949,15 +950,16 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
           }
         
         }
-        synchronized( WRITERACCESS ) {        
-          // **** Copy event tree as part of the context
-          if (thisTool.hasNode( "jecars:Events" )) {
-            thisTool.getSession().getWorkspace().copy(
-                  thisTool.getNode( "jecars:Events" ).getPath(),
-                  context.getNode().getPath() + "/jecars:Events" );
-          }        
-          save();
-        }
+        // **** TODO why?????
+//        synchronized( WRITERACCESS ) { 
+//          // **** Copy event tree as part of the context
+//          if (thisTool.hasNode( "jecars:Events" )) {
+//            thisTool.getSession().getWorkspace().copy(
+//                  thisTool.getNode( "jecars:Events" ).getPath(),
+//                  context.getNode().getPath() + "/jecars:Events" );
+//          }        
+//          save();
+//        }
 
         break;
       }
