@@ -56,8 +56,10 @@ public class CARS_ToolException extends Exception {
           error = ir.getError();
           message += error.getMessage() + "\n";
         }
-      }      
-      setStackTrace( error.getStackTrace() );
+      }
+      if (error!=null) {
+        setStackTrace( error.getStackTrace() );
+      }
     } catch( RepositoryException e ) {
       e.printStackTrace();
       System.out.println(e);

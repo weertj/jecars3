@@ -93,7 +93,7 @@ public class WFPT_Archive implements IWFP_Interface {
         } catch( IOException ie ) {
         } catch( RepositoryException re ) {
           pTool.reportException( Level.SEVERE, re );
-          return WFP_InterfaceResult.ERROR();
+          return WFP_InterfaceResult.ERROR().setError(re);
         }
       }
 
@@ -111,12 +111,12 @@ public class WFPT_Archive implements IWFP_Interface {
           }
         } catch( Exception e ) {
           pTool.reportException( Level.SEVERE, e );
-          return WFP_InterfaceResult.ERROR();        
+          return WFP_InterfaceResult.ERROR().setError(e);        
         }
       }
     } catch( Exception e ) {
       pTool.reportException( Level.SEVERE, e );
-      return WFP_InterfaceResult.ERROR();        
+      return WFP_InterfaceResult.ERROR().setError(e);        
     }
 
     return WFP_InterfaceResult.OK();

@@ -38,7 +38,7 @@ public class WFPT_Renamer implements IWFP_Interface {
       }
     } catch(WFP_Exception we) {
       pTool.reportException( Level.SEVERE, we );
-      return WFP_InterfaceResult.ERROR();
+      return WFP_InterfaceResult.ERROR().setError(we);
     }
 
     return WFP_InterfaceResult.OK();
