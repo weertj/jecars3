@@ -46,6 +46,9 @@ public interface IWFP_Context {
   IWFP_Output getOutput( final String pName ) throws WFP_Exception;
   void        addTransientObject( final String pName, final Object pData );
 
+  Node    getParameterNodeValue(   final String pName, final IWFP_Tool pTool ) throws WFP_Exception;
+  String  getParameterStringValue( final String pName ) throws WFP_Exception;
+
   IWFP_ContextParameter getParameter( final String pName ) throws WFP_Exception;
   IWFP_ContextParameter addParameter( final String pName ) throws WFP_Exception;
   

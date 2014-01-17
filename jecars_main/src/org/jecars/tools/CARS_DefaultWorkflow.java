@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 NLR - National Aerospace Laboratory
+ * Copyright 2012-2014 NLR - National Aerospace Laboratory
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -423,7 +423,7 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
             context.addTransientObject( WFPT_Archive.NODEFORARCHIVE, mRunner.getWorkflow().getNode() );
             context.addTransientObject( WFPT_Archive.ARCHIVEDIRECTORY, archive );
             archiveTool.start( tool, context );
-          }          
+          }
         } catch( RepositoryException re ) {
           reportException( re, Level.SEVERE );
         } finally {

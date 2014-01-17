@@ -280,6 +280,44 @@ public class WFP_Context implements IWFP_Context {
     return null;
   }
 
+  /** getParameterNodeValue
+   * 
+   * @param pName
+   * @param pTool
+   * @return
+   * @throws WFP_Exception 
+   */
+  @Override
+  public Node getParameterNodeValue( final String pName, final IWFP_Tool pTool ) throws WFP_Exception {
+    Node node = (Node)getTransientInput( pName );
+    if (node==null) {
+      IWFP_ContextParameter cpar = getParameter( pName );
+      if (cpar!=null) {
+        node = pTool.getNodeFromRoot( cpar.getStringValue() ).getJCRNode();
+      }
+    }
+    return node;
+  }
+
+  /** getParameterStringValue
+   * 
+   * @param pName
+   * @return
+   * @throws WFP_Exception 
+   */
+  @Override
+  public String getParameterStringValue( final String pName ) throws WFP_Exception {
+    String val = (String)getTransientInput( pName );
+    if (val==null) {
+      final IWFP_ContextParameter cpar = getParameter( pName );
+      if (cpar!=null) {
+        val = cpar.getStringValue();
+      }
+    }
+    return val;
+  }
+
+  
   @Override
   public IWFP_ContextParameter addParameter( final String pName ) throws WFP_Exception {
     try {
