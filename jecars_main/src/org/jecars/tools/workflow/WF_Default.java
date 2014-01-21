@@ -28,7 +28,7 @@ abstract public class WF_Default implements IWF_Default {
 
   static final protected Logger LOG = Logger.getLogger( "org.jecars.tools.workflow" );
 
-  private final Node   mNode;
+  private       Node   mNode;
   private       String mPath = "";
 
   /** WF_Default
@@ -94,6 +94,15 @@ abstract public class WF_Default implements IWF_Default {
   @Override
   public Node getNode() {
     return mNode;
+  }
+  
+  /** setNode
+   * 
+   * @param pN 
+   */
+  protected void setNode( Node pN ) {
+    mNode = pN;
+    return;
   }
   
   @Override

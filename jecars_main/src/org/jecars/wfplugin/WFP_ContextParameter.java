@@ -14,9 +14,12 @@
  * limitations under the License.
  */package org.jecars.wfplugin;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Value;
+import org.apache.jackrabbit.util.ISO8601;
 import org.jecars.CARS_Utils;
 
 /**
@@ -36,7 +39,23 @@ public class WFP_ContextParameter extends WFP_Node implements IWFP_ContextParame
   public Node getJCRNode() {
     return mLinkedNode;
   }  
+
+  /** getCalendarValue
+   * 
+   * @return
+   * @throws WFP_Exception 
+   */
+  @Override
+  public Calendar getCalendarValue() throws WFP_Exception {
+    return ISO8601.parse( getStringValue() );   
+  }
+
   
+  /** getStringValue
+   * 
+   * @return
+   * @throws WFP_Exception 
+   */
   @Override
   public String getStringValue() throws WFP_Exception {
     try {
@@ -60,5 +79,18 @@ public class WFP_ContextParameter extends WFP_Node implements IWFP_ContextParame
     }
     return this;
   }  
+
+  /** setValue
+   * 
+   * @param pValue
+   * @return
+   * @throws WFP_Exception 
+   */
+  @Override
+  public IWFP_ContextParameter setValue(Calendar pValue) throws WFP_Exception {
+    return setValue( ISO8601.format(pValue) );
+  }
+  
+  
   
 }

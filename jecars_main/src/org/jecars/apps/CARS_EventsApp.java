@@ -26,7 +26,6 @@ import org.jecars.CARS_Definitions;
 import org.jecars.CARS_EventManager;
 import org.jecars.CARS_Factory;
 import org.jecars.CARS_Main;
-import org.jecars.CARS_Utils;
 
 /**
  * CARS_EventsApp
@@ -78,13 +77,14 @@ public class CARS_EventsApp extends CARS_DefaultInterface {
             final Node parentNode        = appSession.getNode( pParentNode.getPath() );
             // **** An event object will be created
             realEventNode = eventManager.addEvent( eventPathFolder, ac.getMain(),
-                      loginUserAsSystem, parentNode,
+                      loginUserAsSystem, null,
                       eventPath,
                       (String)paramsTL.getData( "jecars:Category" ),
                       (String)paramsTL.getData( "jecars:Type" ),
                       (String)paramsTL.getData( "jecars:Title" ),
                       pPrimType,
-                      (String)paramsTL.getData( "jecars:Body" ) );
+                      (String)paramsTL.getData( "jecars:Body" ),
+                      parentNode.getPath() );
           } finally {
             appSession.save();
           }

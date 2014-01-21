@@ -133,6 +133,8 @@ public class WF_Context extends WF_Default implements IWF_Context {
       save();
       pn.getSession().move( pn.getNode(  "context_" + pStepNumber ).getPath(), path );
       save();
+      // **** Context is moved update the node
+      setNode( pn.getSession().getNode( path ) );
     }
     return;
   }

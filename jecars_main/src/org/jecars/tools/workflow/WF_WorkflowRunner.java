@@ -49,7 +49,6 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
 
   private final CARS_Main                     mMain;
   private final WFP_Context                   mTransientContext;
-  @Deprecated
 //  private       Thread                        mRunnerThread = null;
   private       Future<IWFP_InterfaceResult>  mRunnerFuture;
   private       boolean                       mRerunMode = false;
@@ -176,11 +175,11 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
 
   /** restart
    * 
-   * @param pReRun
+   * @param pReRun true will not(!!) delete the runners, use false to start with a clean situation
    * @throws RepositoryException 
    */
   @Override
-  public void restart( final boolean pReRun ) throws RepositoryException {
+  public void restart( final boolean pReRun, final boolean pRestoreFromCurrentContext ) throws RepositoryException {
 //    System.out.println("restart " + getNode().getPath() );
     synchronized( WRITERACCESS ) {
       getNode().setProperty( "jecars:SingleStep", 0 );
@@ -192,8 +191,10 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
       if (!pReRun) {
         removeTools();
         save();
-        // **** Move context_0 (if available) to context    
-        getContext().restore( 0 );
+        // **** Move context_0 (if available) to context
+        if (!pRestoreFromCurrentContext) {
+          getContext().restore( 0 );
+        }
         removeContexts();
         setProgress( 0 );
       }
@@ -259,7 +260,28 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
         state = CARS_ToolInterface.STATE_OPEN_RUNNING + CARS_ToolInterface.STATE_PAUSED;
       } else {
         if (res.hasState( WFP_InterfaceResult.STATE.ERROR )) {          
-          state = CARS_ToolInterface.STATE_CLOSED_ABNORMALCOMPLETED;
+          
+          // ***************************************************
+          // **** Workflow in error, check for the ErrorHandlers
+          boolean rerun = false;
+          final List<IWF_Task> tasks = getWorkflow().getTaskByType( EWF_TaskType.ERRORHANDLER );
+          for( final IWF_Task errorTask : tasks ) {
+            WFP_InterfaceResult ires = runJavaTask( errorTask, mTransientContext );
+            if (ires.hasState( WFP_InterfaceResult.STATE.RERUN )) {
+              rerun = true;
+            }
+            if (ires.hasState( WFP_InterfaceResult.STATE.ERROR )) {
+              rerun = false;
+              res = ires;
+              break;
+            }
+          }
+          if (rerun) {
+            state = CARS_ToolInterface.STATE_OPEN_RUNNING_RERUN;
+            res.addState( WFP_InterfaceResult.STATE.RERUN );
+          } else {
+            state = CARS_ToolInterface.STATE_CLOSED_ABNORMALCOMPLETED;
+          }
         } else {
           state = getState();
           if (!state.startsWith( CARS_ToolInterface.STATE_CLOSED )) {
@@ -367,7 +389,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
       if (isMainRunner()) {
         // **** First find and start the tasks which have no inputs
         for( final IWF_Task task : workflow.getTaskWithoutInputs() ) {
-          if (task.getType()!=EWF_TaskType.START) {
+          if ((task.getType()!=EWF_TaskType.START) && (task.getType()!=EWF_TaskType.ERRORHANDLER)) {
             // **** Fork task
             synchronized( WRITERACCESS ) {
               final IWF_WorkflowRunner newwr = workflow.createRunner( this, task );

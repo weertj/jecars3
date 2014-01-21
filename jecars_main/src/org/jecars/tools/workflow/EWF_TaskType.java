@@ -27,6 +27,7 @@ public enum EWF_TaskType {
   JAVATASK,
   WORKFLOW,
   CONSTANTS,
+  ERRORHANDLER,
   END
     
 }

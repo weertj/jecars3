@@ -23,7 +23,7 @@ import java.util.EnumMap;
  */
 public class WFP_InterfaceResult implements IWFP_InterfaceResult {
 
-  static public enum STATE {OK,STOP,THREADDEATH,ERROR,OUTPUT_DECISION};
+  static public enum STATE {OK,STOP,THREADDEATH,ERROR,OUTPUT_DECISION,RERUN};
     
 //  static public final WFP_InterfaceResult OK   = new WFP_InterfaceResult( true );
 //  static public final WFP_InterfaceResult STOP = new WFP_InterfaceResult( false );
@@ -59,6 +59,10 @@ public class WFP_InterfaceResult implements IWFP_InterfaceResult {
 
   static public WFP_InterfaceResult ERROR() {
     return new WFP_InterfaceResult().addState( STATE.ERROR );
+  }
+
+  static public WFP_InterfaceResult RERUN() {
+    return new WFP_InterfaceResult().addState( STATE.RERUN );
   }
 
   static public WFP_InterfaceResult STOP_THREADDEATH() {

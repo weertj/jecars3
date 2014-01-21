@@ -331,6 +331,27 @@ public class CARS_EventManager {
     return addEvent( null, pUser, pSource, pApplication, pCategory, pType, pMessage );
   }
   
+  /** addEvent
+   * 
+   * @param pMain
+   * @param pUser
+   * @param pSource
+   * @param pApplication
+   * @param pCategory
+   * @param pType
+   * @param pMessage
+   * @param pEventType
+   * @param pBody
+   * @return
+   * @throws RepositoryException
+   * @throws UnsupportedEncodingException 
+   */
+  public Node addEvent( final CARS_Main pMain,   final Node pUser,   final Node pSource, final String pApplication,
+                        final String pCategory,  final String pType, final String pMessage,
+                        final String pEventType, final String pBody ) throws RepositoryException, UnsupportedEncodingException {
+    return addEvent( pMain, pUser, pSource, pApplication, pCategory, pType, pMessage, pEventType, pBody, null );
+  }
+  
   /** Add an event to the JeCARS repository
    *
    * @param pMain
@@ -367,14 +388,14 @@ public class CARS_EventManager {
    */
   public Node addEvent( final CARS_Main pMain,   final Node pUser,   final Node pSource, final String pApplication,
                         final String pCategory,  final String pType, final String pMessage,
-                        final String pEventType, final String pBody ) throws RepositoryException, UnsupportedEncodingException {
+                        final String pEventType, final String pBody, final String pSourcePath ) throws RepositoryException, UnsupportedEncodingException {
     final Node event;
     synchronized( EVENTLOCK ) {
       final Session ses = getSession();
       if (ses==null) return null;
       try {
         final Node ef = ses.getRootNode().getNode( "JeCARS/default/Events" );
-        event = addEvent( ef, pMain, pUser, pSource, pApplication, pCategory, pType, pMessage, pEventType, pBody );
+        event = addEvent( ef, pMain, pUser, pSource, pApplication, pCategory, pType, pMessage, pEventType, pBody, pSourcePath );
         ses.save();
         ses.refresh( false );
       } finally {
@@ -384,7 +405,17 @@ public class CARS_EventManager {
     return event;
   }
 
-
+  /** addEventThreaded
+   * 
+   * @param pMain
+   * @param pUser
+   * @param pSource
+   * @param pApplication
+   * @param pCategory
+   * @param pType
+   * @param pMessage
+   * @throws Exception 
+   */
   public void addEventThreaded( final CARS_Main pMain, final Node pUser, final Node pSource, final String pApplication, final String pCategory, final String pType, final String pMessage ) throws Exception {
     Session eses = getSession();
     final Node user;
@@ -393,16 +424,24 @@ public class CARS_EventManager {
     } else {
       user = eses.getNode( pUser.getPath() );
     } 
-    final Node source;
+    final Node    source;
+    final String  sourcePath;
     if (pSource==null) {
       source = null;
+      sourcePath = null;
     } else {
       source = eses.getNode( pSource.getPath() );
+      if (source==null) {
+        sourcePath = null;
+      } else {
+        sourcePath = source.getPath();
+      }
     }
     Thread t = new Thread() {
         public void run() {
           try {
-            addEvent( pMain, user, source, pApplication, pCategory, pType, pMessage, CARS_Definitions.DEFAULTNS + "Event", null );
+            setName( "addEventThreaded" );
+            addEvent( pMain, user, null, pApplication, pCategory, pType, pMessage, CARS_Definitions.DEFAULTNS + "Event", null, sourcePath );
           } catch(Exception re ) {
             re.printStackTrace();
           }
@@ -430,8 +469,8 @@ public class CARS_EventManager {
    */
   public Node addEvent( final Node pEventFolder, final CARS_Main pMain, final Node pUser, final Node pSource,
                         final String pApplication, final String pCategory, final String pType,
-                        final String pMessage, final String pEventType, final String pBody ) throws RepositoryException, UnsupportedEncodingException  {               
-    final Node event = createEventNode( pMain, pEventFolder, pUser, pSource, pApplication, pCategory, pType, pMessage, pEventType );
+                        final String pMessage, final String pEventType, final String pBody, final String pSourcePath ) throws RepositoryException, UnsupportedEncodingException  {               
+    final Node event = createEventNode( pMain, pEventFolder, pUser, pSource, pApplication, pCategory, pType, pMessage, pEventType, pSourcePath );
     if (pBody!=null) {
       event.setProperty( "jecars:Body", pBody );
     }
@@ -490,7 +529,7 @@ public class CARS_EventManager {
    * @throws UnsupportedEncodingException
    */
   public Node createEventNode( final CARS_Main pMain, Node pFolder, final Node pUser, final Node pSource, final String pApplication, final String pCategory, final String pType, String pMessage,
-                               final String pEventType ) throws RepositoryException, UnsupportedEncodingException {
+                               final String pEventType, String pSourcePath ) throws RepositoryException, UnsupportedEncodingException {
       Node event;
       synchronized( EVENTLOCK ) {
         if (pApplication==null) {
@@ -520,8 +559,9 @@ public class CARS_EventManager {
         }
         pFolder.setProperty( CARS_Definitions.DEFAULTNS + "EventsCount", count+1 );
         event.setProperty( CARS_Definitions.DEFAULTNS + "Category", pCategory );
-        if (pSource!=null) event.setProperty( CARS_Definitions.DEFAULTNS + "Source", pSource.getPath() );
-        if (pUser!=null)   event.setProperty( CARS_Definitions.DEFAULTNS + "User", pUser.getPath() );
+        if (pSource!=null)     event.setProperty( CARS_Definitions.DEFAULTNS + "Source", pSource.getPath() );
+        if (pSourcePath!=null) event.setProperty( CARS_Definitions.DEFAULTNS + "Source", pSourcePath );
+        if (pUser!=null)       event.setProperty( CARS_Definitions.DEFAULTNS + "User", pUser.getPath() );
         event.setProperty( CARS_Definitions.DEFAULTNS + "Type", pType );
         event.setProperty( CARS_Definitions.DEFAULTNS + "ExpireDate", cal );
         if (pMessage!=null) {
@@ -595,7 +635,7 @@ public class CARS_EventManager {
         synchronized( EVENTLOCK ) {
           try {
             Node ef = ses.getRootNode().getNode( "JeCARS/default/Events" );
-            Node event = createEventNode( pMain, ef, pUser, pSource, pApplication, pCategory, pType, pMessage, CARS_Definitions.DEFAULTNS + "Exception" );
+            Node event = createEventNode( pMain, ef, pUser, pSource, pApplication, pCategory, pType, pMessage, CARS_Definitions.DEFAULTNS + "Exception", null );
             if (pThrow!=null) {
               if (pMessage==null) event.setProperty( CARS_Definitions.DEFAULTNS + "Title", pThrow.getMessage() );
               StringWriter sw = new StringWriter();
