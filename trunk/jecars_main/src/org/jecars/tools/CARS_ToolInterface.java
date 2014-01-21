@@ -63,6 +63,7 @@ public interface CARS_ToolInterface {
   final static String STATE_OPEN_RUNNING_PARAMETERS             = "open.running.parameters";
   final static String STATE_OPEN_RUNNING_OUTPUT                 = "open.running.output";
   final static String STATE_OPEN_RUNNING                        = "open.running";
+  final static String STATE_OPEN_RUNNING_RERUN                  = "open.running.rerun";
   final static String STATE_PAUSED                              = ".paused";
   final static String STATE_OPEN_ABORTING                       = "open.aborting";
   final static String STATE_CLOSED                              = "closed.";

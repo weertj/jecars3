@@ -119,6 +119,7 @@ public class WFP_Tool extends WFP_Node implements IWFP_Tool {
    * 
    * @param pLevel
    * @param pMessage 
+   * @return  
    */
   @Override
   public CARS_ToolInstanceEvent reportMessage( final Level pLevel, final String pMessage ) {

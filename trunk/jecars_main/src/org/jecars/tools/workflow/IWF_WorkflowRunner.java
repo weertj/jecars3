@@ -31,7 +31,7 @@ public interface IWF_WorkflowRunner extends IWF_Default {
 
   IWF_Context getContext() throws RepositoryException;
   
-  void restart( final boolean pReRun ) throws RepositoryException;
+  void restart( final boolean pReRun, final boolean pRestoreFromCurrentContext ) throws RepositoryException;
   WFP_InterfaceResult singleStep() throws Exception;
   
   boolean isMainRunner();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 NLR - National Aerospace Laboratory
+ * Copyright 2013-2014 NLR - National Aerospace Laboratory
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,17 @@
  */
 package org.jecars.wfplugin;
 
+import java.util.Calendar;
+
 /**
  *
  * @author weert
  */
 public interface IWFP_ContextParameter extends IWFP_Node {
 
+  Calendar              getCalendarValue() throws WFP_Exception;
   String                getStringValue() throws WFP_Exception;
   IWFP_ContextParameter setValue( String pValue ) throws WFP_Exception;
+  IWFP_ContextParameter setValue( Calendar pValue ) throws WFP_Exception;
   
 }

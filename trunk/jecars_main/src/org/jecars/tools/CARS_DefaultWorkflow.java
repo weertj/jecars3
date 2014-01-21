@@ -52,10 +52,8 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
   private transient long mToolStartTime = 0;
   private transient long mToolAverageRunningTime = 0;
 
-  static private final ExecutorService
-            EXECUTOR = Executors.newCachedThreadPool();
-  static private final CompletionService<IWFP_InterfaceResult>
-            EXECUTORSERVICE = new ExecutorCompletionService<>( EXECUTOR );
+  private final ExecutorService                         mExecutor = Executors.newCachedThreadPool();
+  private final CompletionService<IWFP_InterfaceResult> mExecutorService = new ExecutorCompletionService<>( mExecutor );
 
   
   /** toolInit
@@ -161,8 +159,9 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
     final Node     runnerNode = main.getSession().getNode( getTool().getNode( "runners/Main" ).getPath() );
     final boolean       RERUN = (STATEREQUEST_RERUN.equals(getStateRequest()));
     final WF_WorkflowRunner mainwr = new WF_WorkflowRunner( main, runnerNode, RERUN );
+    int nodesIsErrorCancelCountdown = 2;
     try {
-        mainwr.restart( RERUN );
+        mainwr.restart( RERUN, false );
         final List<Node> nodesInError = new ArrayList<>(4);
         final List<IWFP_InterfaceResult> results = new ArrayList<>(4);
         do {
@@ -185,7 +184,9 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
               // **** Runner is finished
               if (runner.getProperty( "jecars:State" ).getString().startsWith( CARS_ToolInterface.STATE_CLOSED_ABNORMALCOMPLETED )) {
                 // **** Runner is finished with an error
-                nodesInError.add( runner );
+                if (!nodesInError.contains( runner )) {
+                  nodesInError.add( runner );
+                }
               }
               for( final IWF_WorkflowRunner wrun : currentRunners ) {
                 if (wrun.getPath().equals( runner.getPath() )) {
@@ -203,27 +204,38 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
                 }
               }
               if (isNew) {
+                // **** Create a new workflow
                 final CARS_Main newmain = main.getFactory().createMain( CARS_ActionContext.createActionContext(getMain().getContext()) );
                 final Node newrunnerNode = newmain.getSession().getNode( runner.getPath() );              
                 final WF_WorkflowRunner wrun = new WF_WorkflowRunner( newmain, newrunnerNode, RERUN );
                 currentRunners.add( wrun );
                 runWorkflowRunner wr = new runWorkflowRunner( wrun );
-                final Future<IWFP_InterfaceResult> tir = EXECUTORSERVICE.submit( wr );                
+                final Future<IWFP_InterfaceResult> tir = mExecutorService.submit( wr );                
                 wrun.setFuture( tir );
               }
             }
           }
           if (!nodesInError.isEmpty()) {
-            // **** Runner(s) are in error state
-            for( final IWF_WorkflowRunner runner : currentRunners ) {
-              runner.cancel();
+            nodesIsErrorCancelCountdown--;
+//          System.out.println("NODES In ERROR CANCEL " + nodesIsErrorCancelCountdown );            
+            if (nodesIsErrorCancelCountdown<0) {
+              // **** Runner(s) are in error state, and the thread isn't returned
+              for( final IWF_WorkflowRunner runner : currentRunners ) {
+//            System.out.println("WANT TO CANCEL " + runner.getPath() );
+                // **** Force end of the thread
+                runner.cancel();
+              }
+              nodesIsErrorCancelCountdown = 2;
+            } else {
+              // **** Wait for the worker thread in error to settle
+              Thread.sleep( 2000 );
             }
             break;
           }
           
           // **** Wait (poll) for results of the Executor service
           if (!currentRunners.isEmpty()) {
-            final Future<IWFP_InterfaceResult> fwrunResult = EXECUTORSERVICE.poll( 5, TimeUnit.SECONDS );
+            final Future<IWFP_InterfaceResult> fwrunResult = mExecutorService.poll( 4, TimeUnit.SECONDS );
             if (fwrunResult!=null) {
               final IWFP_InterfaceResult ir = fwrunResult.get();
               if (ir!=null) {
@@ -371,24 +383,33 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
 //    System.out.println("DEFAULT WORKFLOW THREAD 1 " + System.currentTimeMillis());
         
 //        mRunner.restart();
-        while( (res=mRunner.singleStep()).hasState( WFP_InterfaceResult.STATE.OK ) ) {
-          if (mRunner.getCurrentLink().isNULL()) {
-            currentSource = mRunner.getCurrentTask().toString();
-            System.out.println("Child TASK wrun: " + currentSource );
-          } else {
-            currentSource = mRunner.getCurrentLink().toString();            
-            System.out.println("Child LINK wrun: " + currentSource );
-          }
-          if (STATE_PAUSED.equals( getState() )) {
-            mRunner.setState( STATE_OPEN_RUNNING + STATE_PAUSED );
-            while(STATE_PAUSED.equals( getState() )) {
-              Thread.sleep( 2000 );
+        boolean run = true;
+        // **** A restart can be the reason that another run must be initiated
+        while( run ) {
+          run = false;
+          while( (res=mRunner.singleStep()).hasState( WFP_InterfaceResult.STATE.OK ) ) {
+            if (mRunner.getCurrentLink().isNULL()) {
+              currentSource = mRunner.getCurrentTask().toString();
+              System.out.println("Child TASK wrun: " + currentSource );
+            } else {
+              currentSource = mRunner.getCurrentLink().toString();            
+              System.out.println("Child LINK wrun: " + currentSource );
             }
-            mRunner.setState( STATE_OPEN_RUNNING );            
-          } else if (STATE_OPEN_ABORTING.equals( getState() ) ) {
-            // **** Workflow must be aborted
-            mRunner.setState( STATE_CLOSED_ABNORMALCOMPLETED_ABORTED );
-            break;
+            if (STATE_PAUSED.equals( getState() )) {
+              mRunner.setState( STATE_OPEN_RUNNING + STATE_PAUSED );
+              while(STATE_PAUSED.equals( getState() )) {
+                Thread.sleep( 2000 );
+              }
+              mRunner.setState( STATE_OPEN_RUNNING );            
+            } else if (STATE_OPEN_ABORTING.equals( getState() ) ) {
+              // **** Workflow must be aborted
+              mRunner.setState( STATE_CLOSED_ABNORMALCOMPLETED_ABORTED );
+              break;
+            }
+          }
+          if (res.hasState( WFP_InterfaceResult.STATE.RERUN )) {
+            mRunner.restart( false, true );
+            run = true;
           }
         }
         if (res.hasState( WFP_InterfaceResult.STATE.ERROR )) {
@@ -445,8 +466,8 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
         } catch( RepositoryException re ) {
           reportException( re, Level.WARNING );
         }
-      }      
-//    System.out.println("DEFAULT WORKFLOW THREAD 3 " + System.currentTimeMillis());
+      } 
+//    System.out.println("DEFAULT WORKFLOW THREAD 3 RESULT " + mRunner.getPath() + " -- " + res.hasState(WFP_InterfaceResult.STATE.ERROR) );
       return res;
     }
 
