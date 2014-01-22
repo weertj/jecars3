@@ -1054,13 +1054,8 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
             ti.setStateRequest( CARS_ToolInterface.STATEREQUEST_START );
           }
           // **** Wait until ready
-          final Future futureres = ti.getFuture();
-          futureres.get();
-//          while(!futureres.isDone()) {
-//            Thread.sleep( 1000 );
-//          }
-//  System.out.println("WORKFLOWRUNNER TOOL EXIT  time=" + System.currentTimeMillis() );
-//          System.out.println("task ended result: " + futureres.get());
+          final Future<IWFP_InterfaceResult> futureres = ti.getFuture();
+          res.replaceBy( (WFP_InterfaceResult)futureres.get() );
         }
 //  System.out.println("RUNTASK 5 time: " + System.currentTimeMillis() );
         

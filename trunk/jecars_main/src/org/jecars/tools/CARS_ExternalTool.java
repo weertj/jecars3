@@ -604,7 +604,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
 
     final Node config = getConfigNode();
     if (config.hasProperty( "jecars:ExecPath" )) {
-      final String execPath = config.getProperty( "jecars:ExecPath" ).getString();
+      String execPath = config.getProperty( "jecars:ExecPath" ).getString();
       // **** Check if the tools is available
       final File execFile = new File( execPath );
       if (!execFile.exists()) {
@@ -644,7 +644,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
       
       // **********************************
       // **** Command option parsing
-      final SortedMap<Long,Node> commandOptions = new ConcurrentSkipListMap<Long, Node>();
+      final SortedMap<Long,Node> commandOptions = new ConcurrentSkipListMap<>();
       final NodeIterator ni = getTool().getNodes();
       while( ni.hasNext() ) {
         final Node node = ni.nextNode();
@@ -745,9 +745,10 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
       synchronized( WF_WorkflowRunner.WRITERACCESS ) {
         reportStatusMessage( "External tool " + getTool().getPath() + " is ending result = " + err );
         if (err!=0) {
-          LOG.warning( "External tool " + getTool().getPath() + " has produced an error " + err );
+          String logmessage =  "External tool " + getTool().getPath() + "(" + execPath + ") has produced an error " + err;
+          LOG.warning( logmessage );
           getTool().save();
-          throw new CARS_ToolException( "External tool " + getTool().getPath() + " has produced an error " + err );
+          throw new CARS_ToolException( logmessage );
         }
         getTool().save();
       }
