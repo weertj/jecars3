@@ -31,6 +31,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -50,6 +51,8 @@ import nl.msd.jdots.JD_Taglist;
 import org.jecars.*;
 import org.jecars.jaas.CARS_Credentials;
 import static org.jecars.tools.CARS_ToolInterface.STATEREQUEST_START;
+import org.jecars.wfplugin.IWFP_InterfaceResult;
+import org.jecars.wfplugin.WFP_InterfaceResult;
 
 /**
  *  CARS_DefaultToolInterface
@@ -84,6 +87,7 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
   // **** Running tool instances
   private transient ScheduledFuture                   mScheduledFuture = null;
   private transient Future                            mFuture          = null;
+  private transient Future<IWFP_InterfaceResult>      mFutureResult    = null;
 
   private transient String                            mUsername   = null;
   private transient char[]                            mPassword   = null;
@@ -172,6 +176,149 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
     return mThreadPriority;
   }
 
+  /** ToolCallable
+   * 
+   */
+  protected class ToolCallable implements Callable<IWFP_InterfaceResult> {
+
+    /** run
+     */
+    @Override
+    public IWFP_InterfaceResult call() {
+      Session newSession = null;
+      IWFP_InterfaceResult ires = WFP_InterfaceResult.OK();
+      try {
+        if (mRebuildToolSession) {
+          newSession = createToolSession();
+          mToolNode = newSession.getNode( mToolPath );
+        }
+        // **** TODO When the tools is renamed or rewritten there is a InvalidItemStateException.... reread the tool
+        setExpireDateTool( getTool(), getRunningExpireMinutes() );
+        moveToolTo( "open" );
+        _initEventFolder();
+        setState( CARS_ToolInterface.STATE_OPEN_RUNNING_INIT );
+        toolInit();
+        setState( CARS_ToolInterface.STATE_OPEN_RUNNING_PARAMETERS );
+        toolParameters();
+        setState( CARS_ToolInterface.STATE_OPEN_RUNNING_INPUT );
+        toolInput();
+        if (pauseCheck()) {
+          inPauseState();
+          return ires;
+        }
+        setState( CARS_ToolInterface.STATE_OPEN_RUNNING );
+        toolRun();
+        if (STATE_OPEN_ABORTING.equals( getState() )) {
+          // **** Tool is aborted
+          setState( CARS_ToolInterface.STATE_CLOSED_ABNORMALCOMPLETED_ABORTED );
+        } else {
+          // **** Tool is ready running
+          setState( CARS_ToolInterface.STATE_OPEN_RUNNING_OUTPUT );
+          toolOutput();
+          if (isScheduledTool()) {
+            setState( CARS_ToolInterface.STATE_CLOSED_COMPLETED_SCHEDULED );
+          } else {
+            setState( CARS_ToolInterface.STATE_CLOSED_COMPLETED );
+          }
+        }
+        toolExit();
+        if (!isScheduledTool()) moveToolTo( "closed" );
+      } catch( InterruptedException ie ) {
+        ires = WFP_InterfaceResult.ERROR().setError( ie );
+        LOG.log( Level.WARNING, null, ie );
+        reportException( ie, Level.WARNING );
+        setState( CARS_ToolInterface.STATE_CLOSED_ABNORMALCOMPLETED_ABORTED );
+        try {
+          setExpireDateTool( getTool(), getClosedExpireMinutes() );
+        } catch (Exception ee) {
+          LOG.log( Level.WARNING, null, ee );
+        }
+      } catch (CARS_ToolException te) {
+        ires = WFP_InterfaceResult.ERROR().setError( te );
+        LOG.log( Level.WARNING, mToolPath, te );
+        reportException( te, Level.WARNING );
+        try {
+          setExpireDateTool( getTool(), getClosedExpireMinutes() );
+        } catch (Exception ee) {
+          LOG.log( Level.WARNING, null, ee );
+          reportException( ee, Level.WARNING );
+        }
+        setState( CARS_ToolInterface.STATE_CLOSED_ABNORMALCOMPLETED );
+      } catch (Exception e) {
+        ires = WFP_InterfaceResult.ERROR().setError( e );
+        // **** Exception
+        LOG.log( Level.WARNING, mToolPath, e );
+        reportException( e, Level.WARNING );
+        setState( CARS_ToolInterface.STATE_CLOSED_ABNORMALCOMPLETED );
+        try {
+          setExpireDateTool( getTool(), getClosedExpireMinutes() );
+        } catch (Exception ee) {
+          LOG.log( Level.WARNING, null, ee );
+          reportException( ee, Level.WARNING );
+        }
+      } catch (Throwable e) {
+        // **** Throwable
+        ires = WFP_InterfaceResult.ERROR().setError( e );
+        try {
+          LOG.log( Level.SEVERE, mToolPath, e );
+          reportException( e, Level.SEVERE );
+        } catch( Exception ee ) {
+          LOG.log( Level.WARNING, null, ee );
+          reportException( ee, Level.WARNING );
+        }
+        setState( CARS_ToolInterface.STATE_CLOSED_ABNORMALCOMPLETED );
+        try {
+          setExpireDateTool( getTool(), getClosedExpireMinutes() );
+        } catch (Exception ee) {
+          LOG.log( Level.WARNING, null, ee );
+          reportException( ee, Level.WARNING );
+        }
+      } finally {
+        toolFinally();
+        try {
+          if (!isScheduledTool()) {
+            getTool().setProperty( "jecars:StateRequest", STATEREQUEST_STOP );
+          }
+          getTool().save();
+        } catch (Exception e) {
+          LOG.log( Level.WARNING, null, e );
+          reportException( e, Level.WARNING );
+          try {
+            getTool().refresh(false);
+          } catch (Exception ex) {
+            LOG.log( Level.SEVERE, null, ex );
+            reportException( ex, Level.SEVERE );
+          }
+        }
+        try {
+          if (!isScheduledTool()) {
+            mMain.destroy();
+            if (newSession!=null) {
+              newSession.logout();
+            }
+          } else {
+            // **** Do not destroy the main but reset the results.
+            if (mMain.getContext()!=null) {
+              mMain.getContext().resetResults();
+            }
+            mRebuildToolSession = false;
+          }
+        } catch( Exception e ) {
+          LOG.log( Level.WARNING, null, e );
+        }
+      }
+      return ires;
+    }
+
+    protected void inPauseState() throws Exception {
+      moveToolTo( "paused" );
+      return;
+    }    
+    
+  }
+
+  
+  
   /** Thread which handles the tool execution
    */
 //  protected class ToolRunnable implements Callable {
@@ -825,7 +972,8 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
 // System.out.println("STATE REQUEST 2 " + System.currentTimeMillis());        
         LOG.info( "Running as executor: " + this );
 // System.out.println("STATE REQUEST 3 " + System.currentTimeMillis());        
-        mFuture = gExecutorService.submit( new ToolRunnable() );
+//        mFuture = gExecutorService.submit( new ToolRunnable() );
+        mFutureResult = gExecutorService.submit( new ToolCallable() );
 //        Thread thread = new Thread( new ToolRunnable() );
 //        thread.setPriority( getThreadPriority() );
 //        thread.setName( getTool().getPath() );
@@ -1265,6 +1413,9 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
   @Override
   public Future getFuture() {
     if (mFuture==null) {
+      if (mScheduledFuture==null) {
+        return mFutureResult;
+      }
       return mScheduledFuture;
     } else {
       return mFuture;
