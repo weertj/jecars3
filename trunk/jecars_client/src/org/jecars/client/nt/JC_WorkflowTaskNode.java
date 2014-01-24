@@ -36,6 +36,7 @@ public class JC_WorkflowTaskNode extends JC_DefaultNode {
   public final static String TYPE_WORKFLOW  = "WORKFLOW";
   public final static String TYPE_JAVATASK  = "JAVATASK";
   public final static String TYPE_CONSTANTS = "CONSTANTS";
+  public final static String TYPE_ERRORHANDLER = "ERRORHANDLER";
     
   @Override
   public boolean isNull() {

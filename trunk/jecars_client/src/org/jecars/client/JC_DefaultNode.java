@@ -385,7 +385,15 @@ public class JC_DefaultNode extends JC_DefaultItem implements JC_Nodeable {
       if (JC_RESTComm.getResponseCode(tags)==HttpURLConnection.HTTP_OK) {
         final InputStream is = JC_RESTComm.getResultStream( tags );
         String result = JC_Utils.readAsString( is );
-          System.out.println("result = " + result );
+//          System.out.println("result = " + result );
+        Properties pollprops = new Properties();
+        pollprops.load( new ByteArrayInputStream( result.getBytes() ) );
+        for( Map.Entry<Object,Object> entry : pollprops.entrySet() ) {
+          String key = (String)entry.getKey();
+          if (key.startsWith( "Event.Path." )) {
+            lpoll.put( ((String)entry.getValue()).substring(getPath().length()+1), "" );
+          }
+        }
       }
     } catch( MalformedURLException mue ) {
       throw JC_Exception.createErrorException( mue.getMessage(), mue );
