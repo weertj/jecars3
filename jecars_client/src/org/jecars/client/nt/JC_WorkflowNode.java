@@ -101,6 +101,20 @@ public class JC_WorkflowNode extends JC_ToolNode {
     return (JC_WorkflowTaskNode)n.morphToNodeType();
   }
 
+  /** addErrorHandler
+   * 
+   * @param pName
+   * @param pJavaClass
+   * @return
+   * @throws JC_Exception 
+   */
+  public JC_WorkflowTaskNode addErrorHandler( final String pName, final String pJavaClass ) throws JC_Exception {
+    final JC_Nodeable n = getNode( "tasks" ).addNode( pName, "jecars:workflowtask" );
+    n.setProperty( "jecars:type", JC_WorkflowTaskNode.TYPE_ERRORHANDLER );
+    n.setProperty( "jecars:javaclasspath", pJavaClass );
+    return (JC_WorkflowTaskNode)n.morphToNodeType();
+  }
+
   public JC_WorkflowTaskNode addConstants( final String pName ) throws JC_Exception {
     final JC_Nodeable n = getNode( "tasks" ).addNode( pName, "jecars:workflowtask" );
     n.setProperty( "jecars:type", JC_WorkflowTaskNode.TYPE_CONSTANTS );
