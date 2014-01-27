@@ -17,7 +17,6 @@ package org.jecars.apps;
 
 import java.math.BigDecimal;
 import java.net.InetAddress;
-import java.util.Calendar;
 import java.util.logging.Level;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
@@ -25,6 +24,9 @@ import javax.jcr.Session;
 import org.jecars.CARS_Definitions;
 import org.jecars.CARS_Factory;
 import org.jecars.CARS_Main;
+import org.jecars.par.IPAR_Core;
+import org.jecars.par.IPAR_Execute;
+import org.jecars.par.PAR_Balancer;
 
 /**
  * CARS_SystemsApp
@@ -64,17 +66,22 @@ public class CARS_SystemsApp extends CARS_DefaultInterface {
       synchronized( appSession ) {
         try {
           final Node systems = appSession.getNode( pParentNode.getPath() );
-          final String computername= InetAddress.getLocalHost().getHostName();
+          final InetAddress inet = InetAddress.getLocalHost();
+          final String computername= inet.getHostName();
           if (!systems.hasNode( computername )) {
             Node cn = systems.addNode( computername, "jecars:RES_System" );
+            cn.setProperty( "jecars:Title", computername );
             cn.addNode( "CPU", "jecars:RES_CPU" );
           }
           Node system = systems.getNode( computername );
           Node cpu    = system.getNode( "CPU" );
+          cpu.setProperty( "jecars:Title", "CPU" );
           system.setProperty( "jecars:MainMemory", Runtime.getRuntime().maxMemory() );
           for( int i=Runtime.getRuntime().availableProcessors()-1; i>=0; i-- ) {
             if (!cpu.hasNode( "Core_" + i )) {
-              cpu.addNode( "Core_" + i, "jecars:RES_Core" );
+              Node core = cpu.addNode( "Core_" + i, "jecars:RES_Core" );
+              core.setProperty( "jecars:Title", "Core_" + i );
+              core.addMixin( "jecars:mixin_unstructured" );
             }
           }
         } catch( Exception e ) {
@@ -83,8 +90,30 @@ public class CARS_SystemsApp extends CARS_DefaultInterface {
           appSession.save();
         }
       }
-    } else {
+    } else if (pParentNode.isNodeType( "jecars:RES_Core" )) {
+      // **** jecars:RES_Core
+      final Node cpu = pParentNode.getParent();
+      final Node sys = cpu.getParent();
+      final IPAR_Core core = PAR_Balancer.BALANCER().
+              system( sys.getProperty( "jecars:Title" ).getString() ).
+                cpu( cpu.getProperty( "jecars:Title" ).getString() ).
+                  core( pParentNode.getName() );
+      final Node stateNode = pParentNode.addNode( "Status", "jecars:unstructured" );
+      stateNode.setProperty( "jecars:State",          core.coreType().name() );
+      stateNode.setProperty( "jecars:CurrentRunning", core.currentRunning() );
+      stateNode.setProperty( "jecars:ReadyRunning",   core.readyRunning() );
+      stateNode.setProperty( "jecars:MaxLoad",        core.maxLoad() );
+      stateNode.setProperty( "jecars:CurrentLoad",    core.currentLoad() );
+
+      // **** running Execs
+      for( Object o : core.runningExecs() ) {
+        IPAR_Execute exec = (IPAR_Execute)o;
+        final Node runNode = pParentNode.addNode( "RE_" + exec.id() );
+        runNode.setProperty( "jecars:ToolRun", exec.toolRun().name() );
+      }
+      
     }
+    
     return;
   }  
     

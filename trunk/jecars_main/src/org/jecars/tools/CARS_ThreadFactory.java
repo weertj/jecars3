@@ -28,6 +28,11 @@ public class CARS_ThreadFactory implements ThreadFactory {
   private final String mBaseName;
   private final int    mBasePriority;
   
+  /** CARS_ThreadFactory
+   * 
+   * @param pName
+   * @param pPriority 
+   */
   public CARS_ThreadFactory( final String pName, final int pPriority ) {
     mBaseName = pName;
     mBasePriority = pPriority;
@@ -54,9 +59,9 @@ public class CARS_ThreadFactory implements ThreadFactory {
 //      t = new Thread( pRun, name );
 //      t.setPriority( ti.getThreadPriority() );
 //    } else {
-      final String name = mBaseName + '-' + gCount.incrementAndGet();
-      t = new Thread( pRun, name );
-      t.setPriority( mBasePriority );
+    final String name = mBaseName + '-' + gCount.incrementAndGet();
+    t = new Thread( pRun, name );
+    t.setPriority( mBasePriority );
 //    }
     return t;
   }

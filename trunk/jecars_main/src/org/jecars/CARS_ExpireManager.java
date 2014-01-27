@@ -19,9 +19,18 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.logging.Level;
-import javax.jcr.*;
+import javax.jcr.InvalidItemStateException;
+import javax.jcr.ItemNotFoundException;
+import javax.jcr.Node;
+import javax.jcr.NodeIterator;
+import javax.jcr.PathNotFoundException;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import javax.jcr.nodetype.ConstraintViolationException;
-import javax.jcr.query.*;
+import javax.jcr.query.InvalidQueryException;
+import javax.jcr.query.Query;
+import javax.jcr.query.QueryManager;
+import javax.jcr.query.QueryResult;
 import org.apache.jackrabbit.util.ISO8601;
 import org.jecars.jaas.CARS_Credentials;
 import org.jecars.tools.CARS_DefaultToolInterface;
@@ -32,45 +41,13 @@ import org.jecars.tools.CARS_DefaultToolInterface;
  */
 public class CARS_ExpireManager extends CARS_DefaultToolInterface {
 
-  static private final int   MIN_REMOVEDOBJECTS_FOR_LOG = 4;
-  static private final long  MAX_ACCESSMANAGER_CACHE    = 1000000L;
-  static private       long  gCHECKEVERY                = 5*60000L; // **** 5 minutes
-  static private       int   gDATASTORE_GC_TIMES        = 20;     // **** Datastore garbage collect every (20*30) seconds
+  static private final int     MIN_REMOVEDOBJECTS_FOR_LOG = 4;
+  static private final long    MAX_ACCESSMANAGER_CACHE    = 1000000L;
+  static private       long    gCHECKEVERY                = 5*60000L; // **** 5 minutes
+  static private       int     gDATASTORE_GC_TIMES        = 20;     // **** Datastore garbage collect every (20*30) seconds
   static private       boolean gDISABLED                = false;
 
   static private final Object    LOCK = new Object();
-
-  private transient long        mLastExpireCheck    = System.currentTimeMillis();
-  private transient int         mDataStoreGCCurrent = 0;      // **** Datastore garbage collect every (10*30) seconds
-  private transient Session     mSession            = null;
-
-  /** Superclass must implement this method to actually start the tool
-   */
-  @Override
-  protected void toolRun() throws Exception {
-    super.toolRun();
-    if (!gDISABLED) {
-      try {
-        final Node n = getTool();
-        mSession = n.getSession().getRepository().login( new CARS_Credentials( CARS_Definitions.gSuperuserName, "".toCharArray(), null ));
-        purge();
-      } catch (ConstraintViolationException cve) {
-        cve.printStackTrace();
-        LOG.log( Level.SEVERE, cve.getMessage(), cve );
-      } finally {
-        mSession.logout();
-        mSession = null;
-      }
-    }
-    return;
-  }
-  
-  /** Creates a new instance of CARS_ExpireManager
-   */
-  public CARS_ExpireManager() {
-    super();
-    return;
-  }
 
   /** setEnabled
    * 
@@ -99,9 +76,41 @@ public class CARS_ExpireManager extends CARS_DefaultToolInterface {
     return;
   }
 
+  private transient long        mLastExpireCheck    = System.currentTimeMillis();
+  private transient int         mDataStoreGCCurrent = 0;      // **** Datastore garbage collect every (10*30) seconds
+  private transient Session     mSession            = null;
+
+  /** Creates a new instance of CARS_ExpireManager
+   */
+    public CARS_ExpireManager() {
+      super();
+      return;
+    }
+  
+  /** Superclass must implement this method to actually start the tool
+   */
+    @Override
+  protected void toolRun() throws Exception {
+    super.toolRun();
+    if (!gDISABLED) {
+      try {
+        final Node n = getTool();
+        mSession = n.getSession().getRepository().login( new CARS_Credentials( CARS_Definitions.gSuperuserName, "".toCharArray(), null ));
+        purge();
+      } catch (ConstraintViolationException cve) {
+        cve.printStackTrace();
+        LOG.log( Level.SEVERE, cve.getMessage(), cve );
+      } finally {
+        mSession.logout();
+        mSession = null;
+      }
+    }
+    return;
+  }
+
   /** shutdown the expire manager
    */
-  public void shutdown() {
+  public void shutdown(  ) {
     try {
       setStateRequest( STATEREQUEST_ABORT );
     } catch (Exception e) {
@@ -121,19 +130,19 @@ public class CARS_ExpireManager extends CARS_DefaultToolInterface {
    * @throws javax.jcr.query.InvalidQueryException
    * @throws javax.jcr.RepositoryException
    */
-  public NodeIterator getExpireNodes( final QueryManager pQM, final Calendar pTime ) throws InvalidQueryException, RepositoryException {
+  public NodeIterator getExpireNodes( final QueryManager pQM, final Calendar pTime) throws InvalidQueryException, RepositoryException {
     final String qu = "SELECT * FROM jecars:root WHERE jecars:ExpireDate<= TIMESTAMP '" +
-                 ISO8601.format(pTime) + "'";
+            ISO8601.format(pTime) + "'";
     final Query q = pQM.createQuery( qu, Query.SQL );
     final QueryResult qr = q.execute();
     return qr.getNodes();    
   }
-  
-  /** Purge, search for objects which can be expired 
+
+  /** Purge, search for objects which can be expired
    *
    * @throws RepositoryException
    */
-  private void purge() throws RepositoryException {
+  private void purge(  ) throws RepositoryException {
     if (mSession==null) {
       return;
     }
@@ -197,12 +206,12 @@ public class CARS_ExpireManager extends CARS_DefaultToolInterface {
                   } else {
                     // **** There are still references
                   }
-              // **** TODO Elderberry
+                  // **** TODO Elderberry
 //                } catch( NoSuchItemStateException nsise ) {
                   // **** The node is already removed
                 } catch( InvalidItemStateException iise ) {
                   // **** The node is already removed
-    //            } catch( NoSuchItemStateException nsise ) {
+                  //            } catch( NoSuchItemStateException nsise ) {
                   // ****
                 } catch( ItemNotFoundException infe ) {
                   // ****
@@ -218,20 +227,20 @@ public class CARS_ExpireManager extends CARS_DefaultToolInterface {
           }
         }
       } finally {
-      try {
-        final Node tool = getTool();
-        if (tool!=null) {
-          tool.save();
-          tool.setProperty( CARS_ActionContext.gDefLastAccessed, Calendar.getInstance() );
-          if (tool.hasProperty( CARS_ActionContext.gDefExpireDate )) {
-            tool.setProperty( CARS_ActionContext.gDefExpireDate, (Calendar)null );              
+        try {
+          final Node tool = getTool();
+          if (tool!=null) {
+            tool.save();
+            tool.setProperty( CARS_ActionContext.gDefLastAccessed, Calendar.getInstance() );
+            if (tool.hasProperty( CARS_ActionContext.gDefExpireDate )) {
+              tool.setProperty( CARS_ActionContext.gDefExpireDate, (Calendar)null );              
+            }
+            tool.getSession().save();
           }
-          tool.getSession().save();
+        } catch( InvalidItemStateException iise ) {
+          LOG.log( Level.WARNING, iise.getMessage(), iise );
         }
-      } catch( InvalidItemStateException iise ) {
-        LOG.log( Level.WARNING, iise.getMessage(), iise );
       }
-    }
     }
     return;
   }
@@ -244,7 +253,7 @@ public class CARS_ExpireManager extends CARS_DefaultToolInterface {
    * @return
    * @throws Exception
    */
-  private int removeNodes( final CARS_Main pMain, final Node pNode, final int pRemoved ) throws Exception {
+  private int removeNodes(final CARS_Main pMain, final Node pNode, final int pRemoved) throws Exception {
     int removed = pRemoved;
     if (pNode.hasNodes()) {
       Node n;
@@ -283,7 +292,7 @@ public class CARS_ExpireManager extends CARS_DefaultToolInterface {
    * @return
    */
   @Override
-  public boolean isScheduledTool() {
+  public boolean isScheduledTool(  ) {
     return true;
   }
 
@@ -299,11 +308,11 @@ public class CARS_ExpireManager extends CARS_DefaultToolInterface {
   /** createToolSession
    *
    * @return
-   * @throws java.lang.Exception
+   * @throws javax.jcr.RepositoryException
    */
   @Override
-  public Session createToolSession() throws RepositoryException {
-    return (Session)getTool().getSession().getRepository().login( new CARS_Credentials( CARS_Definitions.gSuperuserName, "".toCharArray(), null ));
+  public Session createToolSession(  ) throws RepositoryException {
+    return getTool().getSession().getRepository().login( new CARS_Credentials( CARS_Definitions.gSuperuserName, "".toCharArray(), null ));
   }
 
   @Override
