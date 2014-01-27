@@ -50,6 +50,8 @@ import javax.jcr.Value;
 import nl.msd.jdots.JD_Taglist;
 import org.jecars.*;
 import org.jecars.jaas.CARS_Credentials;
+import org.jecars.par.IPAR_ToolRun;
+import org.jecars.par.PAR_ToolRun;
 import static org.jecars.tools.CARS_ToolInterface.STATEREQUEST_START;
 import org.jecars.wfplugin.IWFP_InterfaceResult;
 import org.jecars.wfplugin.WFP_InterfaceResult;
@@ -135,9 +137,9 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
     if (!gToolResourceBundleNames.contains( bundle )) {
       gToolResourceBundleNames.add( bundle );
     }
-    gScheduledExecutorService = Executors.newScheduledThreadPool( SES_COREPOOLSIZE );
+    gScheduledExecutorService = Executors.newScheduledThreadPool( SES_COREPOOLSIZE, new CARS_ThreadFactory( "jecars", Thread.NORM_PRIORITY ) );
 //    gExecutorService          = Executors.newFixedThreadPool( ES_COREPOOLSIZE, new CARS_ThreadFactory( "CARS_ToolFixed", Thread.MIN_PRIORITY ));
-    gExecutorService          = Executors.newCachedThreadPool( new CARS_ThreadFactory( "CARS_ToolFixed", Thread.MIN_PRIORITY ));
+    gExecutorService          = Executors.newCachedThreadPool( new CARS_ThreadFactory( "jecars-CARS_ToolFixed", Thread.MIN_PRIORITY ));
     gSingleExecutorService    = Executors.newSingleThreadExecutor();
   }
 
@@ -964,7 +966,8 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
     if (pStateRequest.equals(STATEREQUEST_START)) {
       if (isScheduledTool()) {
         LOG.info( "Running as scheduled executor: " + this );
-        mScheduledFuture = gScheduledExecutorService.scheduleWithFixedDelay( new ToolRunnable(), getDelayInSecs(), getDelayInSecs(), TimeUnit.SECONDS );
+//        mScheduledFuture = gScheduledExecutorService.scheduleWithFixedDelay( new ToolRunnable(), getDelayInSecs(), getDelayInSecs(), TimeUnit.SECONDS );
+        mScheduledFuture = gScheduledExecutorService.scheduleWithFixedDelay( new PAR_ToolRun<>( getName(), new ToolRunnable() ), getDelayInSecs(), getDelayInSecs(), TimeUnit.SECONDS );
       } else if (isSingleTool()) {
         LOG.info( "Running as single executor: " + this );
         mFuture = gSingleExecutorService.submit( new ToolRunnable() );
@@ -973,7 +976,9 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
         LOG.info( "Running as executor: " + this );
 // System.out.println("STATE REQUEST 3 " + System.currentTimeMillis());        
 //        mFuture = gExecutorService.submit( new ToolRunnable() );
-        mFutureResult = gExecutorService.submit( new ToolCallable() );
+//        mFutureResult = gExecutorService.submit( new ToolCallable() );
+        IPAR_ToolRun<IWFP_InterfaceResult> toolrun = new PAR_ToolRun<>( getName(), new ToolCallable() );
+        mFutureResult = gExecutorService.submit( (Callable)toolrun );
 //        Thread thread = new Thread( new ToolRunnable() );
 //        thread.setPriority( getThreadPriority() );
 //        thread.setName( getTool().getPath() );
