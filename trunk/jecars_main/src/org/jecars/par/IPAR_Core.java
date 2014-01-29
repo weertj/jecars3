@@ -27,10 +27,10 @@ import javax.jcr.RepositoryException;
 public interface IPAR_Core<E> extends IPAR_DefaultNode {
   
   EPAR_CoreType coreType();
-  E             execute( final IPAR_Execute pExec, final IPAR_ResourceWish pWish ) throws InterruptedException, RepositoryException, ExecutionException;
+  E             execute( final IPAR_Execute<E> pExec, final IPAR_ResourceWish pWish ) throws InterruptedException, RepositoryException, ExecutionException;
 
-  boolean       allocate( double pLoad );
-  void          release(  double pLoad );
+  boolean       allocate( IPAR_ResourceWish pWish, boolean pAcceptOverload );
+  void          release(  IPAR_ResourceWish pWish );
   
   long          currentRunning();
   long          readyRunning();
@@ -38,7 +38,8 @@ public interface IPAR_Core<E> extends IPAR_DefaultNode {
   double        maxLoad();
   double        currentLoad();
   
-  List<IPAR_Execute> runningExecs();
+  List<IPAR_Execute<E>> queuedExecs();
+  List<IPAR_Execute<E>> runningExecs();
   
 }
   

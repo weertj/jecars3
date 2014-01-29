@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.regex.Pattern;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
@@ -33,9 +34,14 @@ public class PAR_Balancer implements IPAR_Balancer {
 
   static final private IPAR_Balancer BALANCER = new PAR_Balancer();
 
+  public static IPAR_Balancer BALANCER() {
+    return BALANCER;
+  }
+
   final private AtomicLong mSchedulerLock = new AtomicLong(1);
 
-  final private List<IPAR_System>       mSystems = new ArrayList<>();
+  final private List<IPAR_System>       mSystems = new ArrayList<>(8);
+  final private List<IPAR_ResourceWish> mResources = new ArrayList<>(64);
   final private EnumSet<EPAR_ItemState> mStates = EnumSet.of( EPAR_ItemState.NEEDS_REFRESH );
   
   /** PAR_Balancer
@@ -44,9 +50,19 @@ public class PAR_Balancer implements IPAR_Balancer {
   private PAR_Balancer() {
   }
 
-  public static IPAR_Balancer BALANCER() {
-    return BALANCER;
+  /** currentResources
+   * 
+   * @return 
+   */
+  @Override
+  public List<IPAR_ResourceWish> currentResources() {
+    final List<IPAR_ResourceWish> rws = new ArrayList<>(64);
+    synchronized (mResources) {
+      rws.addAll( mResources );
+    }
+    return rws;
   }
+
 
   /**
    * systems
@@ -104,35 +120,63 @@ public class PAR_Balancer implements IPAR_Balancer {
   /**
    * coresByWish
    *
-   * @param pWish
+   * @param pWish will be copied in the resource list do not reuse!
    * @param pAllocate
    * @return
    * @throws javax.jcr.RepositoryException
    */
   @Override
-  public List<IPAR_Core> coresByWish( final IPAR_ResourceWish pWish, final boolean pAllocate ) throws RepositoryException {
-    final List<IPAR_Core> cores = new ArrayList<>();
+  public List<IPAR_Core> coresByWish( final IPAR_ResourceWish pWish ) throws RepositoryException {
+    final List<IPAR_Core> cores = new ArrayList<>(8);
     synchronized (mSchedulerLock) {
       mSchedulerLock.incrementAndGet();
-      int nrCores = pWish.numberOfCores();
+//      int nrCores = pWish.numberOfCores();
       if (pWish.systemType()==EPAR_SystemType.LOCAL) {
         for (final IPAR_System sys : systems()) {
-          if (sys.systemType()==EPAR_SystemType.LOCAL) {
+          // **** System check
+          if ((sys.systemType()==EPAR_SystemType.LOCAL) &&
+              (sys.name().matches( pWish.runOnSystem()))) {
             for (final IPAR_CPU cpu : sys.cpus(EPAR_CPUType.AVAILABLE)) {
-              for (final IPAR_Core core : cpu.cores()) {
-                if ((core.coreType()==EPAR_CoreType.AVAILABLE) || (pWish.expectedLoad()==0 && core.coreType()==EPAR_CoreType.ALLOCATED)) {
-                  if (pAllocate) {
-                    if (core.allocate( pWish.expectedLoad() )) {
-                      cores.add( core );
-                      nrCores--;
-                    }
-                  } else {
+              // **** CPU check
+              if (cpu.name().matches( pWish.runOnCPU())) {
+                for (final IPAR_Core core : cpu.cores()) {
+                  
+                  // **** Core check
+                  if (core.name().matches( pWish.runOnCore() )) {
                     cores.add( core );
-                    nrCores--;
+//                    nrCores--;
                   }
-                  if (nrCores<=0) {
-                    break;
-                  }
+//                  if (nrCores<=0) {
+//                      break;
+//                  }
+                  
+                  
+                  
+//                  // **** Core check
+//                  if (((core.coreType()==EPAR_CoreType.AVAILABLE) ||
+//                      (pWish.expectedLoad()==0 && core.coreType()==EPAR_CoreType.ALLOCATED)) &&
+//                      (core.name().matches( pWish.runOnCore() ))) {
+//                    if (pAllocate) {
+//                      if (allocateWishToCore( core, pWish )) {
+////                      if (core.allocate( pWish.expectedLoad() )) {
+////                        // **** The resource is allocated
+////                        synchronized( mResources ) {
+////                          if (!mResources.contains( pWish )) {
+////                            mResources.add( pWish );
+////                          }
+////                        }
+//                        cores.add( core );
+//                        nrCores--;
+//                      }
+////                      }
+//                    } else {
+//                      cores.add( core );
+//                      nrCores--;
+//                    }
+//                    if (nrCores<=0) {
+//                      break;
+//                    }
+//                  }
                 }
               }
             }
@@ -143,4 +187,29 @@ public class PAR_Balancer implements IPAR_Balancer {
     return cores;
   }
 
+  @Override
+  public boolean allocateWishToCore( IPAR_Core pCore, IPAR_ResourceWish pWish ) {
+    if (pCore.allocate( pWish, false )) {
+      // **** The resource is allocated
+      synchronized( mResources ) {
+        if (!mResources.contains( pWish )) {
+          mResources.add( pWish );
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  
+  @Override
+  public IPAR_Balancer resourceWishReady( IPAR_ResourceWish pWish ) {
+    synchronized( mResources ) {
+      mResources.remove( pWish );
+    }
+    return this;
+  }
+
+  
+  
 }

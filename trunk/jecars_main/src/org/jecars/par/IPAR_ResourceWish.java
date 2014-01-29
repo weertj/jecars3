@@ -21,6 +21,17 @@ package org.jecars.par;
  */
 public interface IPAR_ResourceWish {
 
+  String            wishID();
+  IPAR_ResourceWish resourceID( final String pResourceID );
+  String            resourceID();  
+  IPAR_ResourceWish maxNumberOfRunsPerSystem( int pRuns );
+  int               maxNumberOfRunsPerSystem();
+  String            runOnSystem();
+  IPAR_ResourceWish runOnSystem( String pS );
+  String            runOnCPU();
+  IPAR_ResourceWish runOnCPU( String pS );
+  String            runOnCore();
+  IPAR_ResourceWish runOnCore( String pS );
   int               numberOfCores();
   IPAR_ResourceWish numberOfCores( int pNumberOfCores );
   IPAR_ResourceWish system( final String pSystem );

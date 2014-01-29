@@ -15,25 +15,106 @@
  */
 package org.jecars.par;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 /**
  *
  * @author weert
  */
 public class PAR_ResourceWish implements IPAR_ResourceWish {
   
-  private EPAR_SystemType mSystemType = EPAR_SystemType.LOCAL;
-  private String          mSystem = "localhost";
-  private int             mNumberOfCores = 1;
-  private double          mExpectedLoad = 1;
+  static private final AtomicLong COUNTER = new AtomicLong(1);
+  
+  private final String          mWishID;
+  private       EPAR_SystemType mSystemType = EPAR_SystemType.LOCAL;
+  private       String          mSystem = "localhost";
+  private       int             mNumberOfCores = 1;
+  private       double          mExpectedLoad = 1;
+  private       int             mMaxNumberOfRunsPerSystem = -1;
+  private       String          mRunOnSystem  = ".*";
+  private       String          mRunOnCPU     = ".*";
+  private       String          mRunOnCore    = ".*";
+  private       String          mResourceID = null;
 
+  /** PAR_ResourceWish
+   * 
+   */
+  public PAR_ResourceWish() {
+    mWishID = "ResourceWish_" + COUNTER.getAndIncrement();
+    return;
+  }
+
+  @Override
+  public String wishID() {
+    return mWishID;
+  }
+  
+  
+  @Override
+  public String resourceID() {
+    return mResourceID;
+  }
+
+
+  @Override
+  public IPAR_ResourceWish resourceID( final String pResourceID ) {
+    mResourceID = pResourceID;
+    return this;
+  }
+
+  @Override
+  public String runOnCPU() {
+    return mRunOnCPU;
+  }
+
+  @Override
+  public IPAR_ResourceWish runOnCPU(String pS) {
+    mRunOnCPU = pS;
+    return this;
+  }
+
+  @Override
+  public String runOnCore() {
+    return mRunOnCore;
+  }
+
+  @Override
+  public IPAR_ResourceWish runOnCore(String pS) {
+    mRunOnCore = pS;
+    return this;
+  }
+
+  @Override
+  public String runOnSystem() {
+    return mRunOnSystem;
+  }
+
+  @Override
+  public IPAR_ResourceWish runOnSystem(String pS) {
+    mRunOnSystem = pS;
+    return this;
+  }
+
+  
+  @Override
+  public int maxNumberOfRunsPerSystem() {
+    return mMaxNumberOfRunsPerSystem;
+  }
+
+  @Override
+  public IPAR_ResourceWish maxNumberOfRunsPerSystem( final int pRuns ) {
+    mMaxNumberOfRunsPerSystem = pRuns;
+    return this;
+  }
   
   @Override
   public int numberOfCores() {
     return mNumberOfCores;
   }
 
+  
   @Override
-  public IPAR_ResourceWish numberOfCores( int pNumberOfCores ) {
+  public IPAR_ResourceWish numberOfCores( final int pNumberOfCores ) {
     mNumberOfCores = pNumberOfCores;
     return this;
   }

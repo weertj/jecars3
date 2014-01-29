@@ -34,11 +34,12 @@ import org.jecars.tools.CARS_ThreadFactory;
  */
 public class PAR_Core<E> extends PAR_DefaultNode implements IPAR_Core<E> {
    
-  private       EPAR_CoreType       mCoreType = EPAR_CoreType.UNKNOWN;
-  private final Queue<IPAR_Execute> mExecQueue = new PriorityBlockingQueue<>();
-  private final List<IPAR_Execute>  mExecRunning = new ArrayList<>();
-  private final AtomicInteger       mCurrentRunning = new AtomicInteger(0);
-  private final AtomicInteger       mReadyRunning   = new AtomicInteger(0);
+  private       EPAR_CoreType           mCoreType = EPAR_CoreType.UNKNOWN;
+  private final List<IPAR_ResourceWish> mExecWishes = new ArrayList<IPAR_ResourceWish>(16);
+  private final Queue<IPAR_Execute<E>>  mExecQueue = new PriorityBlockingQueue<>();
+  private final List<IPAR_Execute<E>>   mExecRunning = new ArrayList<>(16);
+  private final AtomicInteger           mCurrentRunning = new AtomicInteger(0);
+  private final AtomicInteger           mReadyRunning   = new AtomicInteger(0);
   
   private       double              mCurrentLoad = 0.0;
   private       double              mMaxLoad = 1.0;
@@ -68,21 +69,40 @@ public class PAR_Core<E> extends PAR_DefaultNode implements IPAR_Core<E> {
    * @return 
    */
   @Override
-  public boolean allocate( double pLoad ) {
-    if (pLoad==0) return true;
-    if ((mCurrentLoad+pLoad)<=mMaxLoad) {
-      mCurrentLoad += pLoad;
+  public boolean allocate( final IPAR_ResourceWish pWish, boolean pAcceptOverload ) {
+    double load = pWish.expectedLoad();
+    if (load==0) {
+      mExecWishes.add( pWish );
+      return true;
+    }
+    if ((mCurrentLoad+load)<=mMaxLoad) {
+      mCurrentLoad += load;
       if (mCurrentLoad>=mMaxLoad) {
         mCoreType = EPAR_CoreType.ALLOCATED;
-      }
+      }      
+      mExecWishes.add( pWish );      
       return true;
+    } else {
+      if (pAcceptOverload) {
+        // **** Overloading is acceptable
+        if (mCurrentLoad<=mMaxLoad) {
+          mExecWishes.add( pWish );
+          mCurrentLoad += load;
+        }
+        if (mCurrentLoad>=mMaxLoad) {
+          mCoreType = EPAR_CoreType.ALLOCATED;
+        }
+        return true;        
+      }
     }
     return false;
   }
 
   @Override
-  public void release( double pLoad ) {
-    mCurrentLoad -= pLoad;
+  public void release( final IPAR_ResourceWish pWish ) {
+    mExecWishes.remove( pWish );
+    double load = pWish.expectedLoad();
+    mCurrentLoad -= load;
     mCurrentLoad = Math.max( 0, mCurrentLoad );
     if (mCurrentLoad>=mMaxLoad) {
       mCoreType = EPAR_CoreType.ALLOCATED;
@@ -120,14 +140,21 @@ public class PAR_Core<E> extends PAR_DefaultNode implements IPAR_Core<E> {
    * @throws java.util.concurrent.ExecutionException 
    */
   @Override
-  public E execute( final IPAR_Execute pExec, final IPAR_ResourceWish pWish ) throws InterruptedException, RepositoryException, ExecutionException {
+  public E execute( final IPAR_Execute<E> pExec, final IPAR_ResourceWish pWish ) throws InterruptedException, RepositoryException, ExecutionException {
     E result = null;
     mExecQueue.add( pExec );
-    while( mExecQueue.peek()!=pExec ) {
-      Thread.sleep( 100 );
-      System.out.println("Peeking on " + mExecQueue.peek() );
+    while( mExecQueue.peek()!=pExec || (mCurrentLoad>=1) ) {
+      if (mExecWishes.contains(pWish)) {
+        // **** Our wish was granted....start
+        break;
+      }
+      Thread.sleep( 2000 );
+      System.out.println("Peeking on " + mExecQueue.size() + " - " + mExecWishes.size() );
     }
-    final IPAR_Execute exec;
+    if (!mExecWishes.contains( pWish )) {
+      mExecWishes.add( pWish );
+    }
+    final IPAR_Execute<E> exec;
     synchronized( mExecQueue ) {
       exec = mExecQueue.poll();
     }
@@ -183,12 +210,18 @@ public class PAR_Core<E> extends PAR_DefaultNode implements IPAR_Core<E> {
   }
 
   @Override
-  public List<IPAR_Execute> runningExecs() {
+  public List<IPAR_Execute<E>> runningExecs() {
     synchronized( CORELOCK ) {
       return new ArrayList<>( mExecRunning );
     }
   }
 
+  @Override
+  public List<IPAR_Execute<E>> queuedExecs() {
+    synchronized( CORELOCK ) {
+      return new ArrayList<>( mExecQueue );
+    }
+  }
   
   
  

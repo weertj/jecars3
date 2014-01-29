@@ -31,6 +31,8 @@ import org.jecars.CARS_RESTMethodHandled;
 import org.jecars.CARS_Utils;
 import org.jecars.apps.CARS_DefaultInterface;
 import org.jecars.output.CARS_InputStream;
+import static org.jecars.tools.CARS_ToolInterfaceApp.LOG;
+import static org.jecars.tools.CARS_ToolInterfaceApp.getWorkingDirectory;
 
 /**
  *
@@ -75,12 +77,12 @@ public class CARS_WorkflowsInterfaceApp extends CARS_DefaultInterface {
    * @return
    * @throws RepositoryException
    */
-  protected File getWorkingDirectory( final Node pInterfaceNode ) throws RepositoryException {
-    final long id = pInterfaceNode.getProperty( "jecars:Id" ).getLong();
-    final Node config = pInterfaceNode.getNode( "jecars:Config" );
-    final File wd = new File( config.getProperty( CARS_ExternalTool.WORKINGDIRECTORY ).getString() );
-    return new File( wd, "wd_" + id );
-  }
+//  protected File getWorkingDirectory( final Node pInterfaceNode ) throws RepositoryException {
+//    final long id = pInterfaceNode.getProperty( "jecars:Id" ).getLong();
+//    final Node config = pInterfaceNode.getNode( "jecars:Config" );
+//    final File wd = new File( config.getProperty( CARS_ExternalTool.WORKINGDIRECTORY ).getString() );
+//    return new File( wd, "wd_" + id );
+//  }
 
   /** isLink
    * 
@@ -109,7 +111,7 @@ public class CARS_WorkflowsInterfaceApp extends CARS_DefaultInterface {
     if (isCorrectInterface( pInterfaceNode )) {
 
       if (isLink( pParentNode )) {
-        final File wd = getWorkingDirectory( pInterfaceNode );
+        final File wd = CARS_ToolInterfaceApp.getWorkingDirectory( pInterfaceNode );
 //       System.out.println("get aiiasjioj ji " + pParentNode.getPath() );
         if ((wd!=null) && (wd.exists())) {
           final File input = new File( wd, pParentNode.getName() );
@@ -143,17 +145,18 @@ public class CARS_WorkflowsInterfaceApp extends CARS_DefaultInterface {
   @Override
   protected void removeJeCARSNode( final CARS_Main pMain, final Node pInterfaceNode, final Node pNode, final JD_Taglist pParams ) throws RepositoryException {
 
+    
     if (isCorrectInterface( pInterfaceNode )) {
+
       // **** pNode is a correct tool
-      if (pInterfaceNode.hasProperty( "jecars:Id" )) {
-        final File wd = getWorkingDirectory( pInterfaceNode );
-        if ((wd!=null) && (wd.exists())) {
-          if (CARS_Utils.deleteDirectory( wd )) {
-            LOG.log( Level.INFO, "CARS_ExternalTool: Working directory " + wd.getAbsolutePath() + " is deleted" );
-          } else {
-            LOG.log( Level.WARNING, "CARS_ExternalTool: Error while deleting working directory " + wd.getAbsolutePath() );
-          }
-        }
+      final File wd = getWorkingDirectory( pNode );
+      if ((wd!=null) && (wd.exists())) {
+        if (CARS_Utils.deleteDirectory( wd )) {            
+          LOG.log( Level.INFO, "CARS_WorkflowsInterfaceApp: " + pNode.getPath() + " is deleted" );
+          LOG.log( Level.INFO, "CARS_WorkflowsInterfaceApp: Working directory " + wd.getAbsolutePath() + " is deleted" );
+        } else {
+          LOG.log( Level.WARNING, "CARS_WorkflowsInterfaceApp: Error while deleting working directory " + wd.getAbsolutePath() );
+        }       
       }
     }
     super.removeJeCARSNode(pMain, pInterfaceNode, pNode, pParams);

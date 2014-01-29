@@ -17,13 +17,16 @@ package org.jecars.par;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Logger;
 
-/**
+/** PAR_Execute
  *
  * @author weert
+ * @param <E>
  */
-public class PAR_Execute<E> implements IPAR_Execute, Comparable<Integer> {
+public class PAR_Execute<E> implements IPAR_Execute<E>, Comparable<Integer> {
   
+  static private final Logger     LOG = Logger.getLogger(PAR_Execute.class.getName());  
   static private final AtomicLong COUNTER = new AtomicLong(1);
   
   private final String          mID;
@@ -32,7 +35,12 @@ public class PAR_Execute<E> implements IPAR_Execute, Comparable<Integer> {
   private final Runnable        mRunnable;
   private final Callable<E>     mCallable;
 
-  public PAR_Execute( final IPAR_ToolRun pToolRun, final Runnable pRunnable ) {
+  /** PAR_Execute
+   * 
+   * @param pToolRun
+   * @param pRunnable 
+   */
+  public PAR_Execute( final IPAR_ToolRun<E> pToolRun, final Runnable pRunnable ) {
     mRunnable = pRunnable;
     mCallable = null;
     mToolRun  = pToolRun;
@@ -40,7 +48,12 @@ public class PAR_Execute<E> implements IPAR_Execute, Comparable<Integer> {
     return;
   }
 
-  public PAR_Execute( final IPAR_ToolRun pToolRun, final Callable pCallable ) {
+  /** PAR_Execute
+   * 
+   * @param pToolRun
+   * @param pCallable 
+   */
+  public PAR_Execute( final IPAR_ToolRun<E> pToolRun, final Callable<E> pCallable ) {
     mRunnable = null;
     mCallable = pCallable;
     mToolRun  = pToolRun;

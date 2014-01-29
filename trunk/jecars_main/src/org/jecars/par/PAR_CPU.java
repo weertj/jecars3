@@ -15,8 +15,6 @@
  */
 package org.jecars.par;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
