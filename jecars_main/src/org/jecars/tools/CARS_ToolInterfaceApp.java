@@ -71,11 +71,23 @@ public class CARS_ToolInterfaceApp extends CARS_DefaultInterface {
    * @return
    * @throws RepositoryException
    */
-  static public File getWorkingDirectory( final Node pInterfaceNode ) throws RepositoryException {
-    final long id = pInterfaceNode.getProperty( "jecars:Id" ).getLong();
-    final Node config = pInterfaceNode.getNode( "jecars:Config" );
-    final File wd = new File( config.getProperty( CARS_ExternalTool.WORKINGDIRECTORY ).getString() );
-    return new File( wd, "wd_" + id );
+  static public File getWorkingDirectory( final Node pNode ) throws RepositoryException {
+    long id = 0;
+    final Node parentNode = pNode.getParent();
+    if (parentNode.hasProperty("jecars:Id")) {
+      id = parentNode.getProperty( "jecars:Id" ).getLong();
+    }
+    if ("jecars:Config".equals( pNode.getName())) {
+      final Node config = pNode;
+      if (config.hasProperty( CARS_ExternalTool.FIXEDWORKINGDIRECTORY )) {
+        return new File( config.getProperty( CARS_ExternalTool.FIXEDWORKINGDIRECTORY ).getString());
+      }
+      if (config.hasProperty( CARS_ExternalTool.WORKINGDIRECTORY )) {
+        final File wd = new File( config.getProperty( CARS_ExternalTool.WORKINGDIRECTORY ).getString() );
+        return new File( wd, "wd_" + id );
+      }
+    }
+    return null;
   }
 
   /** isLink
@@ -147,15 +159,14 @@ public class CARS_ToolInterfaceApp extends CARS_DefaultInterface {
 
     if (isCorrectInterface( pInterfaceNode )) {
       // **** pNode is a correct tool
-      if (pInterfaceNode.hasProperty( "jecars:Id" )) {
-        final File wd = getWorkingDirectory( pInterfaceNode );
-        if ((wd!=null) && (wd.exists())) {
-          if (CARS_Utils.deleteDirectory( wd )) {
-            LOG.log( Level.INFO, "CARS_ExternalTool: Working directory " + wd.getAbsolutePath() + " is deleted" );
-          } else {
-            LOG.log( Level.WARNING, "CARS_ExternalTool: Error while deleting working directory " + wd.getAbsolutePath() );
-          }
-        }
+      final File wd = getWorkingDirectory( pNode );
+      if ((wd!=null) && (wd.exists())) {
+        if (CARS_Utils.deleteDirectory( wd )) {            
+          LOG.log( Level.INFO, "CARS_ToolInterface: " + pNode.getPath() + " is deleted" );
+          LOG.log( Level.INFO, "CARS_ToolInterface: Working directory " + wd.getAbsolutePath() + " is deleted" );
+        } else {
+          LOG.log( Level.WARNING, "CARS_ToolInterface: Error while deleting working directory " + wd.getAbsolutePath() );
+        }       
       }
     }
     super.removeJeCARSNode(pMain, pInterfaceNode, pNode, pParams);

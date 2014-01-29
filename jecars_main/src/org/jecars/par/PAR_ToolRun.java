@@ -47,30 +47,56 @@ public class PAR_ToolRun<E> implements IPAR_ToolRun<E> {
    *
    * @param pName
    * @param pRunnable
+   * @throws java.net.UnknownHostException
    */
-  public PAR_ToolRun(final String pName, final Runnable pRunnable) throws UnknownHostException {
-    mName = pName;
-    mExec = new PAR_Execute( this, pRunnable );
-    init();
-    return;
-  }
+//  public PAR_ToolRun(final String pName, final Runnable pRunnable) throws UnknownHostException {
+//    mName = pName;
+//    mExec = new PAR_Execute<>( this, pRunnable );
+//    init();
+//    return;
+//  }
 
   /**
    * PAR_ToolRun
    *
    * @param pName
    * @param pCallable
+   * @throws java.net.UnknownHostException
    */
-  public PAR_ToolRun(final String pName, final Callable<E> pCallable) throws UnknownHostException {
-    mName = pName;
-    mExec = new PAR_Execute( this, pCallable );
-    init();
-    return;
+//  public PAR_ToolRun(final String pName, final Callable<E> pCallable) throws UnknownHostException {
+//    mName = pName;
+//    mExec = new PAR_Execute<>( this, pCallable );
+//    init();
+//    return;
+//  }
+
+  /** PAR_ToolRun
+   * 
+   * @param pName
+   * @param pRunnable
+   * @param pRW
+   * @throws UnknownHostException 
+   */
+  public PAR_ToolRun( final String pName, final Runnable pRunnable, final IPAR_ResourceWish pRW ) throws UnknownHostException {
+    mName         = pName;
+    mExec         = new PAR_Execute<>( this, pRunnable );
+    mResourceWish = pRW;
+    return;    
   }
 
-  private void init() throws UnknownHostException {
-    mResourceWish = new PAR_ResourceWish().system("").numberOfCores(1).expectedLoad(0);
-    return;
+
+  /** PAR_ToolRun
+   * 
+   * @param pName
+   * @param pCallable
+   * @param pRW
+   * @throws UnknownHostException 
+   */
+  public PAR_ToolRun( final String pName, final Callable<E> pCallable, final IPAR_ResourceWish pRW ) throws UnknownHostException {
+    mName         = pName;
+    mExec         = new PAR_Execute<>( this, pCallable );
+    mResourceWish = pRW;
+    return;    
   }
 
   @Override
@@ -95,15 +121,25 @@ public class PAR_ToolRun<E> implements IPAR_ToolRun<E> {
 //      final Session sysSession = CARS_Factory.getSystemAccessSession();
         if (mResourceWish.numberOfCores() == 1) {
           try {
-            final List<IPAR_Core> cores = bal.coresByWish( mResourceWish, true );
-            if (!cores.isEmpty()) {
-              final IPAR_Core core = cores.get(0);
+            final List<IPAR_Core> cores = bal.coresByWish( mResourceWish );
+            if (!cores.isEmpty()) {              
+              IPAR_Core core = null;
               try {
+                core = getBestCore( cores );
+                if (!bal.allocateWishToCore( core, mResourceWish )) {
+                  // **** Didn't work.... add it as queue
+                  core.allocate( mResourceWish, true );
+                }
                 core.execute( mExec, mResourceWish );
               } catch( ExecutionException | RepositoryException | InterruptedException e ) {
                 e.printStackTrace();
               } finally {
-                core.release( mResourceWish.expectedLoad() );
+                // **** Release core
+                if (core!=null) {
+                  core.release( mResourceWish );
+                }
+                // **** Release resourceWish
+                bal.resourceWishReady( mResourceWish );
               }
             } else {
               mExec.runnable().run();              
@@ -116,6 +152,23 @@ public class PAR_ToolRun<E> implements IPAR_ToolRun<E> {
     return;
   }
 
+  /** getBestCore
+   * 
+   * @param pCores
+   * @return 
+   */
+  private IPAR_Core getBestCore( final List<IPAR_Core> pCores ) {
+    IPAR_Core core = null;
+    double cl = 999999;
+    for( final IPAR_Core c : pCores ) {
+      if (c.currentLoad()<=cl) {
+        core = c;
+        cl = c.currentLoad();
+      }
+    }
+    return core;
+  }
+  
   /** call
    * 
    * @return
@@ -135,15 +188,24 @@ public class PAR_ToolRun<E> implements IPAR_ToolRun<E> {
 //      final Session sysSession = CARS_Factory.getSystemAccessSession();
         if (mResourceWish.numberOfCores() == 1) {
           try {
-            final List<IPAR_Core> cores = bal.coresByWish(mResourceWish, true);
+            final List<IPAR_Core> cores = bal.coresByWish(mResourceWish);
             if (!cores.isEmpty()) {
-              final IPAR_Core core = cores.get(0);
+              IPAR_Core core = null;
               try {
+                core = getBestCore( cores );
+                if (!bal.allocateWishToCore( core, mResourceWish )) {
+                  // **** Didn't work.... add it as queue
+                  core.allocate( mResourceWish, true );
+                }
                 result = (E)core.execute( mExec, mResourceWish );
               } catch( ExecutionException | RepositoryException | InterruptedException e ) {
                 e.printStackTrace();
               } finally {
-                core.release( mResourceWish.expectedLoad() );
+                if (core!=null) {
+                  core.release( mResourceWish );
+                }
+                // **** Release resourceWish
+                bal.resourceWishReady( mResourceWish );
               }
             } else {
               mExec.runnable().run();              

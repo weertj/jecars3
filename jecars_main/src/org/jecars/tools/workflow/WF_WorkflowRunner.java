@@ -23,6 +23,7 @@ import java.util.Calendar;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 import java.util.logging.Level;
 import javax.jcr.*;
 import org.jecars.CARS_Main;
@@ -1054,7 +1055,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
             ti.setStateRequest( CARS_ToolInterface.STATEREQUEST_START );
           }
           // **** Wait until ready
-          final Future<IWFP_InterfaceResult> futureres = ti.getFuture();
+          final Future futureres = ti.getFuture();
           res.replaceBy( (WFP_InterfaceResult)futureres.get() );
         }
 //  System.out.println("RUNTASK 5 time: " + System.currentTimeMillis() );

@@ -24,8 +24,10 @@ import javax.jcr.Session;
 import org.jecars.CARS_Definitions;
 import org.jecars.CARS_Factory;
 import org.jecars.CARS_Main;
+import org.jecars.par.IPAR_Balancer;
 import org.jecars.par.IPAR_Core;
 import org.jecars.par.IPAR_Execute;
+import org.jecars.par.IPAR_ResourceWish;
 import org.jecars.par.PAR_Balancer;
 
 /**
@@ -70,11 +72,13 @@ public class CARS_SystemsApp extends CARS_DefaultInterface {
           final String computername= inet.getHostName();
           if (!systems.hasNode( computername )) {
             Node cn = systems.addNode( computername, "jecars:RES_System" );
+            cn.addMixin( "jecars:mixin_unstructured" );
             cn.setProperty( "jecars:Title", computername );
             cn.addNode( "CPU", "jecars:RES_CPU" );
           }
           Node system = systems.getNode( computername );
           Node cpu    = system.getNode( "CPU" );
+          cpu.addMixin( "jecars:mixin_unstructured" );
           cpu.setProperty( "jecars:Title", "CPU" );
           system.setProperty( "jecars:MainMemory", Runtime.getRuntime().maxMemory() );
           for( int i=Runtime.getRuntime().availableProcessors()-1; i>=0; i-- ) {
@@ -90,28 +94,55 @@ public class CARS_SystemsApp extends CARS_DefaultInterface {
           appSession.save();
         }
       }
-    } else if (pParentNode.isNodeType( "jecars:RES_Core" )) {
-      // **** jecars:RES_Core
-      final Node cpu = pParentNode.getParent();
-      final Node sys = cpu.getParent();
-      final IPAR_Core core = PAR_Balancer.BALANCER().
-              system( sys.getProperty( "jecars:Title" ).getString() ).
-                cpu( cpu.getProperty( "jecars:Title" ).getString() ).
-                  core( pParentNode.getName() );
-      final Node stateNode = pParentNode.addNode( "Status", "jecars:unstructured" );
-      stateNode.setProperty( "jecars:State",          core.coreType().name() );
-      stateNode.setProperty( "jecars:CurrentRunning", core.currentRunning() );
-      stateNode.setProperty( "jecars:ReadyRunning",   core.readyRunning() );
-      stateNode.setProperty( "jecars:MaxLoad",        core.maxLoad() );
-      stateNode.setProperty( "jecars:CurrentLoad",    core.currentLoad() );
+    } else if (pParentNode.isNodeType( "jecars:RES_System" )) {
+      final Session appSession = CARS_Factory.getSystemApplicationSession();
+      synchronized( appSession ) {
 
-      // **** running Execs
-      for( Object o : core.runningExecs() ) {
-        IPAR_Execute exec = (IPAR_Execute)o;
-        final Node runNode = pParentNode.addNode( "RE_" + exec.id() );
-        runNode.setProperty( "jecars:ToolRun", exec.toolRun().name() );
-      }
-      
+        // ***********************************************************************
+        // **** jecars:RES_System
+        final IPAR_Balancer bal = PAR_Balancer.BALANCER();
+        for( IPAR_ResourceWish rw : bal.currentResources() ) {
+          Node rwn = pParentNode.addNode( rw.wishID(), "jecars:unstructured" );
+          rwn.setProperty( "jecars:ExpectedLoad",   rw.expectedLoad() );
+          rwn.setProperty( "jecars:MaxNumberOfRunsPerSystem", rw.maxNumberOfRunsPerSystem() );
+          rwn.setProperty( "jecars:NumberOfCores",  rw.numberOfCores() );
+          rwn.setProperty( "jecars:ResourceID",     rw.resourceID() );
+          rwn.setProperty( "jecars:System",         rw.system() );
+        }
+      }      
+    } else if (pParentNode.isNodeType( "jecars:RES_Core" )) {
+      final Session appSession = CARS_Factory.getSystemApplicationSession();
+      synchronized( appSession ) {
+
+        // ***********************************************************************
+        // **** jecars:RES_Core
+        final Node cpu = pParentNode.getParent();
+        final Node sys = cpu.getParent();
+        final IPAR_Core core = PAR_Balancer.BALANCER().
+                system( sys.getProperty( "jecars:Title" ).getString() ).
+                  cpu( cpu.getProperty( "jecars:Title" ).getString() ).
+                    core( pParentNode.getName() );
+        final Node stateNode = pParentNode.addNode( "Status", "jecars:unstructured" );
+        stateNode.setProperty( "jecars:State",          core.coreType().name() );
+        stateNode.setProperty( "jecars:CurrentRunning", core.currentRunning() );
+        stateNode.setProperty( "jecars:ReadyRunning",   core.readyRunning() );
+        stateNode.setProperty( "jecars:MaxLoad",        core.maxLoad() );
+        stateNode.setProperty( "jecars:CurrentLoad",    core.currentLoad() );
+
+        // **** queued Execs
+        for( Object o : core.queuedExecs() ) {
+          IPAR_Execute exec = (IPAR_Execute)o;
+          final Node runNode = pParentNode.addNode( "Queued_" + exec.id() );
+          runNode.setProperty( "jecars:ToolRun", exec.toolRun().name() );
+        }
+
+        // **** running Execs
+        for( Object o : core.runningExecs() ) {
+          IPAR_Execute exec = (IPAR_Execute)o;
+          final Node runNode = pParentNode.addNode( "Running_" + exec.id() );
+          runNode.setProperty( "jecars:ToolRun", exec.toolRun().name() );
+        }
+      }      
     }
     
     return;

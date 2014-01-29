@@ -29,6 +29,11 @@ public interface IPAR_Balancer {
   IPAR_System        system( final Node pNode ) throws RepositoryException;
   IPAR_System        system( final String pName ) throws RepositoryException;
  
-  List<IPAR_Core> coresByWish( final IPAR_ResourceWish pWish, final boolean pAllocate ) throws RepositoryException;
+  List<IPAR_Core>     coresByWish(        final IPAR_ResourceWish pWish ) throws RepositoryException;
+  IPAR_Balancer       resourceWishReady(  final IPAR_ResourceWish pWish );
 
+  List<IPAR_ResourceWish> currentResources();
+  boolean allocateWishToCore( final IPAR_Core pCore, final IPAR_ResourceWish pWish );
+
+      
 }

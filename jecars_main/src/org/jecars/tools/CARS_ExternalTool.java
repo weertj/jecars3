@@ -58,6 +58,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
   static final public int SAVEOUTPUTSPER = 30;
 
   static final public String WORKINGDIRECTORY               = "jecars:WorkingDirectory";
+  static final public String FIXEDWORKINGDIRECTORY          = "jecars:FixedWorkingDirectory";
   static final public String GENERATEUNIQUEWORKINGDIRECTORY = "jecars:GenerateUniqueWorkingDirectory";
 
   private final transient List<File> mPreRunFiles = new ArrayList<>();

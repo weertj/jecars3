@@ -50,7 +50,9 @@ import javax.jcr.Value;
 import nl.msd.jdots.JD_Taglist;
 import org.jecars.*;
 import org.jecars.jaas.CARS_Credentials;
+import org.jecars.par.IPAR_ResourceWish;
 import org.jecars.par.IPAR_ToolRun;
+import org.jecars.par.PAR_ResourceWish;
 import org.jecars.par.PAR_ToolRun;
 import static org.jecars.tools.CARS_ToolInterface.STATEREQUEST_START;
 import org.jecars.wfplugin.IWFP_InterfaceResult;
@@ -535,6 +537,19 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
     return mClosedExpireMinutes;
   }
   
+  /** getExpectedLoad
+   * 
+   * @return 
+   */
+  public double getExpectedLoad() {
+    try {
+      final Node cn = getConfigNode();
+      return cn.getProperty( "jecars:ExpectedLoad" ).getDouble();
+    } catch( Exception e ) {     
+    }
+    return 0;    
+  }
+  
   /** Move the tool to another leaf
    * @param pLeaf
    * @return The moved node
@@ -966,8 +981,10 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
     if (pStateRequest.equals(STATEREQUEST_START)) {
       if (isScheduledTool()) {
         LOG.info( "Running as scheduled executor: " + this );
-//        mScheduledFuture = gScheduledExecutorService.scheduleWithFixedDelay( new ToolRunnable(), getDelayInSecs(), getDelayInSecs(), TimeUnit.SECONDS );
-        mScheduledFuture = gScheduledExecutorService.scheduleWithFixedDelay( new PAR_ToolRun<>( getName(), new ToolRunnable() ), getDelayInSecs(), getDelayInSecs(), TimeUnit.SECONDS );
+        mScheduledFuture = gScheduledExecutorService.scheduleWithFixedDelay( new ToolRunnable(), getDelayInSecs(), getDelayInSecs(), TimeUnit.SECONDS );
+//        IPAR_ResourceWish resw = new PAR_ResourceWish().system("").numberOfCores(1).expectedLoad( getExpectedLoad() );
+//        mScheduledFuture = gScheduledExecutorService.scheduleWithFixedDelay(
+//                new PAR_ToolRun<>( getName(), new ToolRunnable(), resw ), getDelayInSecs(), getDelayInSecs(), TimeUnit.SECONDS );
       } else if (isSingleTool()) {
         LOG.info( "Running as single executor: " + this );
         mFuture = gSingleExecutorService.submit( new ToolRunnable() );
@@ -976,9 +993,13 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
         LOG.info( "Running as executor: " + this );
 // System.out.println("STATE REQUEST 3 " + System.currentTimeMillis());        
 //        mFuture = gExecutorService.submit( new ToolRunnable() );
-//        mFutureResult = gExecutorService.submit( new ToolCallable() );
-        IPAR_ToolRun<IWFP_InterfaceResult> toolrun = new PAR_ToolRun<>( getName(), new ToolCallable() );
-        mFutureResult = gExecutorService.submit( (Callable)toolrun );
+        mFutureResult = gExecutorService.submit( new ToolCallable() );
+//        IPAR_ResourceWish resw = new PAR_ResourceWish().system("").
+//                numberOfCores( 1 ).
+//                expectedLoad( getExpectedLoad() ).
+//                runOnCore( "Core_0" );
+//        IPAR_ToolRun<IWFP_InterfaceResult> toolrun = new PAR_ToolRun<>( getName(), new ToolCallable(), resw );
+//        mFutureResult = gExecutorService.submit( (Callable<IWFP_InterfaceResult>)toolrun );
 //        Thread thread = new Thread( new ToolRunnable() );
 //        thread.setPriority( getThreadPriority() );
 //        thread.setName( getTool().getPath() );
@@ -1716,7 +1737,7 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
     final Node ev = mToolNode.getNode( "jecars:Events" );
     Node en = ev.addNode( pType, "jecars:EventsFolder" );
     en.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
-    en.setProperty( "jecars:ExpireHourSEVERE", -1 );      // **** Events will be expired by the tool node
+    en.setProperty( "jecars:ExpireHour" + pType.substring( "jecars:Events".length() ), -1 );      // **** Events won't be expired by the tool node
     ev.save();
     return en;
   }
