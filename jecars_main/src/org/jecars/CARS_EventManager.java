@@ -85,7 +85,7 @@ public class CARS_EventManager {
   private Session           mSession = null;
   private int               mInUse   = 0;
 
-  static final private Object EVENTLOCK = new Object();
+  static final public Object EVENTLOCK = new Object();
   
   static private File              gEVENTLOGFILE  = new File( "jecars.log" );
   static final private Object       EVENTFILELOCK = new Object();

@@ -1746,6 +1746,7 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
    * @param pEvent The to be reported event
    */
   synchronized protected CARS_ToolInstanceEvent reportToInstanceListeners( CARS_ToolInstanceEvent pEvent ) {
+    synchronized( CARS_EventManager.EVENTLOCK ) {
     try {
       // **** Check for storing events
       final CARS_EventManager em = CARS_Factory.getEventManager();
@@ -1859,6 +1860,7 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
           ti.reports( pEvent );
         }
       }
+    }
     }
     return pEvent;
   }
