@@ -110,7 +110,9 @@ public class CARS_DirectoryApp extends CARS_DefaultInterface implements CARS_Int
               final Calendar c = Calendar.getInstance();
               if (mod.before(c)) c.setTime( mod.getTime() );
 //              n.setProperty( "jecars:Created",  c );
+              n.addMixin( "jecars:mixin_unstructured" );
               n.setProperty( "jecars:Modified", mod );
+              n.setProperty( "jecars:DirectoryURL", files[i].toURI().toURL().toExternalForm() );
               directoryConfigurationEvent( pMain.getLoginUser(), n, "update", "EXTERNAL ADDED DIRECTORY: " + n.getPath() );
             }
           } else {

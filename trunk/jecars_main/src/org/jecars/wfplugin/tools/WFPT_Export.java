@@ -20,6 +20,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -53,6 +55,7 @@ public class WFPT_Export implements IWFP_Interface {
   static public final String TOOLINSTANCENAME = "ToolInstanceName";
   static public final String DATAFILENAME = "DatafileName";
   static public final String EXPORTDIRECTORY = "ExportDirectory";
+  static public final String EXPORTJECARSPATH = "ExportJeCARSPath";
 
   /**
    * start
@@ -68,6 +71,7 @@ public class WFPT_Export implements IWFP_Interface {
       final Node   exportNode       = pContext.getParameterNodeValue(NODEFOREXPORT, pTool);
       final String toolType         = pContext.getParameterStringValue(TOOLTYPE);
       final String exportDirectory  = pContext.getParameterStringValue(EXPORTDIRECTORY);
+      final String exportJeCARSPath = pContext.getParameterStringValue(EXPORTJECARSPATH);
       final String toolInstanceName = pContext.getParameterStringValue(TOOLINSTANCENAME);
       final String dataFileName     = pContext.getParameterStringValue(DATAFILENAME);
       final String metaData         = pContext.getParameterStringValue(METADATADEF);
@@ -78,27 +82,30 @@ public class WFPT_Export implements IWFP_Interface {
       
       if (metaData==null) {
         // **** No meta data is set, use the value given a parameters
-        exportNode( pTool, exportNode, toolTypeValue, exportDirectory, toolInstanceNameValue, dataFileNameValue );
+        exportNode( pTool, exportNode, toolTypeValue, exportJeCARSPath, exportDirectory, toolInstanceNameValue, dataFileNameValue );
       } else {
         // **** Meta data is set... read the properties for the metadata node
+        final String exportPath = exportNode.getPath();
         final StringBuilder query = new StringBuilder( "SELECT * FROM jecars:inputresource WHERE " );
         query.append( " CONTAINS(*, '" ).append( metaData ).append( "')" );
         final Query q = exportNode.getSession().getWorkspace().getQueryManager().createQuery( query.toString(), Query.SQL );
         NodeIterator ni = q.execute().getNodes();
         while (ni.hasNext()) {
           Node metadataNode = ni.nextNode();
-          Node workflowNode = metadataNode.getParent();
-          if (workflowNode.isNodeType( "jecars:Workflow" )) {
-            toolTypeValue         = metadataNode.getProperty( toolType ).getString();
-            toolInstanceNameValue = metadataNode.getProperty( toolInstanceName ).getString();
-            dataFileNameValue     = metadataNode.getProperty( dataFileName ).getString();
-            exportNode( pTool, workflowNode, toolTypeValue, exportDirectory, toolInstanceNameValue, dataFileNameValue );
+          if (metadataNode.getPath().startsWith( exportPath )) {
+            Node workflowNode = metadataNode.getParent();
+            if (workflowNode.isNodeType( "jecars:Workflow" )) {
+              toolTypeValue         = metadataNode.getProperty( toolType ).getString();
+              toolInstanceNameValue = metadataNode.getProperty( toolInstanceName ).getString();
+              dataFileNameValue     = metadataNode.getProperty( dataFileName ).getString();
+              exportNode( pTool, workflowNode, toolTypeValue, exportJeCARSPath, exportDirectory, toolInstanceNameValue, dataFileNameValue );
+            }
           }
         }
 
       }
       
-    } catch (RepositoryException | IOException | WFP_Exception e) {
+    } catch (URISyntaxException | RepositoryException | IOException | WFP_Exception e) {
       pTool.reportException(Level.SEVERE, e);
       return WFP_InterfaceResult.ERROR().setError(e);
     }
@@ -106,7 +113,20 @@ public class WFPT_Export implements IWFP_Interface {
 
   }
 
-  public void exportNode( final IWFP_Tool pTool, Node pExportNode, String pToolType, String pExportDirectory, String pToolInstanceName, String pDataFileName) throws RepositoryException, IOException {
+  /** exportNode
+   * 
+   * @param pTool
+   * @param pExportNode
+   * @param pToolType
+   * @param pExportDirectory
+   * @param pToolInstanceName
+   * @param pDataFileName
+   * @throws RepositoryException
+   * @throws IOException 
+   */
+  public void exportNode( final IWFP_Tool pTool, Node pExportNode, String pToolType, String pExportJeCARSPath, String pExportDirectory, String pToolInstanceName, String pDataFileName) throws RepositoryException, IOException, URISyntaxException {
+
+    // **** Export to directory
     if ((pExportNode != null) && (pToolType != null) && (pExportDirectory != null) && (pToolInstanceName != null) && (pDataFileName != null)) {
       final List<Node> humanNodes = new ArrayList<>(128);
       final NodeIterator ni = pExportNode.getNodes();
@@ -119,6 +139,19 @@ public class WFPT_Export implements IWFP_Interface {
       File exportDir = new File( pExportDirectory, pToolType + "/" + pToolInstanceName + "/" + pDataFileName);
       pTool.reportMessage( Level.INFO, "Export " + pExportNode.getName() + " to " + exportDir.getAbsolutePath() );
       writeHumanNodes( exportDir, humanNodes);
+    }
+
+    // **** Export to JeCARS path
+    if ((pExportNode != null) && (pToolType != null) && (pExportJeCARSPath != null) && (pToolInstanceName != null) && (pDataFileName != null)) {
+      Node export = pExportNode.getSession().getNode( pExportJeCARSPath );
+      if (export.hasProperty( "jecars:DirectoryURL" )) {
+        URL url = new URL( export.getProperty( "jecars:DirectoryURL" ).getString() );
+        File f = new File( url.toURI() );
+        pTool.reportMessage( Level.INFO, "Export from JeCARS node " + export.getPath() );
+        exportNode( pTool, pExportNode, pToolType, null, f.getAbsolutePath(), pToolInstanceName, pDataFileName);
+      } else {
+        pTool.reportMessage( Level.WARNING, "Export URL not found " + export.getPath() );
+      }
     }
   }
 
