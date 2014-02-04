@@ -24,7 +24,7 @@ import java.util.logging.Logger;
  * @author weert
  * @param <E>
  */
-public class PAR_Execute<E> implements IPAR_Execute<E>, Comparable<Integer> {
+public class PAR_Execute<E> implements IPAR_Execute<E>, Comparable<E> {
   
   static private final Logger     LOG = Logger.getLogger(PAR_Execute.class.getName());  
   static private final AtomicLong COUNTER = new AtomicLong(1);
@@ -84,8 +84,11 @@ public class PAR_Execute<E> implements IPAR_Execute<E>, Comparable<Integer> {
   
   
   @Override
-  public int compareTo(Integer o) {
-    return mPriority.compareTo( o );
+  public int compareTo( E o ) {
+    if (o instanceof PAR_Execute) {
+      return mPriority.compareTo( ((PAR_Execute)o).mPriority );
+    }
+    throw new RuntimeException( "Unknown class type (cannot compare) " + o );
   }
   
 }

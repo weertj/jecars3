@@ -65,6 +65,8 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
 
   private final transient List<File> mInputs = new ArrayList<>();
 
+//  private final transient List<File> mResultFiles = new ArrayList<File>(16);
+  
   private transient File mWorkingDirectory = null;
 
   private transient long mToolStartTime = 0;
@@ -418,6 +420,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
 //  System.out.println("TOOL INPUT 1 " + System.currentTimeMillis());
     
     // **** Copy the config node to the current tool
+    Node rootToolConfig = null;
     if (!hasConfigNode()) {
       copyConfigNodeToTool( config );
       // **** Check for overuling config
@@ -425,30 +428,85 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
       if (rootTool!=null) {
         if (rootTool.hasNode( "jecars:Config" )) {
           config = getConfigNode();
-          Node rootToolConfig = rootTool.getNode( "jecars:Config" );
+          rootToolConfig = rootTool.getNode( "jecars:Config" );
           if (rootToolConfig.hasProperty( WORKINGDIRECTORY )) {
             config.setProperty( WORKINGDIRECTORY, rootToolConfig.getProperty( WORKINGDIRECTORY ).getString() );
           }
+          if (rootToolConfig.hasProperty( FIXEDWORKINGDIRECTORY )) {
+            config.setProperty( FIXEDWORKINGDIRECTORY, rootToolConfig.getProperty( FIXEDWORKINGDIRECTORY ).getString() );
+          }                    
         }
       }
     }
     config = getConfigNode();
-
-    if (config.hasProperty( WORKINGDIRECTORY )) {
+    
+    if (config.hasProperty( WORKINGDIRECTORY ) || (config.hasProperty( FIXEDWORKINGDIRECTORY ))) {
+      // **** Check for jecars:WorkingDirectory
 
       // ******************************
       // **** Get the working directory
-      mWorkingDirectory = new File( config.getProperty( WORKINGDIRECTORY ).getString() );
-      final boolean unique = "true".equals( config.getProperty( GENERATEUNIQUEWORKINGDIRECTORY ).getValue().getString());
-      if (unique) {
-        final long id = System.nanoTime();
-        getTool().setProperty( "jecars:Id", id );
-        mWorkingDirectory = new File( mWorkingDirectory, "wd_" + id );
-        if (!mWorkingDirectory.mkdirs()) {
-          throw new IOException( "Cannot create directory: " + mWorkingDirectory.getAbsolutePath() );
+      if (config.hasProperty( FIXEDWORKINGDIRECTORY )) {
+        // **** Get the fixed working directory (priority)
+        mWorkingDirectory = new File( config.getProperty( FIXEDWORKINGDIRECTORY ).getString() );
+        if (!mWorkingDirectory.exists()) {
+          if (!mWorkingDirectory.mkdirs()) {
+            throw new IOException( "Cannot create directory (Fixed): " + mWorkingDirectory.getAbsolutePath() );
+          }
+        }
+      } else {
+        // **** Get the working directory
+        mWorkingDirectory = new File( config.getProperty( WORKINGDIRECTORY ).getString() );
+        final boolean unique = "true".equals( config.getProperty( GENERATEUNIQUEWORKINGDIRECTORY ).getValue().getString());
+        if (unique) {
+          final long id = System.nanoTime();
+          getTool().setProperty( "jecars:Id", id );
+          mWorkingDirectory = new File( mWorkingDirectory, "wd_" + id );
+          if (!mWorkingDirectory.mkdirs()) {
+            throw new IOException( "Cannot create directory: " + mWorkingDirectory.getAbsolutePath() );
+          }
         }
       }
 
+      
+/*
+      // *************************************************************************
+      // **** Check for result file entries
+      {
+        final NodeIterator ni = config.getNodes();
+        int currentrsn = 0;
+        while( ni.hasNext() ) {
+          final Node rsn = ni.nextNode();
+          if (("ResultFile_" + currentrsn).equals( rsn.getName())) {
+            if (rsn.hasProperty( "jecars:File" )) {
+              File f = new File( rsn.getProperty( "jecars:File" ).getString() );
+              if (!f.isAbsolute()) {
+                f = new File( mWorkingDirectory, f.getPath() );
+              }
+              mResultFiles.add( f );
+            }
+          }
+        }
+      }
+      if (rootToolConfig!=null) {
+        final NodeIterator ni = rootToolConfig.getNodes();
+        int currentrsn = 0;
+        while( ni.hasNext() ) {
+          final Node rsn = ni.nextNode();
+          if (("ResultFile_" + currentrsn).equals( rsn.getName())) {
+            if (rsn.hasProperty( "jecars:File" )) {
+              File f = new File( rsn.getProperty( "jecars:File" ).getString() );
+              if (!f.isAbsolute()) {
+                f = new File( mWorkingDirectory, f.getPath() );
+              }
+              mResultFiles.add( f );
+            }
+          }
+        }
+      }
+*/
+      
+      
+      
       // **** Check to copied supporting files in the config node
       if ((config.hasNode( "WorkDirectory" )) && (config.getNode( "WorkDirectory" ).hasNodes())) {
         copyNodeToDirectory( config.getNode( "WorkDirectory" ), mWorkingDirectory );
@@ -461,14 +519,6 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
       int i = 1;
       for( final InputStream inputStream : inputs ) {
         processInputDataStream( inputStream, i );
-//        final File inputF = new File( mWorkingDirectory, "input" + i + ".txt" );
-//        final FileOutputStream fos = new FileOutputStream( inputF );
-//        try {
-//          CARS_Utils.sendInputStreamToOutputStream( 50000, inputStream, fos );
-//          mInputs.add( inputF );
-//        } finally {
-//          fos.close();
-//        }
         i++;
       }
 
@@ -484,13 +534,13 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
               final NodeIterator ni = linkedNode.getNodes();              
               while (ni.hasNext()) {
                 final Node nextNode = ni.nextNode();
-                CARS_Utils.copyInputResourceToDirectory( nextNode, mWorkingDirectory );
+                CARS_Utils.copyInputResourceToDirectory( nextNode, mWorkingDirectory, true );
 //                copyInputResourceToWorkingDir(nextNode);
                 final File inputResFile = new File( mWorkingDirectory, nextNode.getName() );
                 copiedInputs.put( nextNode.getName(), inputResFile );          
               }
             } else {
-              CARS_Utils.copyInputResourceToDirectory( linkedNode, mWorkingDirectory );
+              CARS_Utils.copyInputResourceToDirectory( linkedNode, mWorkingDirectory, true );
 //             copyInputResourceToWorkingDir(linkedNode);
               final File inputResFile = new File( mWorkingDirectory, linkedNode.getName() );
               copiedInputs.put( linkedNode.getName(), inputResFile );
@@ -601,6 +651,29 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
       mPreRunFiles.add( file );
     }
 
+/*
+    boolean recalculate = false;
+    
+    // **** Check for result files   
+    if (mResultFiles.isEmpty()) {
+      recalculate = true;
+    } else {      
+      // **** Result files will be checked, if of the result file one or more files
+      // **** aren't available the tool must recalculate again
+      for( final File resultFile : mResultFiles ) {
+        if (!resultFile.exists()) {
+          recalculate = true;
+        }
+      }
+    }
+
+    if (!recalculate) {
+      reportStatusMessage( "No need to starting tool " + getTool().getPath() + " result is still available" );
+      super.toolRun();
+      return;
+    }
+*/
+    
 //    System.out.println("TOOL RUN 2 " + System.currentTimeMillis());
 
     final Node config = getConfigNode();

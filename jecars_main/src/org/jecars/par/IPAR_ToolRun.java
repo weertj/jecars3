@@ -25,5 +25,7 @@ import java.util.concurrent.Callable;
 public interface IPAR_ToolRun<E> extends Runnable, Callable<E> {
 
   String name();
+
+  IPAR_ResourceWish resourceWish();
   
 }

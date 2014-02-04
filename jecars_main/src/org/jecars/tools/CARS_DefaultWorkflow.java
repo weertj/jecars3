@@ -242,7 +242,7 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
                 results.add( ir );
               }
             }
-          }
+            }
 //          Thread.sleep( 100 );      
 //          Thread.sleep( 2000 );      
         } while( !currentRunners.isEmpty() );
@@ -390,10 +390,10 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
           while( (res=mRunner.singleStep()).hasState( WFP_InterfaceResult.STATE.OK ) ) {
             if (mRunner.getCurrentLink().isNULL()) {
               currentSource = mRunner.getCurrentTask().toString();
-              System.out.println("Child TASK wrun: " + currentSource );
+//              System.out.println("Child TASK wrun: " + currentSource );
             } else {
               currentSource = mRunner.getCurrentLink().toString();            
-              System.out.println("Child LINK wrun: " + currentSource );
+//              System.out.println("Child LINK wrun: " + currentSource );
             }
             if (STATE_PAUSED.equals( getState() )) {
               mRunner.setState( STATE_OPEN_RUNNING + STATE_PAUSED );

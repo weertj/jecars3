@@ -99,10 +99,25 @@ public class PAR_ToolRun<E> implements IPAR_ToolRun<E> {
     return;    
   }
 
+  /** name
+   * 
+   * @return 
+   */
   @Override
   public String name() {
     return mName;
   }
+
+  /** resourceWish
+   * 
+   * @return 
+   */
+  @Override
+  public IPAR_ResourceWish resourceWish() {
+    return mResourceWish;
+  }
+
+  
   
   /**
    * run
@@ -198,7 +213,7 @@ public class PAR_ToolRun<E> implements IPAR_ToolRun<E> {
                   core.allocate( mResourceWish, true );
                 }
                 result = (E)core.execute( mExec, mResourceWish );
-              } catch( ExecutionException | RepositoryException | InterruptedException e ) {
+              } catch( Throwable e ) {
                 e.printStackTrace();
               } finally {
                 if (core!=null) {
@@ -208,10 +223,10 @@ public class PAR_ToolRun<E> implements IPAR_ToolRun<E> {
                 bal.resourceWishReady( mResourceWish );
               }
             } else {
-              mExec.runnable().run();              
+              result = mExec.callable().call();              
             }
           } catch (RepositoryException re) {
-            mExec.runnable().run();
+            result = mExec.callable().call();
           }
         }
     }

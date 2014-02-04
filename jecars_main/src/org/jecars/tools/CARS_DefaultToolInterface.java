@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2011 NLR - National Aerospace Laboratory
+ * Copyright 2007-2014 NLR - National Aerospace Laboratory
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -536,6 +536,42 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
     }
     return mClosedExpireMinutes;
   }
+
+  public String runOnSystem() {
+    try {
+      final Node cn = getConfigNode();
+      return cn.getProperty( "jecars:RunOnSystem" ).getString();
+    } catch( Exception e ) {     
+    }
+    return ".*";    
+  }
+
+  public String runOnCPU() {
+    try {
+      final Node cn = getConfigNode();
+      return cn.getProperty( "jecars:RunOnCPU" ).getString();
+    } catch( Exception e ) {     
+    }
+    return ".*";    
+  }
+
+  public String runOnCore() {
+    try {
+      final Node cn = getConfigNode();
+      return cn.getProperty( "jecars:RunOnCore" ).getString();
+    } catch( Exception e ) {     
+    }
+    return ".*";
+  }
+
+  public long getUsesNumberOfCores() {
+    try {
+      final Node cn = getConfigNode();
+      return cn.getProperty( "jecars:UsesNumberOfCores" ).getLong();
+    } catch( Exception e ) {     
+    }
+    return 1;    
+  }
   
   /** getExpectedLoad
    * 
@@ -981,10 +1017,15 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
     if (pStateRequest.equals(STATEREQUEST_START)) {
       if (isScheduledTool()) {
         LOG.info( "Running as scheduled executor: " + this );
-        mScheduledFuture = gScheduledExecutorService.scheduleWithFixedDelay( new ToolRunnable(), getDelayInSecs(), getDelayInSecs(), TimeUnit.SECONDS );
-//        IPAR_ResourceWish resw = new PAR_ResourceWish().system("").numberOfCores(1).expectedLoad( getExpectedLoad() );
-//        mScheduledFuture = gScheduledExecutorService.scheduleWithFixedDelay(
-//                new PAR_ToolRun<>( getName(), new ToolRunnable(), resw ), getDelayInSecs(), getDelayInSecs(), TimeUnit.SECONDS );
+//        mScheduledFuture = gScheduledExecutorService.scheduleWithFixedDelay( new ToolRunnable(), getDelayInSecs(), getDelayInSecs(), TimeUnit.SECONDS );
+        IPAR_ResourceWish resw = new PAR_ResourceWish().
+                runOnSystem(runOnSystem()).
+                runOnCPU(runOnCPU()).
+                runOnCore(runOnCore()).
+                numberOfCores((int) getUsesNumberOfCores()).
+                expectedLoad(getExpectedLoad());
+        mScheduledFuture = gScheduledExecutorService.scheduleWithFixedDelay(
+                new PAR_ToolRun<>( getName(), new ToolRunnable(), resw ), getDelayInSecs(), getDelayInSecs(), TimeUnit.SECONDS );
       } else if (isSingleTool()) {
         LOG.info( "Running as single executor: " + this );
         mFuture = gSingleExecutorService.submit( new ToolRunnable() );
@@ -993,13 +1034,15 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
         LOG.info( "Running as executor: " + this );
 // System.out.println("STATE REQUEST 3 " + System.currentTimeMillis());        
 //        mFuture = gExecutorService.submit( new ToolRunnable() );
-        mFutureResult = gExecutorService.submit( new ToolCallable() );
-//        IPAR_ResourceWish resw = new PAR_ResourceWish().system("").
-//                numberOfCores( 1 ).
-//                expectedLoad( getExpectedLoad() ).
-//                runOnCore( "Core_0" );
-//        IPAR_ToolRun<IWFP_InterfaceResult> toolrun = new PAR_ToolRun<>( getName(), new ToolCallable(), resw );
-//        mFutureResult = gExecutorService.submit( (Callable<IWFP_InterfaceResult>)toolrun );
+//        mFutureResult = gExecutorService.submit( new ToolCallable() );
+        IPAR_ResourceWish resw = new PAR_ResourceWish().
+                runOnSystem( runOnSystem() ).
+                runOnCPU( runOnCPU() ).
+                runOnCore( runOnCore() ).
+                numberOfCores( (int)getUsesNumberOfCores() ).
+                expectedLoad( getExpectedLoad() );
+        IPAR_ToolRun<IWFP_InterfaceResult> toolrun = new PAR_ToolRun<>( getName(), new ToolCallable(), resw );
+        mFutureResult = gExecutorService.submit( (Callable<IWFP_InterfaceResult>)toolrun );
 //        Thread thread = new Thread( new ToolRunnable() );
 //        thread.setPriority( getThreadPriority() );
 //        thread.setName( getTool().getPath() );

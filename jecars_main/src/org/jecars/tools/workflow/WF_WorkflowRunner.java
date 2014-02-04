@@ -294,7 +294,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
         setState( state );
         save();
       }
-   System.out.println("single step 2 " + getNode().getPath() + " time: " + System.currentTimeMillis() );
+//   System.out.println("single step 2 " + getNode().getPath() + " time: " + System.currentTimeMillis() );
       return res;
     }
   }
@@ -1057,7 +1057,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
           // **** Wait until ready
           final Future futureres = ti.getFuture();
           res.replaceBy( (WFP_InterfaceResult)futureres.get() );
-        }
+          }
 //  System.out.println("RUNTASK 5 time: " + System.currentTimeMillis() );
         
         // **** Empty context        
