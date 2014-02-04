@@ -612,16 +612,29 @@ public class CARS_Utils {
     return path;
   }
 
-  
   /** copyInputResourceToDirectory
    * 
    * @param pLinkedNode
    * @param pDirectory
+   * @return
    * @throws IOException
    * @throws IllegalStateException
    * @throws RepositoryException 
    */
   static public File copyInputResourceToDirectory( final Node pLinkedNode, final File pDirectory ) throws IOException, IllegalStateException, RepositoryException {
+    return copyInputResourceToDirectory( pLinkedNode, pDirectory, false );
+  }
+  
+  /** copyInputResourceToDirectory
+   * 
+   * @param pLinkedNode
+   * @param pDirectory
+   * @param pOverwrite
+   * @throws IOException
+   * @throws IllegalStateException
+   * @throws RepositoryException 
+   */
+  static public File copyInputResourceToDirectory( final Node pLinkedNode, final File pDirectory, final boolean pOverwrite ) throws IOException, IllegalStateException, RepositoryException {
       File    inputResFile = null;
       File      sourceFile = null;
       Binary           bin = null;
@@ -649,11 +662,19 @@ public class CARS_Utils {
             if (is==null) {
               // **** No contents
             } else {
+              if (pOverwrite && inputResFile.exists()) {
+                inputResFile.delete();
+              }
               fos = new FileOutputStream(inputResFile);
               sendInputStreamToOutputStream(50000, is, fos);
             }
           } else {
-            sendInputToOutputNIOBuffer(sourceFile, inputResFile);
+            if (!sourceFile.equals(inputResFile)) {
+              if (pOverwrite && inputResFile.exists()) {
+                inputResFile.delete();
+              }            
+              sendInputToOutputNIOBuffer(sourceFile, inputResFile);
+            }
           }
         }
       } finally {

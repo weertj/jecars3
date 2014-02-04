@@ -107,7 +107,9 @@ public class CARS_SystemsApp extends CARS_DefaultInterface {
           rwn.setProperty( "jecars:MaxNumberOfRunsPerSystem", rw.maxNumberOfRunsPerSystem() );
           rwn.setProperty( "jecars:NumberOfCores",  rw.numberOfCores() );
           rwn.setProperty( "jecars:ResourceID",     rw.resourceID() );
-          rwn.setProperty( "jecars:System",         rw.system() );
+          rwn.setProperty( "jecars:RunOnSystem",    rw.runOnSystem() );
+          rwn.setProperty( "jecars:RunOnCPU",       rw.runOnCPU() );
+          rwn.setProperty( "jecars:RunOnCore",      rw.runOnCore() );
         }
       }      
     } else if (pParentNode.isNodeType( "jecars:RES_Core" )) {
@@ -134,6 +136,14 @@ public class CARS_SystemsApp extends CARS_DefaultInterface {
           IPAR_Execute exec = (IPAR_Execute)o;
           final Node runNode = pParentNode.addNode( "Queued_" + exec.id() );
           runNode.setProperty( "jecars:ToolRun", exec.toolRun().name() );
+          final IPAR_ResourceWish rw = exec.toolRun().resourceWish();
+          runNode.setProperty( "jecars:ExpectedLoad",   rw.expectedLoad() );
+          runNode.setProperty( "jecars:MaxNumberOfRunsPerSystem", rw.maxNumberOfRunsPerSystem() );
+          runNode.setProperty( "jecars:NumberOfCores",  rw.numberOfCores() );
+          runNode.setProperty( "jecars:ResourceID",     rw.resourceID() );
+          runNode.setProperty( "jecars:RunOnSystem",    rw.runOnSystem() );
+          runNode.setProperty( "jecars:RunOnCPU",       rw.runOnCPU() );
+          runNode.setProperty( "jecars:RunOnCore",      rw.runOnCore() );
         }
 
         // **** running Execs
@@ -141,6 +151,14 @@ public class CARS_SystemsApp extends CARS_DefaultInterface {
           IPAR_Execute exec = (IPAR_Execute)o;
           final Node runNode = pParentNode.addNode( "Running_" + exec.id() );
           runNode.setProperty( "jecars:ToolRun", exec.toolRun().name() );
+          final IPAR_ResourceWish rw = exec.toolRun().resourceWish();
+          runNode.setProperty( "jecars:ExpectedLoad",   rw.expectedLoad() );
+          runNode.setProperty( "jecars:MaxNumberOfRunsPerSystem", rw.maxNumberOfRunsPerSystem() );
+          runNode.setProperty( "jecars:NumberOfCores",  rw.numberOfCores() );
+          runNode.setProperty( "jecars:ResourceID",     rw.resourceID() );
+          runNode.setProperty( "jecars:RunOnSystem",    rw.runOnSystem() );
+          runNode.setProperty( "jecars:RunOnCPU",       rw.runOnCPU() );
+          runNode.setProperty( "jecars:RunOnCore",      rw.runOnCore() );
         }
       }      
     }

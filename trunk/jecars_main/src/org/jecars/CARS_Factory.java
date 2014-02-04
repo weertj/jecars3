@@ -76,6 +76,7 @@ abstract public class CARS_Factory {
   static private   Object               gServletContext           = null;
   static final private Calendar         gStartTime                = Calendar.getInstance();
   static private   boolean              gEnableFET                = true;
+  static private   boolean              gEnableFETLogging         = true;
   
   /** Creates a new instance of CARS_Factory */
   @SuppressWarnings("LeakingThisInConstructor")
@@ -608,7 +609,7 @@ abstract public class CARS_Factory {
       pContext.setAction( CARS_ActionContext.gDefActionGET );
       main = createMain( pContext );
       pContext.setMain( main );
-      if ((fet==null) || (fet.indexOf( "READ" )==-1)) {
+      if (gEnableFETLogging && ((fet==null) || (fet.indexOf( "READ" )==-1))) {
         if (pContext.getQueryString()==null) {
           gEventManager.addEventThreaded( main, main.getLoginUser(), null, null, "URL", "READ",
                 "HEAD " + pContext.getPathInfo() );
@@ -670,7 +671,7 @@ abstract public class CARS_Factory {
         main = createMain( pContext );
         pContext.setMain( main );
       }
-      if ((fet==null) || (fet.indexOf( "READ" )==-1)) {
+      if (gEnableFETLogging && ((fet==null) || (fet.indexOf( "READ" )==-1))) {
         if (pContext.getQueryString()==null) {
           gEventManager.addEventThreaded( main, main.getLoginUser(), null, null, "URL", "READ",
                 "GET " + pContext.getPathInfo() );
@@ -735,7 +736,7 @@ abstract public class CARS_Factory {
       main = createMain( pContext );      
       pContext.setMain( main );
       final String pathinfo = pContext.getPathInfo();
-      if ((fet==null) || (fet.indexOf( "WRITE" )==-1)) {
+      if (gEnableFETLogging && ((fet==null) || (fet.indexOf( "WRITE" )==-1))) {
         gEventManager.addEventThreaded( main, main.getLoginUser(), null, null, "URL", "WRITE", "POST " + pathinfo );
       }
       if (pathinfo.lastIndexOf( '/' )==-1) {
@@ -807,7 +808,7 @@ abstract public class CARS_Factory {
         pContext.setMain( main );
       }
       final String pathinfo = pContext.getPathInfo();
-      if ((fet==null) || (fet.indexOf( "WRITE" )==-1)) {
+      if (gEnableFETLogging && ((fet==null) || (fet.indexOf( "WRITE" )==-1))) {
         gEventManager.addEventThreaded( main, main.getLoginUser(), null, null, "URL", "WRITE", "PUT " + pathinfo );
       }
       if (pathinfo.lastIndexOf( '/' )!=-1) {
@@ -863,7 +864,9 @@ abstract public class CARS_Factory {
       main = createMain( pContext );      
       pContext.setMain( main );
       String pathinfo = pContext.getPathInfo();
-      gEventManager.addEventThreaded( main, main.getLoginUser(), null, null, "URL", "DELETE", "DELETE " + pathinfo );
+      if (gEnableFETLogging) {
+        gEventManager.addEventThreaded( main, main.getLoginUser(), null, null, "URL", "DELETE", "DELETE " + pathinfo );
+      }
       if (pathinfo.lastIndexOf( '/' )!=-1) {
         // **** Store the given parameters
         JD_Taglist paramsTL = pContext.getQueryPartsAsTaglist();

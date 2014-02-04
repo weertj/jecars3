@@ -82,8 +82,9 @@ public class CARS_EventManager {
   static final public String EVENTTYPE_FINER    = "FINER";
   static final public String EVENTTYPE_FINEST   = "FINEST";
   
-  private Session           mSession = null;
-  private int               mInUse   = 0;
+  static private Session           mSession = null;
+  static private Session           mSessionThreadedEvent = null;
+  static private int               mInUse   = 0;
 
   static final public Object EVENTLOCK = new Object();
   
@@ -188,7 +189,7 @@ public class CARS_EventManager {
     mInUse++;
     return mSession;
   }
-  
+
   /** addEventReference
    * 
    * @param pEvent

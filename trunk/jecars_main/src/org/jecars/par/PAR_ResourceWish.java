@@ -27,7 +27,7 @@ public class PAR_ResourceWish implements IPAR_ResourceWish {
   
   private final String          mWishID;
   private       EPAR_SystemType mSystemType = EPAR_SystemType.LOCAL;
-  private       String          mSystem = "localhost";
+//  private       String          mSystem = "localhost";
   private       int             mNumberOfCores = 1;
   private       double          mExpectedLoad = 1;
   private       int             mMaxNumberOfRunsPerSystem = -1;
@@ -120,17 +120,17 @@ public class PAR_ResourceWish implements IPAR_ResourceWish {
   }
   
   
-  @Override
-  public IPAR_ResourceWish system( final String pSystem ) {
-    mSystem = pSystem;
-    return this;
-  }
-
-  @Override
-  public String system() {
-    return mSystem;
-  }
-
+//  @Override
+//  public IPAR_ResourceWish system( final String pSystem ) {
+//    mSystem = pSystem;
+//    return this;
+//  }
+//
+//  @Override
+//  public String system() {
+//    return mSystem;
+//  }
+//
   @Override
   public EPAR_SystemType systemType() {
     return mSystemType;

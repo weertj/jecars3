@@ -34,8 +34,8 @@ public interface IPAR_ResourceWish {
   IPAR_ResourceWish runOnCore( String pS );
   int               numberOfCores();
   IPAR_ResourceWish numberOfCores( int pNumberOfCores );
-  IPAR_ResourceWish system( final String pSystem );
-  String            system();
+//  IPAR_ResourceWish system( final String pSystem );
+//  String            system();
   IPAR_ResourceWish systemType( EPAR_SystemType pST );
   EPAR_SystemType   systemType();
   IPAR_ResourceWish expectedLoad( double pL );

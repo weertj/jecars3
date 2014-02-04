@@ -35,7 +35,7 @@ import org.jecars.tools.CARS_ThreadFactory;
 public class PAR_Core<E> extends PAR_DefaultNode implements IPAR_Core<E> {
    
   private       EPAR_CoreType           mCoreType = EPAR_CoreType.UNKNOWN;
-  private final List<IPAR_ResourceWish> mExecWishes = new ArrayList<IPAR_ResourceWish>(16);
+  private final List<IPAR_ResourceWish> mExecWishes = new ArrayList<>(16);
   private final Queue<IPAR_Execute<E>>  mExecQueue = new PriorityBlockingQueue<>();
   private final List<IPAR_Execute<E>>   mExecRunning = new ArrayList<>(16);
   private final AtomicInteger           mCurrentRunning = new AtomicInteger(0);
@@ -143,57 +143,78 @@ public class PAR_Core<E> extends PAR_DefaultNode implements IPAR_Core<E> {
   public E execute( final IPAR_Execute<E> pExec, final IPAR_ResourceWish pWish ) throws InterruptedException, RepositoryException, ExecutionException {
     E result = null;
     mExecQueue.add( pExec );
-    while( mExecQueue.peek()!=pExec || (mCurrentLoad>=1) ) {
-      if (mExecWishes.contains(pWish)) {
+    IPAR_Execute<E> runExec = null;
+    while( ((runExec = mExecQueue.poll())!=pExec) || (mCurrentLoad>=1) ) {      
+      mExecQueue.offer( runExec );
+      if (mExecWishes.contains(pWish) || mCurrentLoad<=0) {
         // **** Our wish was granted....start
+        runExec = pExec;
+        mExecQueue.remove( pExec );
         break;
       }
-      Thread.sleep( 2000 );
-      System.out.println("Peeking on " + mExecQueue.size() + " - " + mExecWishes.size() );
+      synchronized( mExecRunning ) {
+      System.out.println("Start Peeking on " + mExecQueue.size() + " - " + mExecWishes.size() + " load: " + mCurrentLoad );
+        mExecRunning.wait( 2000 );
+      }
     }
+    // **** Add the wish which is being executed, (if not already there)
     if (!mExecWishes.contains( pWish )) {
       mExecWishes.add( pWish );
     }
-    final IPAR_Execute<E> exec;
-    synchronized( mExecQueue ) {
-      exec = mExecQueue.poll();
-    }
+//    final IPAR_Execute<E> exec;
+//    synchronized( mExecQueue ) {
+//      exec = mExecQueue.poll();
+//    }
     // *************************************************************************
     // **** Check for runnable
-    if (exec.runnable()!=null) {
+    if (runExec.runnable()!=null) {
       try {
-      System.out.println("Running on " + node().getPath() + " -> " + exec.toolRun().name() );
+      System.out.println("Running on " + node().getPath() + " -> " + runExec.toolRun().name() );
       } catch( RepositoryException e ) {
         e.printStackTrace();
       }
       synchronized( CORELOCK ) {
         mCurrentRunning.incrementAndGet();
-        mExecRunning.add( exec );
+        mExecRunning.add( runExec );
       }
-      executorService().submit( exec.runnable() ).get();
-      synchronized( CORELOCK ) {
-        mExecRunning.remove( exec );
-        mCurrentRunning.decrementAndGet();
-        mReadyRunning.incrementAndGet();
+      try {
+        executorService().submit( runExec.runnable() ).get();
+      } finally {
+        synchronized( mExecRunning ) {
+          mExecRunning.notify();
+        }
+        synchronized( CORELOCK ) {
+          mExecRunning.remove( runExec );
+          mCurrentRunning.decrementAndGet();
+          mReadyRunning.incrementAndGet();
+        }
       }
     }
     // *************************************************************************
     // **** Check for callable
-    if (exec.callable()!=null) {
+    if (runExec.callable()!=null) {
       try {
-      System.out.println("Running (call) on " + node().getPath() + " -> " + exec.toolRun().name() );
+      System.out.println("Running (call) on " + node().getPath() + " -> " + runExec.toolRun().name() );
       } catch( RepositoryException e ) {
         e.printStackTrace();
       }
       synchronized( CORELOCK ) {
         mCurrentRunning.incrementAndGet();
-        mExecRunning.add( exec );
+        mExecRunning.add( runExec );
       }
-      result = (E)executorService().submit( exec.callable() ).get();
-      synchronized( CORELOCK ) {
-        mExecRunning.remove( exec );
-        mCurrentRunning.decrementAndGet();
-        mReadyRunning.incrementAndGet();
+      try {
+        System.out.println("START RUNNING " + runExec.id() );
+        result = executorService().submit( runExec.callable() ).get();
+        System.out.println("END RUNNING " + runExec.id() );
+      } finally {
+        synchronized( mExecRunning ) {
+          mExecRunning.notify();
+        }
+        synchronized( CORELOCK ) {
+          mExecRunning.remove( runExec );
+          mCurrentRunning.decrementAndGet();
+          mReadyRunning.incrementAndGet();
+        }
       }
     }
     return result;
