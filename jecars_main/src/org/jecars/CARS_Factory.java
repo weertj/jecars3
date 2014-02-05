@@ -72,7 +72,9 @@ abstract public class CARS_Factory {
   static protected Session              gSystemApplicationSession = null;
   static protected Session              gSystemToolSession        = null;
   static protected Session              gObservationSession       = null;
+  @Deprecated
   static protected CARS_EventManager    gEventManager             = null;
+  static protected ICARS_EventService   gEventService             = null;
   static private   Object               gServletContext           = null;
   static final private Calendar         gStartTime                = Calendar.getInstance();
   static private   boolean              gEnableFET                = true;
@@ -211,7 +213,15 @@ abstract public class CARS_Factory {
     }      
   }
 
+  /** getEventService
+   * 
+   * @return 
+   */
+  static public ICARS_EventService getEventService() {
+    return gEventService;
+  }
   
+  @Deprecated
   static public CARS_EventManager getEventManager() {
     return gEventManager;
   }
@@ -611,11 +621,15 @@ abstract public class CARS_Factory {
       pContext.setMain( main );
       if (gEnableFETLogging && ((fet==null) || (fet.indexOf( "READ" )==-1))) {
         if (pContext.getQueryString()==null) {
-          gEventManager.addEventThreaded( main, main.getLoginUser(), null, null, "URL", "READ",
-                "HEAD " + pContext.getPathInfo() );
+          gEventService.offer( new CARS_Event( main, null, null, "URL", "READ", null,
+                "HEAD " + pContext.getPathInfo(), null ) );
+//          gEventManager.addEventThreaded( main, main.getLoginUser(), null, null, "URL", "READ",
+//                "HEAD " + pContext.getPathInfo() );
         } else {
-          gEventManager.addEventThreaded( main, main.getLoginUser(), null, null, "URL", "READ",
-                "HEAD " + pContext.getPathInfo() + "?" + CARS_ActionContext.untransportString(pContext.getQueryString())  );
+          gEventService.offer( new CARS_Event( main, null, null, "URL", "READ", null,
+                "HEAD " + pContext.getPathInfo() + "?" + CARS_ActionContext.untransportString(pContext.getQueryString()), null ) );
+//          gEventManager.addEventThreaded( main, main.getLoginUser(), null, null, "URL", "READ",
+//                "HEAD " + pContext.getPathInfo() + "?" + CARS_ActionContext.untransportString(pContext.getQueryString())  );
         }
       }
       Node cnode = main.getNode( pContext.getPathInfo(), null, true );
@@ -629,16 +643,19 @@ abstract public class CARS_Factory {
     } catch (AccessDeniedException ade) {
       // TODO
 //      gEventManager.addException( main.getLoginUser(), main.getCurrentViewNode(), null, "SYS", "READ", ade, pContext.getPathInfo() );
-      gEventManager.addException( main, null, null, null, "SYS", "LOGIN", ade, pContext.getPathInfo() );
+//      gEventManager.addException( main, null, null, null, "SYS", "LOGIN", ade, pContext.getPathInfo() );
+      gEventService.offer( new CARS_Event( main, null, "SYS", "LOGIN", pContext, null ) );
       throw ade;
     } catch (PathNotFoundException pnfe) {
-      gEventManager.addException( main, main.getLoginUser(), main.getCurrentViewNode(), null, "SYS", "READ", pnfe, pContext.getPathInfo() );
+//      gEventManager.addException( main, main.getLoginUser(), main.getCurrentViewNode(), null, "SYS", "READ", pnfe, pContext.getPathInfo() );
       pContext.setErrorCode( HttpURLConnection.HTTP_NOT_FOUND );
       pContext.setError( pnfe );
+      gEventService.offer( new CARS_Event( main, null, "SYS", "READ", pContext, null ));
     } catch (Exception e) {
-      gEventManager.addException( main, main.getLoginUser(), main.getCurrentViewNode(), null, "SYS", "READ", e, null );
+//      gEventManager.addException( main, main.getLoginUser(), main.getCurrentViewNode(), null, "SYS", "READ", e, null );
       pContext.setErrorCode( HttpURLConnection.HTTP_INTERNAL_ERROR );
       pContext.setError( e );
+      gEventService.offer( new CARS_Event( main, null, "SYS", "READ", pContext, null ));
 //    } finally {
     }
     return;
@@ -673,11 +690,14 @@ abstract public class CARS_Factory {
       }
       if (gEnableFETLogging && ((fet==null) || (fet.indexOf( "READ" )==-1))) {
         if (pContext.getQueryString()==null) {
-          gEventManager.addEventThreaded( main, main.getLoginUser(), null, null, "URL", "READ",
-                "GET " + pContext.getPathInfo() );
+          gEventService.offer( new CARS_Event( main, null, null, "URL", "READ", null, "GET " + pContext.getPathInfo(), null ) );
+//          gEventManager.addEventThreaded( main, main.getLoginUser(), null, null, "URL", "READ",
+//                "GET " + pContext.getPathInfo() );
         } else {
-          gEventManager.addEventThreaded( main, main.getLoginUser(), null, null, "URL", "READ",
-                "GET " + pContext.getPathInfo() + "?" + CARS_ActionContext.untransportString(pContext.getQueryString())  );
+          gEventService.offer( new CARS_Event( main, null, null, "URL", "READ", null,
+                "GET " + pContext.getPathInfo() + "?" + CARS_ActionContext.untransportString(pContext.getQueryString()), null ) );
+//          gEventManager.addEventThreaded( main, main.getLoginUser(), null, null, "URL", "READ",
+//                "GET " + pContext.getPathInfo() + "?" + CARS_ActionContext.untransportString(pContext.getQueryString())  );
         }
       }
       pContext.setCanBeCachedResult( pContext.getQueryString()==null );
@@ -696,12 +716,14 @@ abstract public class CARS_Factory {
     } catch (AccessDeniedException ade) {
       // TODO
 //      gEventManager.addException( main.getLoginUser(), main.getCurrentViewNode(), null, "SYS", "READ", ade, pContext.getPathInfo() );
-      gEventManager.addException( main, null, null, null, "SYS", "LOGIN", ade, pContext.getPathInfo() );
+//      gEventManager.addException( main, null, null, null, "SYS", "LOGIN", ade, pContext.getPathInfo() );
+      gEventService.offer( new CARS_Event( main, null, "SYS", "LOGIN", pContext, null ));
       throw ade;
     } catch (PathNotFoundException pnfe) {
       pContext.setErrorCode( HttpURLConnection.HTTP_NOT_FOUND );
       pContext.setError( pnfe );
-      gEventManager.addException( main, main.getLoginUser(), main.getCurrentViewNode(), null, "SYS", "READ", pnfe, pContext.getPathInfo() );
+//      gEventManager.addException( main, main.getLoginUser(), main.getCurrentViewNode(), null, "SYS", "READ", pnfe, pContext.getPathInfo() );
+      gEventService.offer( new CARS_Event( main, null, "SYS", "READ", pContext, null ));
     } catch( CARS_LongPollRequestException le ) {
       // **** The request is handled by a different thread
       throw le;
@@ -709,7 +731,8 @@ abstract public class CARS_Factory {
 //      LOG.log( Level.INFO, null, e );
       pContext.setErrorCode( HttpURLConnection.HTTP_INTERNAL_ERROR );
       pContext.setError( e );
-      gEventManager.addException( main, main.getLoginUser(), main.getCurrentViewNode(), null, "SYS", "READ", e, null );
+//      gEventManager.addException( main, main.getLoginUser(), main.getCurrentViewNode(), null, "SYS", "READ", e, null );
+      gEventService.offer( new CARS_Event( main, null, "SYS", "READ", pContext, null ));
     } finally {
 //      if (main!=null) {
 //        try {
@@ -737,7 +760,8 @@ abstract public class CARS_Factory {
       pContext.setMain( main );
       final String pathinfo = pContext.getPathInfo();
       if (gEnableFETLogging && ((fet==null) || (fet.indexOf( "WRITE" )==-1))) {
-        gEventManager.addEventThreaded( main, main.getLoginUser(), null, null, "URL", "WRITE", "POST " + pathinfo );
+        gEventService.offer( new CARS_Event( main, null, null, "URL", "WRITE", null, "POST " + pathinfo, null ) );
+//        gEventManager.addEventThreaded( main, main.getLoginUser(), null, null, "URL", "WRITE", "POST " + pathinfo );
       }
       if (pathinfo.lastIndexOf( '/' )==-1) {
         throw new PathNotFoundException( pathinfo );
@@ -749,37 +773,45 @@ abstract public class CARS_Factory {
         pContext.setCreatedNode( cnode );
       }      
     } catch (CARS_CustomException cce) {
-      gEventManager.addException( main, main.getLoginUser(), main.getCurrentViewNode(), null, CARS_EventManager.EVENTCAT_SYS, CARS_EventManager.EVENTTYPE_CREATE, cce, null );
+      pContext.setError( cce );
+//      gEventManager.addException( main, main.getLoginUser(), main.getCurrentViewNode(), null, CARS_EventManager.EVENTCAT_SYS, CARS_EventManager.EVENTTYPE_CREATE, cce, null );
+      gEventService.offer( new CARS_Event( main, null, "SYS", "CREATE", pContext, null ));
     } catch (ItemExistsException iee) {
       pContext.setError( iee );
       pContext.setErrorCode( 1300 );
-      gEventManager.addException( main, main.getLoginUser(), main.getCurrentViewNode(), null, CARS_EventManager.EVENTCAT_SYS, CARS_EventManager.EVENTTYPE_CREATE, iee, null );
+//      gEventManager.addException( main, main.getLoginUser(), main.getCurrentViewNode(), null, CARS_EventManager.EVENTCAT_SYS, CARS_EventManager.EVENTTYPE_CREATE, iee, null );
+      gEventService.offer( new CARS_Event( main, null, "SYS", "CREATE", pContext, null ));
     } catch (AccountLockedException ale) {
       pContext.setErrorCode( HttpURLConnection.HTTP_UNAUTHORIZED );
       pContext.setError( ale );
     } catch (AccessDeniedException ade) {
-      gEventManager.addException( main, null, null, null, CARS_EventManager.EVENTCAT_SYS, CARS_EventManager.EVENTTYPE_LOGIN, ade, pContext.getPathInfo() );
+//      gEventManager.addException( main, null, null, null, CARS_EventManager.EVENTCAT_SYS, CARS_EventManager.EVENTTYPE_LOGIN, ade, pContext.getPathInfo() );
       pContext.setErrorCode( HttpURLConnection.HTTP_FORBIDDEN );
+      gEventService.offer( new CARS_Event( main, null, "SYS", "LOGIN", pContext, null ));
       throw ade;
     } catch (CredentialExpiredException cee) {
       throw cee;
     } catch (PathNotFoundException pnfe) {
       pContext.setErrorCode( HttpURLConnection.HTTP_NOT_FOUND );
       pContext.setError( pnfe );
-      gEventManager.addException( main, main.getLoginUser(), main.getCurrentViewNode(), null, CARS_EventManager.EVENTCAT_SYS, CARS_EventManager.EVENTTYPE_CREATE, pnfe, null );
+//      gEventManager.addException( main, main.getLoginUser(), main.getCurrentViewNode(), null, CARS_EventManager.EVENTCAT_SYS, CARS_EventManager.EVENTTYPE_CREATE, pnfe, null );
+      gEventService.offer( new CARS_Event( main, null, "SYS", "CREATE", pContext, null ));
     } catch (NoSuchNodeTypeException nsnte) {
       pContext.setErrorCode( HttpURLConnection.HTTP_NOT_FOUND );
       pContext.setError( nsnte );
-      gEventManager.addException( main, main.getLoginUser(), main.getCurrentViewNode(), null, CARS_EventManager.EVENTCAT_SYS, CARS_EventManager.EVENTTYPE_CREATE, nsnte, null );
+//      gEventManager.addException( main, main.getLoginUser(), main.getCurrentViewNode(), null, CARS_EventManager.EVENTCAT_SYS, CARS_EventManager.EVENTTYPE_CREATE, nsnte, null );
+      gEventService.offer( new CARS_Event( main, null, "SYS", "CREATE", pContext, null ));
     } catch (ConstraintViolationException cve) {
       pContext.setErrorCode( HttpURLConnection.HTTP_NOT_ACCEPTABLE );
       pContext.setError( cve );
-      gEventManager.addException( main, main.getLoginUser(), main.getCurrentViewNode(), null, CARS_EventManager.EVENTCAT_SYS, CARS_EventManager.EVENTTYPE_CREATE, cve, null );
+//      gEventManager.addException( main, main.getLoginUser(), main.getCurrentViewNode(), null, CARS_EventManager.EVENTCAT_SYS, CARS_EventManager.EVENTTYPE_CREATE, cve, null );
+      gEventService.offer( new CARS_Event( main, null, "SYS", "CREATE", pContext, null ));
     } catch (Exception e) {
 //   e.printStackTrace();
       pContext.setErrorCode( HttpURLConnection.HTTP_INTERNAL_ERROR );
-      gEventManager.addException( main, main.getLoginUser(), main.getCurrentViewNode(), null, CARS_EventManager.EVENTCAT_SYS, CARS_EventManager.EVENTTYPE_CREATE, e, null );
+//      gEventManager.addException( main, main.getLoginUser(), main.getCurrentViewNode(), null, CARS_EventManager.EVENTCAT_SYS, CARS_EventManager.EVENTTYPE_CREATE, e, null );
       pContext.setError( e );
+      gEventService.offer( new CARS_Event( main, null, "SYS", "CREATE", pContext, null ));
 //    } finally {
 //      if (main!=null) {
 //        try {
@@ -809,7 +841,8 @@ abstract public class CARS_Factory {
       }
       final String pathinfo = pContext.getPathInfo();
       if (gEnableFETLogging && ((fet==null) || (fet.indexOf( "WRITE" )==-1))) {
-        gEventManager.addEventThreaded( main, main.getLoginUser(), null, null, "URL", "WRITE", "PUT " + pathinfo );
+//        gEventManager.addEventThreaded( main, main.getLoginUser(), null, null, "URL", "WRITE", "PUT " + pathinfo );
+        gEventService.offer( new CARS_Event( main, null, null, "URL", "WRITE", null, "PUT " + pathinfo, null ) );
       }
       if (pathinfo.lastIndexOf( '/' )!=-1) {
         // **** Store the given parameters
@@ -820,8 +853,9 @@ abstract public class CARS_Factory {
         throw new PathNotFoundException( pathinfo );
       }
     } catch (AccessDeniedException ade) {
-      gEventManager.addException( main, null, null, null, "SYS", "LOGIN", ade, pContext.getPathInfo() );
       pContext.setErrorCode( HttpURLConnection.HTTP_FORBIDDEN );
+//      gEventManager.addException( main, null, null, null, "SYS", "LOGIN", ade, pContext.getPathInfo() );
+      gEventService.offer( new CARS_Event( main, null, "SYS", "LOGIN", pContext, null ));
       throw ade;
     } catch (AccountLockedException ale) {
       pContext.setErrorCode( HttpURLConnection.HTTP_UNAUTHORIZED );
@@ -829,18 +863,21 @@ abstract public class CARS_Factory {
     } catch (CredentialExpiredException cee) {
       throw cee;
     } catch (PathNotFoundException pnfe) {
-      gEventManager.addException( main, main.getLoginUser(), main.getCurrentViewNode(), null, "SYS", "UPDATE", pnfe, null );
+//      gEventManager.addException( main, main.getLoginUser(), main.getCurrentViewNode(), null, "SYS", "UPDATE", pnfe, null );
       pContext.setError( pnfe );
       pContext.setErrorCode( HttpURLConnection.HTTP_NOT_FOUND );
+      gEventService.offer( new CARS_Event( main, null, "SYS", "UPDATE", pContext, null ));
     } catch (RepositoryException re) {
-      gEventManager.addException( main, main.getLoginUser(), main.getCurrentViewNode(), null, "SYS", "UPDATE", re, null );
+//      gEventManager.addException( main, main.getLoginUser(), main.getCurrentViewNode(), null, "SYS", "UPDATE", re, null );
       pContext.setError( re );
       pContext.setErrorCode( HttpURLConnection.HTTP_INTERNAL_ERROR );
+      gEventService.offer( new CARS_Event( main, null, "SYS", "UPDATE", pContext, null ));
     } catch (Exception e) {
-      gEventManager.addException( main, main.getLoginUser(), main.getCurrentViewNode(), null, "SYS", "UPDATE", e, null );
+//      gEventManager.addException( main, main.getLoginUser(), main.getCurrentViewNode(), null, "SYS", "UPDATE", e, null );
 //      LOG.log( Level.INFO, null, e );
       pContext.setError( e );
       pContext.setErrorCode( HttpURLConnection.HTTP_INTERNAL_ERROR );
+      gEventService.offer( new CARS_Event( main, null, "SYS", "UPDATE", pContext, null ));
     } finally {
 //      if (main!=null) {
 //        try {
@@ -865,8 +902,9 @@ abstract public class CARS_Factory {
       pContext.setMain( main );
       String pathinfo = pContext.getPathInfo();
       if (gEnableFETLogging) {
-        gEventManager.addEventThreaded( main, main.getLoginUser(), null, null, "URL", "DELETE", "DELETE " + pathinfo );
-      }
+//        gEventManager.addEventThreaded( main, main.getLoginUser(), null, null, "URL", "DELETE", "DELETE " + pathinfo );
+       gEventService.offer( new CARS_Event( main, null, null, "URL", "DELETE", null, "DELETE " + pathinfo, null ) );
+     }
       if (pathinfo.lastIndexOf( '/' )!=-1) {
         // **** Store the given parameters
         JD_Taglist paramsTL = pContext.getQueryPartsAsTaglist();
@@ -875,12 +913,14 @@ abstract public class CARS_Factory {
         throw new PathNotFoundException( pathinfo );
       }
     } catch (ReferentialIntegrityException rie) {
-      gEventManager.addException( main, main.getLoginUser(), null, null, "SYS", "DELETE", rie, null );
+//      gEventManager.addException( main, main.getLoginUser(), null, null, "SYS", "DELETE", rie, null );
       pContext.setError( rie );
       pContext.setErrorCode( HttpURLConnection.HTTP_FORBIDDEN );
+      gEventService.offer( new CARS_Event( main, null, "SYS", "DELETE", pContext, null ));
     } catch (AccessDeniedException ade) {        
-      gEventManager.addException( main, main.getLoginUser(), null, null, "SYS", "DELETE", ade, null );
+//      gEventManager.addException( main, main.getLoginUser(), null, null, "SYS", "DELETE", ade, null );
       pContext.setErrorCode( HttpURLConnection.HTTP_FORBIDDEN );
+      gEventService.offer( new CARS_Event( main, null, "SYS", "DELETE", pContext, null ));
       throw ade;
     } catch (AccountLockedException ale) {
       pContext.setErrorCode( HttpURLConnection.HTTP_UNAUTHORIZED );
@@ -888,14 +928,16 @@ abstract public class CARS_Factory {
     } catch (CredentialExpiredException cee) {
       throw cee;
     } catch (PathNotFoundException pnfe) {
-      gEventManager.addException( main, main.getLoginUser(), null, null, "SYS", "DELETE", pnfe, null );
+//      gEventManager.addException( main, main.getLoginUser(), null, null, "SYS", "DELETE", pnfe, null );
       pContext.setErrorCode( HttpURLConnection.HTTP_NOT_FOUND );      
       pContext.setError( pnfe );
+      gEventService.offer( new CARS_Event( main, null, "SYS", "DELETE", pContext, null ));
     } catch (Exception e) {
-      gEventManager.addException( main, main.getLoginUser(), main.getCurrentViewNode(), null, "SYS", "DELETE", e, null );
+//      gEventManager.addException( main, main.getLoginUser(), main.getCurrentViewNode(), null, "SYS", "DELETE", e, null );
 //      LOG.log( Level.INFO, null, e );
       pContext.setError( e );
       pContext.setErrorCode( HttpURLConnection.HTTP_INTERNAL_ERROR );
+      gEventService.offer( new CARS_Event( main, null, "SYS", "DELETE", pContext, null ));
     } finally {
 //      if (main!=null) {
 //        try {

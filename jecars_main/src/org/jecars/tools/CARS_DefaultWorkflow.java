@@ -453,9 +453,12 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
       } catch( Exception e ) {
         CARS_ToolInstanceEvent tie = reportExceptionEvent( e, Level.SEVERE );
         try {
-          tie.getEventNode().addMixin( "jecars:mixin_unstructured" );
-          tie.getEventNode().setProperty( "SourcePath", currentSource );
-          tie.getEventNode().save();
+          Node eventNode = tie.getEventNode( mRunner.getNode().getSession() );
+          if (eventNode!=null) {
+            eventNode.addMixin( "jecars:mixin_unstructured" );
+            eventNode.setProperty( "SourcePath", currentSource );
+            eventNode.save();
+          }
           final String state = CARS_ToolInterface.STATE_CLOSED_ABNORMALCOMPLETED;
           synchronized( WF_WorkflowRunner.WRITERACCESS ) {
             mRunner.setState( state );

@@ -102,9 +102,10 @@ public class WFP_Tool extends WFP_Node implements IWFP_Tool {
     final CARS_ToolInstanceEvent tie = mWorkflow.getToolInterface().reportExceptionEvent( pT, pLevel );
     try {
       synchronized( WF_WorkflowRunner.WRITERACCESS ) {
-        tie.getEventNode().addMixin( "jecars:mixin_unstructured" );
-        tie.getEventNode().setProperty( "SourcePath", getPath() );
-        tie.getEventNode().save();
+        final Node eventNode = tie.getEventNode( mWorkflow.getNode().getSession() );
+        eventNode.addMixin( "jecars:mixin_unstructured" );
+        eventNode.setProperty( "SourcePath", getPath() );
+        eventNode.save();
       }
     } catch( RepositoryException re ) {
       re.printStackTrace();
@@ -139,9 +140,10 @@ public class WFP_Tool extends WFP_Node implements IWFP_Tool {
   @Override
   public CARS_ToolInstanceEvent reportMessage( final Level pLevel, final String pMessage, final int pRemoveAfterMinutes ) {
     try {
-      CARS_ToolInstanceEvent tie = mWorkflow.getToolInterface().reportMessageEvent( pLevel, pMessage, false );
-      CARS_Utils.setExpireDate( tie.getEventNode(), pRemoveAfterMinutes );
-      tie.getEventNode().save();
+      final CARS_ToolInstanceEvent tie = mWorkflow.getToolInterface().reportMessageEvent( pLevel, pMessage, false );
+      final Node eventNode = tie.getEventNode( mWorkflow.getNode().getSession() ); 
+      CARS_Utils.setExpireDate( eventNode, pRemoveAfterMinutes );
+      eventNode.save();
       return tie;
     } catch( Exception e ) {
       return reportException( Level.SEVERE, e );

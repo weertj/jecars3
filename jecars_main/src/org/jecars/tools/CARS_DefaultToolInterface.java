@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -1792,7 +1793,8 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
     synchronized( CARS_EventManager.EVENTLOCK ) {
     try {
       // **** Check for storing events
-      final CARS_EventManager em = CARS_Factory.getEventManager();
+//      final CARS_EventManager em = CARS_Factory.getEventManager();
+      final ICARS_EventService es = CARS_Factory.getEventService();
       if (storeEvents() && (mToolNode.hasNode( "jecars:Events" ))) {
         /*
           final static public int EVENTTYPE_UNKNOWN               = 0x00;
@@ -1808,59 +1810,91 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
           case CARS_ToolInstanceEvent.EVENTTYPE_UNKNOWN: {            
 //            final Node events = mToolNode.getNode( "jecars:Events/jecars:EventsUNKNOWN" );
             final Node events = getOrCreateEventFolder( "jecars:EventsUNKNOWN" );
-            final Node ef = em.createEventNode( getMain(), getTool(), null, getTool(), events.getPath(), "TOOL", "UNKNOWN", null, "jecars:ToolEvent", null );
-            _setEventProperties( pEvent, ef );
+            es.offer( new CARS_Event( getMain(),
+                                      getTool().getPath(),
+                                      events.getPath(), 
+                                      "TOOL", "UNKNOWN", null, null, "jecars:ToolEvent" ).toolInstanceEvent( pEvent ) );
+//            final Node ef = em.createEventNode( getMain(), getTool(), null, getTool(), events.getPath(), "TOOL", "UNKNOWN", null, "jecars:ToolEvent", null );
+//            _setEventProperties( pEvent, ef );
             break;
           }
           case CARS_ToolInstanceEvent.EVENTTYPE_STATECHANGED: {
 //            final Node events = mToolNode.getNode( "jecars:Events/jecars:EventsSTATE" );
             final Node events = getOrCreateEventFolder( "jecars:EventsSTATE" );
-            final Node ef = em.createEventNode( getMain(), getTool(), null, getTool(), events.getPath(), "TOOL", "STATE", null, "jecars:ToolEvent", null );
-            _setEventProperties( pEvent, ef );
+            es.offer( new CARS_Event( getMain(),
+                                      getTool().getPath(),
+                                      events.getPath(), 
+                                      "TOOL", "STATE", null, null, "jecars:ToolEvent" ).toolInstanceEvent( pEvent ) );
+//            final Node ef = em.createEventNode( getMain(), getTool(), null, getTool(), events.getPath(), "TOOL", "STATE", null, "jecars:ToolEvent", null );
+//            _setEventProperties( pEvent, ef );
             break;
           }
           case CARS_ToolInstanceEvent.EVENTTYPE_GENERALEXCEPTION: {
 //            final Node events = mToolNode.getNode( "jecars:Events/jecars:Events" + pEvent.getEventLevel().toString().toUpperCase() );
             final Node events = getOrCreateEventFolder( "jecars:Events" + pEvent.getEventLevel().toString().toUpperCase() );
-            final Node ef = em.createEventNode( getMain(), getTool(), null, getTool(), events.getPath(), "TOOL",
-                            pEvent.getEventLevel().toString().toUpperCase(), null, "jecars:ToolEventException", null );
-            _setEventProperties( pEvent, ef );
+            es.offer( new CARS_Event( getMain(),
+                                      getTool().getPath(),
+                                      events.getPath(), 
+                                      "TOOL", pEvent.getEventLevel().toString().toUpperCase(), null, null, "jecars:ToolEventException" ).toolInstanceEvent( pEvent ) );
+//            final Node ef = em.createEventNode( getMain(), getTool(), null, getTool(), events.getPath(), "TOOL",
+//                            pEvent.getEventLevel().toString().toUpperCase(), null, "jecars:ToolEventException", null );
+//            _setEventProperties( pEvent, ef );
             break;
           }
           case CARS_ToolInstanceEvent.EVENTTYPE_TOOLINSTANCEEXCEPTION: {
 //            final Node events = mToolNode.getNode( "jecars:Events/jecars:EventsINSTANCE" );
             final Node events = getOrCreateEventFolder( "jecars:EventsINSTANCE" );
-            final Node ef = em.createEventNode( getMain(), getTool(), null, getTool(), events.getPath(), "TOOL", "INSTANCE", null, "jecars:ToolEvent", null );
-            _setEventProperties( pEvent, ef );
+            es.offer( new CARS_Event( getMain(),
+                                      getTool().getPath(),
+                                      events.getPath(), 
+                                      "TOOL", "INSTANCE", null, null, "jecars:ToolEvent" ).toolInstanceEvent( pEvent ) );
+//            final Node ef = em.createEventNode( getMain(), getTool(), null, getTool(), events.getPath(), "TOOL", "INSTANCE", null, "jecars:ToolEvent", null );
+//            _setEventProperties( pEvent, ef );
             break;
           }
           case CARS_ToolInstanceEvent.EVENTTYPE_TOOLOUTPUTREPORT: {
 //            final Node events = mToolNode.getNode( "jecars:Events/jecars:EventsOUTPUT" );
             final Node events = getOrCreateEventFolder( "jecars:EventsOUTPUT" );
 //            Node ef = em.addEvent( getMain(), null, getTool(), events.getPath(), "TOOL", "OUTPUT", null, "jecars:ToolEvent" );
-            final Node ef = em.createEventNode( getMain(), getTool(), null, getTool(), events.getPath(), "TOOL", "OUTPUT", null, "jecars:ToolEvent", null );
-            _setEventProperties( pEvent, ef );
+            es.offer( new CARS_Event( getMain(),
+                                      getTool().getPath(),
+                                      events.getPath(), 
+                                      "TOOL", "OUTPUT", null, null, "jecars:ToolEvent" ).toolInstanceEvent( pEvent ) );
+//            final Node ef = em.createEventNode( getMain(), getTool(), null, getTool(), events.getPath(), "TOOL", "OUTPUT", null, "jecars:ToolEvent", null );
+//            _setEventProperties( pEvent, ef );
             break;
           }
           case CARS_ToolInstanceEvent.EVENTTYPE_TOOLMESSAGE: {
 //            final Node events = mToolNode.getNode( "jecars:Events/jecars:EventsMESSAGE" );
             final Node events = getOrCreateEventFolder( "jecars:EventsMESSAGE" );
-            final Node ef = em.createEventNode( getMain(), getTool(), null, getTool(), events.getPath(), "TOOL", "MESSAGE", null, "jecars:ToolEvent", null );
-            _setEventProperties( pEvent, ef );
+            es.offer( new CARS_Event( getMain(),
+                                      getTool().getPath(),
+                                      events.getPath(), 
+                                      "TOOL", "MESSAGE", null, null, "jecars:ToolEvent" ).toolInstanceEvent( pEvent ) );
+//            final Node ef = em.createEventNode( getMain(), getTool(), null, getTool(), events.getPath(), "TOOL", "MESSAGE", null, "jecars:ToolEvent", null );
+//            _setEventProperties( pEvent, ef );
             break;
           }
           case CARS_ToolInstanceEvent.EVENTTYPE_STATUSMESSAGE: {
 //            final Node events = mToolNode.getNode( "jecars:Events/jecars:EventsSTATUS" );
             final Node events = getOrCreateEventFolder( "jecars:EventsSTATUS" );
-            final Node ef = em.createEventNode( getMain(), getTool(), null, getTool(), events.getPath(), "TOOL", "STATUS", null, "jecars:ToolEvent", null );
-            _setEventProperties( pEvent, ef );
+            es.offer( new CARS_Event( getMain(),
+                                      getTool().getPath(),
+                                      events.getPath(), 
+                                      "TOOL", "STATUS", null, null, "jecars:ToolEvent" ).toolInstanceEvent( pEvent ) );
+//            final Node ef = em.createEventNode( getMain(), getTool(), null, getTool(), events.getPath(), "TOOL", "STATUS", null, "jecars:ToolEvent", null );
+//            _setEventProperties( pEvent, ef );
             break;
           }
           case CARS_ToolInstanceEvent.EVENTTYPE_PROGRESS: {
 //            final Node events = mToolNode.getNode( "jecars:Events/jecars:EventsPROGRESS" );
             final Node events = getOrCreateEventFolder( "jecars:EventsPROGRESS" );
-            final Node ef = em.createEventNode( getMain(), getTool(), null, getTool(), events.getPath(), "TOOL", "PROGRESS", null, "jecars:ToolEvent", null );
-            _setEventProperties( pEvent, ef );
+            es.offer( new CARS_Event( getMain(),
+                                      getTool().getPath(),
+                                      events.getPath(), 
+                                      "TOOL", "PROGRESS", null, null, "jecars:ToolEvent" ).toolInstanceEvent( pEvent ) );
+//            final Node ef = em.createEventNode( getMain(), getTool(), null, getTool(), events.getPath(), "TOOL", "PROGRESS", null, "jecars:ToolEvent", null );
+//            _setEventProperties( pEvent, ef );
             break;
           }
         }

@@ -17,6 +17,8 @@ package org.jecars.tools;
 
 import java.util.logging.Level;
 import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 import nl.msd.jdots.JD_Taglist;
 
 /** CARS_ToolInstanceEvent
@@ -82,7 +84,7 @@ public interface CARS_ToolInstanceEvent {
    */
   boolean getEventBlocking();
   
-  void setEventNode( Node pNode );
-  Node getEventNode();
+  void setEventNode( Node pNode ) throws RepositoryException;
+  Node getEventNode( Session pSession ) throws RepositoryException;
   
 }

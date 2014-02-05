@@ -17,8 +17,11 @@ package org.jecars.apps;
 
 import java.math.BigDecimal;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.logging.Level;
 import javax.jcr.Node;
+import javax.jcr.Property;
+import javax.jcr.PropertyIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import org.jecars.CARS_Definitions;
@@ -36,6 +39,16 @@ import org.jecars.par.PAR_Balancer;
  */
 public class CARS_SystemsApp extends CARS_DefaultInterface {
 
+  static private InetAddress LOCALHOST = null;
+  
+  static {
+    try {
+      LOCALHOST = InetAddress.getLocalHost();
+    } catch( UnknownHostException e ) {
+      e.printStackTrace();
+    }
+  }
+  
   /** Creates a new instance of CARS_SystemsApp
    */
   public CARS_SystemsApp() {
@@ -68,18 +81,17 @@ public class CARS_SystemsApp extends CARS_DefaultInterface {
       synchronized( appSession ) {
         try {
           final Node systems = appSession.getNode( pParentNode.getPath() );
-          final InetAddress inet = InetAddress.getLocalHost();
-          final String computername= inet.getHostName();
+          final String computername= LOCALHOST.getHostName();
           if (!systems.hasNode( computername )) {
             Node cn = systems.addNode( computername, "jecars:RES_System" );
             cn.addMixin( "jecars:mixin_unstructured" );
             cn.setProperty( "jecars:Title", computername );
-            cn.addNode( "CPU", "jecars:RES_CPU" );
+            Node cpu = cn.addNode( "CPU", "jecars:RES_CPU" );
+            cpu.addMixin( "jecars:mixin_unstructured" );
+            cpu.setProperty( "jecars:Title", "CPU" );
           }
           Node system = systems.getNode( computername );
           Node cpu    = system.getNode( "CPU" );
-          cpu.addMixin( "jecars:mixin_unstructured" );
-          cpu.setProperty( "jecars:Title", "CPU" );
           system.setProperty( "jecars:MainMemory", Runtime.getRuntime().maxMemory() );
           for( int i=Runtime.getRuntime().availableProcessors()-1; i>=0; i-- ) {
             if (!cpu.hasNode( "Core_" + i )) {

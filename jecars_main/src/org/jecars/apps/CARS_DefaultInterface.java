@@ -38,6 +38,7 @@ import nl.msd.jdots.JD_Taglist;
 import org.jecars.CARS_ActionContext;
 import org.jecars.CARS_DefaultMain;
 import org.jecars.CARS_Definitions;
+import org.jecars.CARS_Event;
 import org.jecars.CARS_EventManager;
 import org.jecars.CARS_Factory;
 import org.jecars.CARS_Main;
@@ -104,6 +105,11 @@ public class CARS_DefaultInterface implements CARS_Interface, EventListener {
    */
   protected void reportVersionInfo( final CARS_Main pMain, final String pMessage, final String pBody ) throws Exception {
     final List<String> vef = getVersionEventFolders();
+    for( String v : vef ) {
+      CARS_Factory.getEventService().offer(
+              new CARS_Event( pMain, null, "SYS", "LOGIN", pMain.getContext(), pMessage ));
+    }
+    
     final Session ses = CARS_Factory.getSystemApplicationSession();
     final CARS_EventManager eman = CARS_Factory.getEventManager();
     synchronized( ses ) {

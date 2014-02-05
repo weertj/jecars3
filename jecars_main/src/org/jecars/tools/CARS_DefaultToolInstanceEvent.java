@@ -19,6 +19,8 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.logging.Level;
 import javax.jcr.Node;
+import javax.jcr.RepositoryException;
+import javax.jcr.Session;
 
 /**
  *
@@ -34,7 +36,8 @@ public class CARS_DefaultToolInstanceEvent implements CARS_ToolInstanceEvent {
   private double             mValue       = -1;
   private Level              mLevel       = Level.ALL;
   private boolean            mBlocking    = false;
-  private Node               mEventNode   = null;
+//  private Node               mEventNode   = null;
+  private String             mEventNodePath   = null;
   
   /** Creates a new instance of LPF_DefaultToolInstanceEvent
    *
@@ -208,14 +211,17 @@ public class CARS_DefaultToolInstanceEvent implements CARS_ToolInstanceEvent {
   }
 
   @Override
-  public void setEventNode( Node pNode ) {
-    mEventNode = pNode;
+  public void setEventNode( Node pNode ) throws RepositoryException {
+    mEventNodePath = pNode.getPath();
     return;
   }
   
   @Override
-  public Node getEventNode() {
-    return mEventNode;
+  public Node getEventNode( final Session pSession ) throws RepositoryException {
+    if (mEventNodePath!=null) {
+      return pSession.getNode( mEventNodePath );
+    }
+    return null;
   }
   
   /** toString

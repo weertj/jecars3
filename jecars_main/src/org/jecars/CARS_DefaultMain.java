@@ -487,13 +487,15 @@ public class CARS_DefaultMain implements CARS_Main {
     if (pPropName.equals( CARS_Definitions.DEFAULTNS + "title" )) {
       if (pValue.indexOf( '/' )==-1) {
         // **** The node must be renamed
-        CARS_Factory.getEventManager().addEvent( this, mUserNode, pNode, null, "URL", "MOVE",
-                pNode.getPath() + " to " + pNode.getParent().getPath() + "/" + pValue );
+        CARS_Factory.getEventService().offer( new CARS_Event( this, null, "URL", "MOVE", getContext(), pNode.getPath() + " to " + pNode.getParent().getPath() + "/" + pValue ) );
+//        CARS_Factory.getEventManager().addEvent( this, mUserNode, pNode, null, "URL", "MOVE",
+//                pNode.getPath() + " to " + pNode.getParent().getPath() + "/" + pValue );
         pNode.getSession().getWorkspace().move( pNode.getPath(), pNode.getParent().getPath() + "/" + pValue );
       } else {
         // **** The node must be moved
-        CARS_Factory.getEventManager().addEvent( this, mUserNode, pNode, null, "URL", "MOVE",
-                pNode.getPath() + " to " + pValue );
+        CARS_Factory.getEventService().offer( new CARS_Event( this, null, "URL", "MOVE", getContext(), pNode.getPath() + " to " + pValue ) );
+//        CARS_Factory.getEventManager().addEvent( this, mUserNode, pNode, null, "URL", "MOVE",
+//                pNode.getPath() + " to " + pValue );
         pNode.getSession().getWorkspace().move( pNode.getPath(), pValue );
       }
       return null;

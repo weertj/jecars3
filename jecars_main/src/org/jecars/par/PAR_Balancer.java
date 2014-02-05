@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.regex.Pattern;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
@@ -72,8 +71,8 @@ public class PAR_Balancer implements IPAR_Balancer {
    */
   @Override
   public List<IPAR_System> systems() throws RepositoryException {
-    final Session ses = CARS_Factory.getSystemAccessSession();
     mStates.remove( EPAR_ItemState.NEEDS_REFRESH );
+    final Session ses = CARS_Factory.getSystemAccessSession();
     synchronized( ses ) {
       final NodeIterator ni = ses.getNode("/JeCARS/Systems").getNodes();
       while (ni.hasNext()) {
