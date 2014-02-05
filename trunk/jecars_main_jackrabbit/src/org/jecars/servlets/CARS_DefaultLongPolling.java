@@ -115,9 +115,13 @@ public class CARS_DefaultLongPolling implements ICARS_LongPolling, EventListener
       while( pEI.hasNext() ) {
         final Event ev = pEI.nextEvent();
         for( final String n : POLLERS.keySet() ) {
-          if (ev.getPath().startsWith(n)) {            
-            PollData polldata = POLLERS.get( n );
-            polldata.addEvent( ev );
+          if (ev.getPath().startsWith(n)) {
+            // **** Check for change on the same level
+            String subpath = ev.getPath().substring(n.length()+1);
+            if (subpath.indexOf('/')==-1) {
+              PollData polldata = POLLERS.get( n );
+              polldata.addEvent( ev );
+            }
           }
         }
       }
