@@ -202,6 +202,7 @@
 - jecars:User     (Path)
 - jecars:Type     (String) < '(LOGIN|LOGOUT|READ|QUERY|WRITE|CREATE|MOVE|COPY|DELETE|TRASHED|CHECKIN|CHECKOUT|RESTORE|UPDATE|SEVERE|WARNING|INFO|CONFIG|FINE|FINER|FINEST|UNKNOWN|STATE|INSTANCE|OUTPUT|MESSAGE|STATUS|PROGRESS)'
 - jecars:Category (String) < '(URL|APP|DIR|DEF|SYS|TOOL)'
+- jecars:Code     (Long)
 
 [jecars:EventReference] > jecars:EventsType
 - jecars:EventPath (Path)

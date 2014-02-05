@@ -109,9 +109,11 @@ public class CARS_LogHandler extends Handler {
             }
             if (pRecord.getParameters()!=null) {
               String[] params = (String[])pRecord.getParameters();
-              CARS_Factory.gEventManager.addException( null, user, source, null, params[0], params[1], pRecord.getThrown(), pRecord.getMessage() );
+//              CARS_Factory.gEventManager.addException( null, user, source, null, params[0], params[1], pRecord.getThrown(), pRecord.getMessage() );
+              CARS_Factory.getEventService().offer( new CARS_Event( user, source, null, params[0], params[1], pRecord ));
             } else {
-              CARS_Factory.gEventManager.addException( null, user, source, null, "SYS", pRecord.getLevel().getName(), pRecord.getThrown(), pRecord.getMessage() );
+//              CARS_Factory.gEventManager.addException( null, user, source, null, "SYS", pRecord.getLevel().getName(), pRecord.getThrown(), pRecord.getMessage() );
+              CARS_Factory.getEventService().offer( new CARS_Event( user, source, null, "SYS", pRecord.getLevel().getName(), pRecord ));
             }
           } catch (Exception e) {
             e.printStackTrace();

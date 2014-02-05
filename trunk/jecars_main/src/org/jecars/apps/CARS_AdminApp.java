@@ -37,6 +37,7 @@ import javax.jcr.query.QueryResult;
 import org.jecars.CARS_ActionContext;
 import org.jecars.CARS_DefaultMain;
 import org.jecars.CARS_Definitions;
+import org.jecars.CARS_Event;
 import org.jecars.CARS_EventManager;
 import org.jecars.CARS_Factory;
 import org.jecars.CARS_Main;
@@ -218,8 +219,9 @@ public class CARS_AdminApp extends CARS_DefaultInterface {
     } else {
       if (pLeaf.equals( "/AdminApp/Init_JeCARS_(!WARNING!)" )) {
         gLog.log( Level.INFO, "INIT SYSTEM: " + pLeaf );
-        CARS_Factory.getEventManager().addEvent( pMain, pMain.getLoginUser(), pParentNode,
-                    null, CARS_EventManager.EVENTCAT_SYS, CARS_EventManager.EVENTTYPE_CREATE, "Init JeCARS System" );
+        CARS_Factory.getEventService().offer( new CARS_Event( pMain, null, "SYS", "CREATE", pMain.getContext(), "Init JeCARS System" ) );
+//        CARS_Factory.getEventManager().addEvent( pMain, pMain.getLoginUser(), pParentNode,
+//                    null, CARS_EventManager.EVENTCAT_SYS, CARS_EventManager.EVENTTYPE_CREATE, "Init JeCARS System" );
         try {
           initJeCARSSystem( pMain );
         } catch(Exception e) {

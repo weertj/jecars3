@@ -1544,13 +1544,16 @@ public class CARS_ActionContext {
         try {
           final Query q = mThisNode.getSession().getWorkspace().getQueryManager().createQuery( query.toString(), Query.SQL );
           ni = q.execute().getNodes();
-          CARS_Factory.getEventManager().addEventThreaded( mMain, mMain.getLoginUser(), mThisNode, null,
-                    CARS_EventManager.EVENTCAT_URL, CARS_EventManager.EVENTTYPE_QUERY,
-                    "JCR SQL query = " + query + " result = " + ni.getSize() );
-        } catch (Exception e) {
-          CARS_Factory.getEventManager().addException( mMain, mMain.getLoginUser(), mThisNode, null,
-                    CARS_EventManager.EVENTCAT_URL, CARS_EventManager.EVENTTYPE_QUERY,
-                    e, "JCR SQL query = " + query );
+          CARS_Factory.getEventService().offer( new CARS_Event( mMain, null, "URL", "QUERY", this, "JCR SQL query = " + query + " result = " + ni.getSize() ) );
+//          CARS_Factory.getEventManager().addEventThreaded( mMain, mMain.getLoginUser(), mThisNode, null,
+//                    CARS_EventManager.EVENTCAT_URL, CARS_EventManager.EVENTTYPE_QUERY,
+//                    "JCR SQL query = " + query + " result = " + ni.getSize() );
+        } catch (RepositoryException e) {
+          setError( e );
+          CARS_Factory.getEventService().offer( new CARS_Event( mMain, null, "URL", "QUERY", this, "JCR SQL query = " + query ) );
+//          CARS_Factory.getEventManager().addException( mMain, mMain.getLoginUser(), mThisNode, null,
+//                    CARS_EventManager.EVENTCAT_URL, CARS_EventManager.EVENTTYPE_QUERY,
+//                    e, "JCR SQL query = " + query );
           throw e;
         }
       }
@@ -1562,30 +1565,34 @@ public class CARS_ActionContext {
       JD_Taglist paramsTL = params;
       if (paramsTL.getData( gDefXPath )!=null) {
         String query = (String)paramsTL.getData( gDefXPath );
-        CARS_Factory.getEventManager().addEvent( mMain, mMain.getLoginUser(), mThisNode, null, "URL", "QUERY",
-                query );
+        CARS_Factory.getEventService().offer( new CARS_Event( mMain, null, "URL", "QUERY", this, query ) );
+//        CARS_Factory.getEventManager().addEvent( mMain, mMain.getLoginUser(), mThisNode, null, "URL", "QUERY",
+//                query );
         Query q = mThisNode.getSession().getWorkspace().getQueryManager().createQuery( 
                 query,Query.XPATH );
         ni = q.execute().getNodes();        
       } else if (paramsTL.getData( gDefSQL )!=null) {
         String query = (String)paramsTL.getData( gDefSQL );
-        CARS_Factory.getEventManager().addEvent( mMain, mMain.getLoginUser(), mThisNode, null, "URL", "QUERY",
-                query );
+        CARS_Factory.getEventService().offer( new CARS_Event( mMain, null, "URL", "QUERY", this, query ) );
+//        CARS_Factory.getEventManager().addEvent( mMain, mMain.getLoginUser(), mThisNode, null, "URL", "QUERY",
+//                query );
         Query q = mThisNode.getSession().getWorkspace().getQueryManager().createQuery( 
                 query,Query.SQL );
 //        ni = q.execute().getNodes();
         ni = CARS_QueryManager.executeQuery( q ).getNodes();
       } else if (paramsTL.getData( gDefSQL2 )!=null) {
         String query = (String)paramsTL.getData( gDefSQL2 );
-        CARS_Factory.getEventManager().addEvent( mMain, mMain.getLoginUser(), mThisNode, null, "URL", "QUERY",
-                query );
+        CARS_Factory.getEventService().offer( new CARS_Event( mMain, null, "URL", "QUERY", this, query ) );
+//        CARS_Factory.getEventManager().addEvent( mMain, mMain.getLoginUser(), mThisNode, null, "URL", "QUERY",
+//                query );
         final Query q = mThisNode.getSession().getWorkspace().getQueryManager().createQuery( 
                 query,Query.JCR_SQL2 );
         ni = CARS_QueryManager.executeQuery( q ).getNodes();
       } else if (paramsTL.getData( gDefQOM )!=null) {
         String query = (String)paramsTL.getData( gDefQOM );
-        CARS_Factory.getEventManager().addEvent( mMain, mMain.getLoginUser(), mThisNode, null, "URL", "QUERY",
-                query );
+        CARS_Factory.getEventService().offer( new CARS_Event( mMain, null, "URL", "QUERY", this, query ) );
+//        CARS_Factory.getEventManager().addEvent( mMain, mMain.getLoginUser(), mThisNode, null, "URL", "QUERY",
+//                query );
         final Query q = mThisNode.getSession().getWorkspace().getQueryManager().createQuery( 
                 query,Query.JCR_JQOM );
         ni = CARS_QueryManager.executeQuery( q ).getNodes();

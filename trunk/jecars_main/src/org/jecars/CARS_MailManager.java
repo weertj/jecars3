@@ -28,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
+import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.Value;
@@ -145,6 +146,8 @@ public class CARS_MailManager extends CARS_DefaultToolInterface {
                           sendQueue.save();
                           mMailToBeSend = true;
                         }
+                      } catch( PathNotFoundException e ) {
+                        System.out.println("Cannot find user " + princ );
                       } catch( Exception pe ) {
                         pe.printStackTrace();
                         // **** No action, because otherwise it would generate an event

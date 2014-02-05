@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 NLR - National Aerospace Laboratory
+ * Copyright 2010-2014 NLR - National Aerospace Laboratory
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import org.jecars.CARS_Definitions;
 import org.jecars.CARS_EventManager;
 import org.jecars.CARS_Factory;
 import org.jecars.CARS_Main;
+import org.jecars.ICARS_EventService;
 
 /**
  * CARS_EventsApp
@@ -33,7 +34,7 @@ import org.jecars.CARS_Main;
  */
 public class CARS_EventsApp extends CARS_DefaultInterface {
     
-  /** Creates a new instance of CARS_AdminApp
+  /** Creates a new instance of CARS_EventsApp
    */
   public CARS_EventsApp() {
     super();
@@ -49,6 +50,36 @@ public class CARS_EventsApp extends CARS_DefaultInterface {
     return getClass().getName() + ": " + CARS_Definitions.PRODUCTNAME + " version=" + CARS_Definitions.VERSION_ID + " CARS_EventsApp";
   }
 
+  /** getNodes
+   * 
+   * @param pMain
+   * @param pInterfaceNode
+   * @param pParentNode
+   * @param pLeaf
+   * @throws RepositoryException 
+   */
+  @Override
+  public void getNodes( final CARS_Main pMain, final Node pInterfaceNode, final Node pParentNode, final String pLeaf ) throws RepositoryException {
+    if (pParentNode.isNodeType( "jecars:CARS_Interface" )) {
+      final Session appSession = CARS_Factory.getSystemApplicationSession();
+      synchronized( appSession ) {
+        try {
+          if (!pParentNode.isNodeType( "jecars:mixin_unstructured" )) {
+            pParentNode.addMixin( "jecars:mixin_unstructured" );
+          }
+          final ICARS_EventService es = CARS_Factory.getEventService();
+          pParentNode.setProperty( "jecars:numberOfEventsWritten", es.numberOfEventsWritten() );
+          pParentNode.setProperty( "jecars:eventsInQueue", es.eventsInQueue() );
+          pParentNode.setProperty( "jecars:topEventsInQueue", es.topEventsInQueue() );
+        } finally {
+          appSession.save();
+        }
+      }
+    }
+    return;
+  }
+
+  
   /** Add a node to the repository
    * @param pMain the CARS_Main object
    * @param pInterfaceNode the Node which defines the application source or NULL
@@ -56,6 +87,9 @@ public class CARS_EventsApp extends CARS_DefaultInterface {
    * @param pName the node name
    * @param pPrimType the node type
    * @param pParams list of parameters
+   * @return 
+   * @throws javax.jcr.RepositoryException
+   * @throws java.io.UnsupportedEncodingException
    */
   @Override
   public Node addNode( final CARS_Main pMain, final Node pInterfaceNode, final Node pParentNode, final String pName, final String pPrimType, final JD_Taglist pParams ) throws RepositoryException, UnsupportedEncodingException {
