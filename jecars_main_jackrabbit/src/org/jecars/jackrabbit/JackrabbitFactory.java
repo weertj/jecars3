@@ -47,6 +47,7 @@ import org.jecars.CARS_ActionContext;
 import org.jecars.CARS_DefaultMain;
 import org.jecars.CARS_Definitions;
 import org.jecars.CARS_EventManager;
+import org.jecars.CARS_EventService;
 import org.jecars.CARS_Factory;
 import org.jecars.CARS_LogHandler;
 import org.jecars.CARS_Main;
@@ -135,6 +136,7 @@ public class JackrabbitFactory extends CARS_Factory {
       gLog.info( "Repository vendor: " + gRepository.getDescriptor( Repository.REP_VENDOR_DESC ));
 
       gEventManager = new CARS_EventManager();
+      gEventService = new CARS_EventService( gRepository.login( pCreds ));
       gSystemLoginSession       = gRepository.login( pCreds );
       gSystemAccessSession      = gRepository.login( pCreds );
       gSystemApplicationSession = gRepository.login( pCreds );
