@@ -140,7 +140,9 @@ public class CARS_EventService implements ICARS_EventService, Runnable {
             } else {
               node = createEventNode( event, mSession.getNode( event.folder() ) );              
             }
-            addLogEntry( event );
+            if (event.message()!=null) {
+              addLogEntry( event );
+            }
             mSession.save();
             if (event.waitForEventNode()) {
               event.eventNode( node );
@@ -383,6 +385,11 @@ public class CARS_EventService implements ICARS_EventService, Runnable {
     return;
   }
 
+  /** addLogEntry
+   * 
+   * @param pEvent
+   * @throws RepositoryException 
+   */
   private void addLogEntry( final ICARS_Event pEvent ) throws RepositoryException {
     if (mApacheLogEnabled) {
       try {

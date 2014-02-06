@@ -142,6 +142,7 @@ public class CARS_SystemsApp extends CARS_DefaultInterface {
         stateNode.setProperty( "jecars:ReadyRunning",   core.readyRunning() );
         stateNode.setProperty( "jecars:MaxLoad",        core.maxLoad() );
         stateNode.setProperty( "jecars:CurrentLoad",    core.currentLoad() );
+        stateNode.setProperty( "jecars:ExpectedLoad",   core.expectedLoad() );
 
         // **** queued Execs
         for( Object o : core.queuedExecs() ) {

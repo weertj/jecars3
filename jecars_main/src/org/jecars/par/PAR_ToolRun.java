@@ -15,18 +15,13 @@
  */
 package org.jecars.par;
 
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.jcr.RepositoryException;
-import javax.jcr.Session;
-import org.jecars.CARS_Factory;
 
 /**
  *
@@ -41,34 +36,6 @@ public class PAR_ToolRun<E> implements IPAR_ToolRun<E> {
   private final IPAR_Execute<E>  mExec;
 
   private IPAR_ResourceWish mResourceWish;
-
-  /**
-   * PAR_ToolRun
-   *
-   * @param pName
-   * @param pRunnable
-   * @throws java.net.UnknownHostException
-   */
-//  public PAR_ToolRun(final String pName, final Runnable pRunnable) throws UnknownHostException {
-//    mName = pName;
-//    mExec = new PAR_Execute<>( this, pRunnable );
-//    init();
-//    return;
-//  }
-
-  /**
-   * PAR_ToolRun
-   *
-   * @param pName
-   * @param pCallable
-   * @throws java.net.UnknownHostException
-   */
-//  public PAR_ToolRun(final String pName, final Callable<E> pCallable) throws UnknownHostException {
-//    mName = pName;
-//    mExec = new PAR_Execute<>( this, pCallable );
-//    init();
-//    return;
-//  }
 
   /** PAR_ToolRun
    * 

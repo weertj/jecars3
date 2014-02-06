@@ -191,7 +191,8 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
               for( final IWF_WorkflowRunner wrun : currentRunners ) {
                 if (wrun.getPath().equals( runner.getPath() )) {
                   currentRunners.remove( wrun );
-                  wrun.cancel();
+//                  System.out.println("CANCEL 1111 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ");
+//                  wrun.cancel();
                   break;
                 }
               }
@@ -448,7 +449,7 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
         } catch( RepositoryException re ) {
           reportException( re, Level.SEVERE );
         } finally {
-          mRunner.destroy();
+//          mRunner.destroy();
         }
       } catch( Exception e ) {
         CARS_ToolInstanceEvent tie = reportExceptionEvent( e, Level.SEVERE );
@@ -469,7 +470,9 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
         } catch( RepositoryException re ) {
           reportException( re, Level.WARNING );
         }
-      } 
+      } finally {
+        mRunner.destroy();        
+      }
 //    System.out.println("DEFAULT WORKFLOW THREAD 3 RESULT " + mRunner.getPath() + " -- " + res.hasState(WFP_InterfaceResult.STATE.ERROR) );
       return res;
     }
