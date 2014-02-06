@@ -43,6 +43,9 @@ public interface ICARS_Event {
   long      code();
   ICARS_Event body( final String pBody );
   String      body();
+  String    referer();
+  String    remoteHost();
+  String    userAgent();
 
   ICARS_Event             toolInstanceEvent( final CARS_ToolInstanceEvent pE );
   CARS_ToolInstanceEvent  toolInstanceEvent();

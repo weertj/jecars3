@@ -42,6 +42,10 @@ public class CARS_Event implements ICARS_Event {
   private       boolean     mWaitForEventNode = false;
   private       String      mEventNodePath = null;
   
+  private final String      mReferer;
+  private final String      mUserAgent;
+  private final String      mRemoteHost;
+  
   private CARS_ToolInstanceEvent mToolInstanceEvent = null;
   
   /** CARS_Event
@@ -72,6 +76,9 @@ public class CARS_Event implements ICARS_Event {
     mThrowable = null;
     mCode = pCode;
     mBody = null;
+    mReferer = null;
+    mRemoteHost = null;
+    mUserAgent = null;
     return;
   }
   
@@ -96,8 +103,21 @@ public class CARS_Event implements ICARS_Event {
           final String pEventType ) {
     if (pMain==null) {
       init( null, null );
+      mReferer = null;
+      mRemoteHost = null;
+      mUserAgent = null;
     } else {
       init( pMain.getLoginUser(), pMain.getCurrentViewNode() );
+      final CARS_ActionContext ac = pMain.getContext();
+      if (ac==null) {
+        mReferer = null;
+        mRemoteHost = null;
+        mUserAgent = null;        
+      } else {
+        mReferer = ac.getReferer();
+        mRemoteHost = ac.getRemoteHost();
+        mUserAgent = ac.getUserAgent();
+      }
     }
     mMessage = pMessage;
     mApplication = pApplication;
@@ -154,6 +174,16 @@ public class CARS_Event implements ICARS_Event {
       mCode = pContext.getErrorCode();
     }
     mBody = null;
+    if (pContext==null) {
+      mReferer = null;
+      mRemoteHost = null;
+      mUserAgent = null;        
+    } else {
+      mReferer = pContext.getReferer();
+      mRemoteHost = pContext.getRemoteHost();
+      mUserAgent = pContext.getUserAgent();
+    }
+
     return;
   }
 
@@ -190,6 +220,9 @@ public class CARS_Event implements ICARS_Event {
       mThrowable = pLog.getThrown();
     }
     mBody = null;
+    mReferer = null;
+    mRemoteHost = null;
+    mUserAgent = null;        
     return;    
   }
 
@@ -320,4 +353,20 @@ public class CARS_Event implements ICARS_Event {
     return this;
   }
 
+  @Override
+  public String referer() {
+    return mReferer;
+  }
+
+  @Override
+  public String remoteHost() {
+    return mRemoteHost;
+  }
+
+  @Override
+  public String userAgent() {
+    return mUserAgent;
+  }
+
+  
 }
