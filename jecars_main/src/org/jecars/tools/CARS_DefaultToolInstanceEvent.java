@@ -211,6 +211,12 @@ public class CARS_DefaultToolInstanceEvent implements CARS_ToolInstanceEvent {
   }
 
   @Override
+  public boolean hasEventNode() {
+    return mEventNodePath!=null;
+  }
+
+  
+  @Override
   public void setEventNode( Node pNode ) throws RepositoryException {
     mEventNodePath = pNode.getPath();
     return;

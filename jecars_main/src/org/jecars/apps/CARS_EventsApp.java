@@ -23,9 +23,11 @@ import javax.jcr.nodetype.ConstraintViolationException;
 import nl.msd.jdots.JD_Taglist;
 import org.jecars.CARS_ActionContext;
 import org.jecars.CARS_Definitions;
+import org.jecars.CARS_Event;
 import org.jecars.CARS_EventManager;
 import org.jecars.CARS_Factory;
 import org.jecars.CARS_Main;
+import org.jecars.ICARS_Event;
 import org.jecars.ICARS_EventService;
 
 /**
@@ -64,13 +66,14 @@ public class CARS_EventsApp extends CARS_DefaultInterface {
       final Session appSession = CARS_Factory.getSystemApplicationSession();
       synchronized( appSession ) {
         try {
-          if (!pParentNode.isNodeType( "jecars:mixin_unstructured" )) {
-            pParentNode.addMixin( "jecars:mixin_unstructured" );
+          final Node parentNode = appSession.getNode( pParentNode.getPath() );
+          if (!parentNode.isNodeType( "jecars:mixin_unstructured" )) {
+            parentNode.addMixin( "jecars:mixin_unstructured" );
           }
           final ICARS_EventService es = CARS_Factory.getEventService();
-          pParentNode.setProperty( "jecars:numberOfEventsWritten", es.numberOfEventsWritten() );
-          pParentNode.setProperty( "jecars:eventsInQueue", es.eventsInQueue() );
-          pParentNode.setProperty( "jecars:topEventsInQueue", es.topEventsInQueue() );
+          parentNode.setProperty( "jecars:numberOfEventsWritten", es.numberOfEventsWritten() );
+          parentNode.setProperty( "jecars:eventsInQueue", es.eventsInQueue() );
+          parentNode.setProperty( "jecars:topEventsInQueue", es.topEventsInQueue() );
         } finally {
           appSession.save();
         }
@@ -93,7 +96,7 @@ public class CARS_EventsApp extends CARS_DefaultInterface {
    */
   @Override
   public Node addNode( final CARS_Main pMain, final Node pInterfaceNode, final Node pParentNode, final String pName, final String pPrimType, final JD_Taglist pParams ) throws RepositoryException, UnsupportedEncodingException {
-    final Node realEventNode;
+    Node realEventNode = null;
     if ("jecars:Event".equals( pPrimType )) {
       JD_Taglist paramsTL = pMain.getContext().getQueryPartsAsTaglist();
       paramsTL = pMain.getContext().getParameterMapAsTaglist( paramsTL );
@@ -101,28 +104,60 @@ public class CARS_EventsApp extends CARS_DefaultInterface {
       if (eventPath==null) {
         throw new ConstraintViolationException( "X-EventPath not given" );
       } else {
-        final CARS_ActionContext ac = pMain.getContext();
-        final CARS_EventManager eventManager = CARS_Factory.getEventManager();
+//        final CARS_ActionContext ac = pMain.getContext();
+        
+        final ICARS_EventService es = CARS_Factory.getEventService();
+        
+//        final CARS_EventManager eventManager = CARS_Factory.getEventManager();
+        ICARS_Event event = null;
         final Session appSession = CARS_Factory.getSystemApplicationSession();
         synchronized( appSession ) {
           try {
             final Node eventPathFolder   = appSession.getNode( eventPath );
-            final Node loginUserAsSystem = appSession.getNode( pMain.getLoginUser().getPath() );
-            final Node parentNode        = appSession.getNode( pParentNode.getPath() );
+//            final Node loginUserAsSystem = appSession.getNode( pMain.getLoginUser().getPath() );
+//            final Node parentNode        = appSession.getNode( pParentNode.getPath() );
             // **** An event object will be created
-            realEventNode = eventManager.addEvent( eventPathFolder, ac.getMain(),
-                      loginUserAsSystem, null,
-                      eventPath,
-                      (String)paramsTL.getData( "jecars:Category" ),
-                      (String)paramsTL.getData( "jecars:Type" ),
-                      (String)paramsTL.getData( "jecars:Title" ),
-                      pPrimType,
-                      (String)paramsTL.getData( "jecars:Body" ),
-                      parentNode.getPath() );
+
+            event = new CARS_Event( 
+                    pMain,
+                    eventPathFolder.getPath(),
+                    null,
+                    (String)paramsTL.getData( "jecars:Category" ),
+                    (String)paramsTL.getData( "jecars:Type" ),
+                    null,
+                    (String)paramsTL.getData( "jecars:Title" ),
+                    pPrimType ).
+                    body( (String)paramsTL.getData( "jecars:Body" ) ).
+                    waitForEventNode( true );
           } finally {
             appSession.save();
           }
         }
+        // **** Offer event to the service
+        if (event!=null) {
+          es.offer( event );
+          if (event.eventNode()!=null) {
+            synchronized( appSession ) {
+              try {
+                // **** Event node path should be available
+                realEventNode = appSession.getNode( event.eventNode() );
+              } finally {
+                appSession.save();
+              }
+            }
+          }
+        }
+            
+//            realEventNode = eventManager.addEvent( eventPathFolder, ac.getMain(),
+//                      loginUserAsSystem, null,
+//                      eventPath,
+//                      (String)paramsTL.getData( "jecars:Category" ),
+//                      (String)paramsTL.getData( "jecars:Type" ),
+//                      (String)paramsTL.getData( "jecars:Title" ),
+//                      pPrimType,
+//                      (String)paramsTL.getData( "jecars:Body" ),
+//                      parentNode.getPath() );
+//        }
         pParentNode.save();
       }
     } else {
