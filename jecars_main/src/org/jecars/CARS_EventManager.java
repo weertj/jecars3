@@ -33,6 +33,7 @@ import org.jecars.jaas.CARS_Credentials;
  *
  * @version $Id: CARS_EventManager.java,v 1.22 2009/06/08 09:55:29 weertj Exp $
  */
+@Deprecated
 public class CARS_EventManager {
 
   static final protected Logger gLog = Logger.getLogger( "org.jecars" );
@@ -88,7 +89,7 @@ public class CARS_EventManager {
 
   static final public Object EVENTLOCK = new Object();
   
-  static private File              gEVENTLOGFILE  = new File( "jecars.log" );
+  static public File              gEVENTLOGFILE  = new File( "jecars.log" );
   static final private Object       EVENTFILELOCK = new Object();
   static private boolean           gENABLELOG     = true;
   static private SimpleDateFormat  gLOGTIMEFORMAT = new SimpleDateFormat( "[dd/MMM/yyyy:HH:mm:ss Z]", Locale.US );

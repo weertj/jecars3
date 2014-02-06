@@ -17,14 +17,19 @@ package org.jecars;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -46,6 +51,10 @@ public class CARS_EventService implements ICARS_EventService, Runnable {
   private       transient long                        mNumberOfEventsWritten = 0;
   private       transient long                        mTopEventsInQueue = 0;
   private final transient BlockingQueue<ICARS_Event>  mEventsQueue = new LinkedBlockingQueue<>(1024);
+  
+  private       transient boolean                     mApacheLogEnabled = true;
+   
+  private       transient SimpleDateFormat  mLogTimeFormat = new SimpleDateFormat( "[dd/MMM/yyyy:HH:mm:ss Z]", Locale.US );
 
   /**
    * 
@@ -131,6 +140,7 @@ public class CARS_EventService implements ICARS_EventService, Runnable {
             } else {
               node = createEventNode( event, mSession.getNode( event.folder() ) );              
             }
+            addLogEntry( event );
             mSession.save();
             if (event.waitForEventNode()) {
               event.eventNode( node );
@@ -373,6 +383,91 @@ public class CARS_EventService implements ICARS_EventService, Runnable {
     return;
   }
 
+  private void addLogEntry( final ICARS_Event pEvent ) throws RepositoryException {
+    if (mApacheLogEnabled) {
+      try {
+        final String rh, userAgent, referer;
+        final int code;
+        if (pEvent.referer()==null) {
+          referer = "-";
+        } else {
+          referer = pEvent.referer();
+        }
+        if (pEvent.userAgent()==null) {
+          userAgent = "-";
+        } else {
+          userAgent = pEvent.userAgent();
+        }
+        if (pEvent.remoteHost()==null) {
+          rh = "-";
+        } else {
+          rh = pEvent.remoteHost();
+        }
+        code = (int)pEvent.code();
+        if (pEvent.user()==null) {
+          if (pEvent.source()==null) {
+            addLogEntry( rh, "-", "-", processLogRequest( pEvent.message() ), code, 0, referer, userAgent );
+          } else {
+            addLogEntry( rh, "-", "-", processLogRequest( pEvent.message() ), code, 0, referer, userAgent );
+          }
+        } else {
+          if (pEvent.source()==null) {
+            addLogEntry( rh, "-", pEvent.user(), processLogRequest( pEvent.message() ), code, 0, referer, userAgent );
+          } else {
+            addLogEntry( rh, "-", pEvent.user(), processLogRequest( pEvent.message() ), code, 0, referer, userAgent );
+          }
+        }
+      } catch(IOException ie) {
+      }
+    }
+    return;
+  }
+
+  /** addLogEntry
+   *
+   * @param pClient
+   * @param pIdentd
+   * @param pUserId
+   * @param pRequest
+   * @param pResponse
+   * @param pSize
+   * @param pReferrer
+   * @param pUserAgent
+   * @throws IOException
+   */
+  private void addLogEntry(
+                        final String pClient,   final String pIdentd,  final String pUserId,
+                        final String pRequest,  final int pResponse,   final int pSize,
+                        final String pReferrer, final String pUserAgent ) throws IOException {
+    try (FileOutputStream fos = new FileOutputStream( CARS_EventManager.gEVENTLOGFILE, true )) {
+      final String line = pClient + " " + pIdentd + " " + pUserId + " " +
+                    mLogTimeFormat.format(new Date()) + " " +
+                    "\"" + pRequest + "\" " + pResponse + " " + pSize + " " +
+                    "\"" + pReferrer + "\" " + "\"" + pUserAgent + "\"\n";
+      fos.write( line.getBytes() );
+      fos.flush();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
+    return;
+  }
   
+  /** processLogRequest
+   *
+   * @param pRequest
+   * @return
+   */
+  static private String processLogRequest( final String pRequest ) {
+    if ((pRequest!=null) &&
+        ((pRequest.startsWith( "GET " )) ||
+         (pRequest.startsWith( "HEAD " )) ||
+         (pRequest.startsWith( "PUT " )) ||
+         (pRequest.startsWith( "DELETE " )) ||
+         (pRequest.startsWith( "POST " )))) {
+      return pRequest + " HTTP/1.0";
+    }
+    return  "GET " + pRequest + " HTTP/1.0";
+  }
+
   
 }
