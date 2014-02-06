@@ -37,6 +37,7 @@ public interface IPAR_Core<E> extends IPAR_DefaultNode {
   
   double        maxLoad();
   double        currentLoad();
+  double        expectedLoad();
   
   List<IPAR_Execute<E>> queuedExecs();
   List<IPAR_Execute<E>> runningExecs();

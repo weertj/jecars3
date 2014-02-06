@@ -788,6 +788,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
         addFileToOutput( new File( mWorkingDirectory, "__stdout.txt" ) );
 //    System.out.println("TOOL RUN 6.1 " + System.currentTimeMillis());
         err = process.waitFor();
+//     Thread.sleep( 5000 );
 //  System.out.println("START TOOL END  time=" + System.currentTimeMillis()  );
         error.join( 4000 );
         input.join( 4000 );

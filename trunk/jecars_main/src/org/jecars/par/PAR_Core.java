@@ -41,6 +41,7 @@ public class PAR_Core<E> extends PAR_DefaultNode implements IPAR_Core<E> {
   private final AtomicInteger           mCurrentRunning = new AtomicInteger(0);
   private final AtomicInteger           mReadyRunning   = new AtomicInteger(0);
   
+  private       double              mExpectedLoad = 0.0;
   private       double              mCurrentLoad = 0.0;
   private       double              mMaxLoad = 1.0;
   private       ExecutorService     mExecutorService = null;
@@ -75,9 +76,9 @@ public class PAR_Core<E> extends PAR_DefaultNode implements IPAR_Core<E> {
       mExecWishes.add( pWish );
       return true;
     }
-    if ((mCurrentLoad+load)<=mMaxLoad) {
-      mCurrentLoad += load;
-      if (mCurrentLoad>=mMaxLoad) {
+    if ((mExpectedLoad+load)<=mMaxLoad) {
+      mExpectedLoad += load;
+      if (mExpectedLoad>=mMaxLoad) {
         mCoreType = EPAR_CoreType.ALLOCATED;
       }      
       mExecWishes.add( pWish );      
@@ -85,11 +86,11 @@ public class PAR_Core<E> extends PAR_DefaultNode implements IPAR_Core<E> {
     } else {
       if (pAcceptOverload) {
         // **** Overloading is acceptable
-        if (mCurrentLoad<=mMaxLoad) {
+        if (mExpectedLoad<=mMaxLoad) {
           mExecWishes.add( pWish );
-          mCurrentLoad += load;
+          mExpectedLoad += load;
         }
-        if (mCurrentLoad>=mMaxLoad) {
+        if (mExpectedLoad>=mMaxLoad) {
           mCoreType = EPAR_CoreType.ALLOCATED;
         }
         return true;        
@@ -102,9 +103,9 @@ public class PAR_Core<E> extends PAR_DefaultNode implements IPAR_Core<E> {
   public void release( final IPAR_ResourceWish pWish ) {
     mExecWishes.remove( pWish );
     double load = pWish.expectedLoad();
-    mCurrentLoad -= load;
-    mCurrentLoad = Math.max( 0, mCurrentLoad );
-    if (mCurrentLoad>=mMaxLoad) {
+    mExpectedLoad -= load;
+    mExpectedLoad = Math.max( 0, mExpectedLoad );
+    if (mExpectedLoad>=mMaxLoad) {
       mCoreType = EPAR_CoreType.ALLOCATED;
     } else {
       mCoreType = EPAR_CoreType.AVAILABLE;      
@@ -142,21 +143,45 @@ public class PAR_Core<E> extends PAR_DefaultNode implements IPAR_Core<E> {
   @Override
   public E execute( final IPAR_Execute<E> pExec, final IPAR_ResourceWish pWish ) throws InterruptedException, RepositoryException, ExecutionException {
     E result = null;
-    mExecQueue.add( pExec );
+
+    synchronized( mExecQueue ) {
+      mExecQueue.offer( pExec );
+    }
     IPAR_Execute<E> runExec = null;
-    while( ((runExec = mExecQueue.poll())!=pExec) || (mCurrentLoad>=1) ) {      
-      mExecQueue.offer( runExec );
-      if (mExecWishes.contains(pWish) || mCurrentLoad<=0) {
-        // **** Our wish was granted....start
-        runExec = pExec;
-        mExecQueue.remove( pExec );
-        break;
+    
+    boolean waitForExec = true;
+    while( waitForExec ) {
+      synchronized( mExecQueue ) {
+        if (mCurrentLoad<=1 && mExecQueue.peek()==pExec) {
+          waitForExec = false;
+          mCurrentLoad += pWish.expectedLoad();
+          runExec = mExecQueue.poll();
+        }
       }
-      synchronized( mExecRunning ) {
+      if (waitForExec) {
+        synchronized( mExecRunning ) {
       System.out.println("Start Peeking on " + mExecQueue.size() + " - " + mExecWishes.size() + " load: " + mCurrentLoad );
-        mExecRunning.wait( 2000 );
+          mExecRunning.wait( 2000 );
+        }
       }
     }
+
+
+//    while( ((runExec = mExecQueue.poll())!=pExec) || (mCurrentLoad>=1) ) {
+//      mExecQueue.offer( runExec );
+//      if (mExecWishes.contains(pWish) || mCurrentLoad<=0) {
+//        // **** Our wish was granted....start
+//        System.out.println("WISH WAS GRANTED " + pExec );
+//        runExec = pExec;
+//        mExecQueue.remove( pExec );
+//        break;
+//      }
+//      synchronized( mExecRunning ) {
+//      System.out.println("Start Peeking on " + mExecQueue.size() + " - " + mExecWishes.size() + " load: " + mCurrentLoad );
+//        mExecRunning.wait( 2000 );
+//      }
+//    }
+    
     // **** Add the wish which is being executed, (if not already there)
     if (!mExecWishes.contains( pWish )) {
       mExecWishes.add( pWish );
@@ -179,9 +204,10 @@ public class PAR_Core<E> extends PAR_DefaultNode implements IPAR_Core<E> {
       }
       try {
         executorService().submit( runExec.runnable() ).get();
-      } finally {
+      } finally {        
         synchronized( mExecRunning ) {
-          mExecRunning.notify();
+          mCurrentLoad -= pWish.expectedLoad();
+          mExecRunning.notifyAll();
         }
         synchronized( CORELOCK ) {
           mExecRunning.remove( runExec );
@@ -208,6 +234,7 @@ public class PAR_Core<E> extends PAR_DefaultNode implements IPAR_Core<E> {
         System.out.println("END RUNNING " + runExec.id() );
       } finally {
         synchronized( mExecRunning ) {
+          mCurrentLoad -= pWish.expectedLoad();
           mExecRunning.notify();
         }
         synchronized( CORELOCK ) {
@@ -222,6 +249,11 @@ public class PAR_Core<E> extends PAR_DefaultNode implements IPAR_Core<E> {
 
   @Override
   public double currentLoad() {
+    return mCurrentLoad;
+  }
+
+  @Override
+  public double expectedLoad() {
     return mCurrentLoad;
   }
 
