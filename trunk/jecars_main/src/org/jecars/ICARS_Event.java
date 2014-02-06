@@ -1,12 +1,23 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright 2014 NLR - National Aerospace Laboratory
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-
 package org.jecars;
 
 import java.util.Calendar;
+import javax.jcr.Node;
+import javax.jcr.RepositoryException;
 import org.jecars.tools.CARS_ToolInstanceEvent;
 
 /**
@@ -15,6 +26,10 @@ import org.jecars.tools.CARS_ToolInstanceEvent;
  */
 public interface ICARS_Event {
  
+  ICARS_Event eventNode( final Node pNode ) throws RepositoryException;
+  String      eventNode();
+  boolean     waitForEventNode();
+  ICARS_Event waitForEventNode( final boolean pW );
   String    application();
   String    category();
   String    folder();
@@ -26,7 +41,8 @@ public interface ICARS_Event {
   Calendar  creationDate();
   Throwable throwable();
   long      code();
-  String    body();
+  ICARS_Event body( final String pBody );
+  String      body();
 
   ICARS_Event             toolInstanceEvent( final CARS_ToolInstanceEvent pE );
   CARS_ToolInstanceEvent  toolInstanceEvent();

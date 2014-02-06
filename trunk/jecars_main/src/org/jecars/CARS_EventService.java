@@ -1,7 +1,17 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright 2014 NLR - National Aerospace Laboratory
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 package org.jecars;
 
@@ -35,7 +45,7 @@ public class CARS_EventService implements ICARS_EventService, Runnable {
   private final transient Session                     mSession;
   private       transient long                        mNumberOfEventsWritten = 0;
   private       transient long                        mTopEventsInQueue = 0;
-  private final transient BlockingQueue<ICARS_Event>  mEventsQueue = new LinkedBlockingQueue<>(64);
+  private final transient BlockingQueue<ICARS_Event>  mEventsQueue = new LinkedBlockingQueue<>(1024);
 
   /**
    * 
@@ -81,14 +91,23 @@ public class CARS_EventService implements ICARS_EventService, Runnable {
     while( !stored ) {
       try {
         stored = mEventsQueue.offer(pEvent, 2000, TimeUnit.MILLISECONDS);
-        if (pEvent.toolInstanceEvent()!=null) {
-          while( pEvent.toolInstanceEvent().getEventNode( mSession )==null ) {
+        if (pEvent.toolInstanceEvent()!=null ||
+            pEvent.waitForEventNode()) {
+          while( ( pEvent.waitForEventNode() && pEvent.eventNode()==null) ||
+                  (pEvent.toolInstanceEvent()!=null && !pEvent.toolInstanceEvent().hasEventNode() )) {
             synchronized( pEvent ) {
               pEvent.wait( 250 );
             }
           }
+          if (pEvent.toolInstanceEvent()!=null) {
+            // **** There is a remote chance that the "pEvent.wait()" timed out and in the meantime the event object is set
+            // **** toolinstanceevent is the last object to set, which could not be the case, check/wait to make sure
+            while( !pEvent.toolInstanceEvent().hasEventNode() ) {
+              Thread.sleep( 50 );
+            }
+          }
         }
-      } catch( RepositoryException | InterruptedException e ) {
+      } catch( InterruptedException e ) {
         e.printStackTrace();
       }
     }
@@ -111,6 +130,10 @@ public class CARS_EventService implements ICARS_EventService, Runnable {
               node = createEventNode( event, mSession.getNode("/JeCARS/default/Events") );
             } else {
               node = createEventNode( event, mSession.getNode( event.folder() ) );              
+            }
+            mSession.save();
+            if (event.waitForEventNode()) {
+              event.eventNode( node );
             }
             if (event.toolInstanceEvent()!=null) {
               _setEventProperties( event.toolInstanceEvent(), node );
@@ -142,7 +165,12 @@ public class CARS_EventService implements ICARS_EventService, Runnable {
 //    Node folder = mSession.getRootNode().getNode("JeCARS/default/Events");
 
     if (pEvent.application() == null) {
-      folder = folder.getNode("System/jecars:Events" + pEvent.type());
+      Node ffol = folder;
+      try {
+        folder = folder.getNode("System/jecars:Events" + pEvent.type());
+      } catch( RepositoryException e ) {
+        folder = ffol;
+      }
     } else {
       if (pEvent.application().startsWith("/")) {
         folder = mSession.getNode(pEvent.application());
@@ -296,7 +324,7 @@ public class CARS_EventService implements ICARS_EventService, Runnable {
     return storeEvents;
   }
 
-  /**
+  /** _setEventProperties
    * 
    * @param pEvent
    * @param pNode

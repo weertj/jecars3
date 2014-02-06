@@ -1,9 +1,18 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Copyright 2014 NLR - National Aerospace Laboratory
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-
 package org.jecars;
 
 import java.util.Calendar;
@@ -29,7 +38,9 @@ public class CARS_Event implements ICARS_Event {
   private final String      mType;
   private final Throwable   mThrowable;
   private final long        mCode;
-  private final String      mBody;
+  private       String      mBody;
+  private       boolean     mWaitForEventNode = false;
+  private       String      mEventNodePath = null;
   
   private CARS_ToolInstanceEvent mToolInstanceEvent = null;
   
@@ -41,8 +52,7 @@ public class CARS_Event implements ICARS_Event {
    * @param pCategory
    * @param pType
    * @param pMessage
-   * @param pCode
-   * @throws javax.jcr.RepositoryException 
+   * @param pCode 
    */
   public CARS_Event(
           final Node pUser,
@@ -147,7 +157,15 @@ public class CARS_Event implements ICARS_Event {
     return;
   }
 
-          
+  /** CARS_Event
+   * 
+   * @param pUser
+   * @param pSource
+   * @param pApplication
+   * @param pCategory
+   * @param pType
+   * @param pLog 
+   */
   public CARS_Event(
           final Node pUser,
           final Node pSource,
@@ -274,6 +292,32 @@ public class CARS_Event implements ICARS_Event {
     return mBody;
   }
   
+  @Override
+  public ICARS_Event body( final String pBody ) {
+    mBody = pBody;
+    return this;
+  }
 
-  
+  @Override
+  public boolean waitForEventNode() {
+    return mWaitForEventNode;
+  }
+
+  @Override
+  public ICARS_Event waitForEventNode(boolean pW) {
+    mWaitForEventNode = pW;
+    return this;
+  }
+
+  @Override
+  public String eventNode() {
+    return mEventNodePath;
+  }
+
+  @Override
+  public ICARS_Event eventNode(Node pNode) throws RepositoryException {
+    mEventNodePath = pNode.getPath();
+    return this;
+  }
+
 }

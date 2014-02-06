@@ -84,6 +84,7 @@ public interface CARS_ToolInstanceEvent {
    */
   boolean getEventBlocking();
   
+  boolean hasEventNode();
   void setEventNode( Node pNode ) throws RepositoryException;
   Node getEventNode( Session pSession ) throws RepositoryException;
   
