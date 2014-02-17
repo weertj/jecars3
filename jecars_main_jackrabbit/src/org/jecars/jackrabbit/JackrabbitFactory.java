@@ -19,8 +19,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.math.BigDecimal;
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Properties;
@@ -50,13 +48,11 @@ import org.jecars.CARS_EventManager;
 import org.jecars.CARS_EventService;
 import org.jecars.CARS_Factory;
 import org.jecars.CARS_LogHandler;
-import org.jecars.CARS_Main;
 import org.jecars.CARS_Utils;
 import org.jecars.ICARS_Session;
 import org.jecars.apps.CARS_AdminApp;
 import org.jecars.jaas.CARS_Credentials;
 import org.jecars.jaas.CARS_PasswordService;
-import org.jecars.output.CARS_OutputGenerator_Backup;
 import org.jecars.output.CARS_OutputGenerator_WorkflowXML;
 
 /**
