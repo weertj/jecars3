@@ -609,7 +609,7 @@ public class JackrabbitAccessManager extends DefaultAccessManager implements Acc
     public boolean isGranted( final org.apache.jackrabbit.core.id.ItemId id, final int actions )
             throws ItemNotFoundException, RepositoryException {
 //    public boolean isGranted( final org.apache.jackrabbit.core.ItemId id, final int actions )
-//            throws ItemNotFoundException, RepositoryException {
+//            throws ItemNotFoundException, RepositoryException {     
         checkInitialized();
         if (mInTheManager) return true;
         int perm = 0;
