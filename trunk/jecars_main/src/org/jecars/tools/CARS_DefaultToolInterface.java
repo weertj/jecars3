@@ -298,7 +298,7 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
         try {
           if (!isScheduledTool()) {
             mMain.destroy();
-            if (newSession!=null) {
+            if ((newSession!=null && newSession.isLive())) {
               newSession.logout();
             }
           } else {

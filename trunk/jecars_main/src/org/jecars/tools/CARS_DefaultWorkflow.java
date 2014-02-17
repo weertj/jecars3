@@ -430,27 +430,28 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
 //        System.out.println("  STATE = " + mRunner.getWorkflow().getNode().getProperty( "jecars:State" ).getString() );
 
         // **** Check for the archive option
-        try {
-          Node config = mRunner.getWorkflow().getConfig();
-          if (config!=null && config.hasProperty( "jecars:ArchiveDirectory" )) {
-            Thread.sleep( 5000 );
-            String archive = config.getProperty( "jecars:ArchiveDirectory" ).getString();
-            WFPT_Archive archiveTool = new WFPT_Archive();
-            final WFP_Tool       tool = new WFP_Tool( null, mRunner.getWorkflow() );
-            final IWFP_Context context = new WFP_Context( mRunner.getContext(), getMain() );
-            if (config.hasProperty( "jecars:JeCARSBackupDirectory" )) {
-              String backup = config.getProperty( "jecars:JeCARSBackupDirectory" ).getString();
-              context.addTransientObject( WFPT_Archive.JECARSBACKUPDIRECTORY, backup );
-            }
-            context.addTransientObject( WFPT_Archive.NODEFORARCHIVE, mRunner.getWorkflow().getNode() );
-            context.addTransientObject( WFPT_Archive.ARCHIVEDIRECTORY, archive );
-            archiveTool.start( tool, context );
-          }
-        } catch( RepositoryException re ) {
-          reportException( re, Level.SEVERE );
-        } finally {
-//          mRunner.destroy();
-        }
+        // **** Dit moet anders, als het nu draait dan is de Session al afgesloten wanneer de method returned
+//        try {
+//          Node config = mRunner.getWorkflow().getConfig();
+//          if (config!=null && config.hasProperty( "jecars:ArchiveDirectory" )) {
+//            Thread.sleep( 5000 );
+//            String archive = config.getProperty( "jecars:ArchiveDirectory" ).getString();
+//            WFPT_Archive archiveTool = new WFPT_Archive();
+//            final WFP_Tool       tool = new WFP_Tool( null, mRunner.getWorkflow() );
+//            final IWFP_Context context = new WFP_Context( mRunner.getContext(), getMain() );
+//            if (config.hasProperty( "jecars:JeCARSBackupDirectory" )) {
+//              String backup = config.getProperty( "jecars:JeCARSBackupDirectory" ).getString();
+//              context.addTransientObject( WFPT_Archive.JECARSBACKUPDIRECTORY, backup );
+//            }
+//            context.addTransientObject( WFPT_Archive.NODEFORARCHIVE, mRunner.getWorkflow().getNode() );
+//            context.addTransientObject( WFPT_Archive.ARCHIVEDIRECTORY, archive );
+//            archiveTool.start( tool, context );
+//          }
+//        } catch( RepositoryException re ) {
+//          reportException( re, Level.SEVERE );
+//        } finally {
+////          mRunner.destroy();
+//        }
       } catch( Exception e ) {
         CARS_ToolInstanceEvent tie = reportExceptionEvent( e, Level.SEVERE );
         try {
