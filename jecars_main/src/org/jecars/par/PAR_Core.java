@@ -160,7 +160,7 @@ public class PAR_Core<E> extends PAR_DefaultNode implements IPAR_Core<E> {
       }
       if (waitForExec) {
         synchronized( mExecRunning ) {
-      System.out.println("Start Peeking on " + mExecQueue.size() + " - " + mExecWishes.size() + " load: " + mCurrentLoad );
+//      System.out.println("Start Peeking on " + mExecQueue.size() + " - " + mExecWishes.size() + " load: " + mCurrentLoad );
           mExecRunning.wait( 2000 );
         }
       }
@@ -193,11 +193,11 @@ public class PAR_Core<E> extends PAR_DefaultNode implements IPAR_Core<E> {
     // *************************************************************************
     // **** Check for runnable
     if (runExec.runnable()!=null) {
-      try {
-      System.out.println("Running on " + node().getPath() + " -> " + runExec.toolRun().name() );
-      } catch( RepositoryException e ) {
-        e.printStackTrace();
-      }
+//      try {
+//      System.out.println("Running on " + node().getPath() + " -> " + runExec.toolRun().name() );
+//      } catch( RepositoryException e ) {
+//        e.printStackTrace();
+//      }
       synchronized( CORELOCK ) {
         mCurrentRunning.incrementAndGet();
         mExecRunning.add( runExec );
@@ -219,19 +219,19 @@ public class PAR_Core<E> extends PAR_DefaultNode implements IPAR_Core<E> {
     // *************************************************************************
     // **** Check for callable
     if (runExec.callable()!=null) {
-      try {
-      System.out.println("Running (call) on " + node().getPath() + " -> " + runExec.toolRun().name() );
-      } catch( RepositoryException e ) {
-        e.printStackTrace();
-      }
+//      try {
+//      System.out.println("Running (call) on " + node().getPath() + " -> " + runExec.toolRun().name() );
+//      } catch( RepositoryException e ) {
+//        e.printStackTrace();
+//      }
       synchronized( CORELOCK ) {
         mCurrentRunning.incrementAndGet();
         mExecRunning.add( runExec );
       }
       try {
-        System.out.println("START RUNNING " + runExec.id() );
+//        System.out.println("START RUNNING " + runExec.id() );
         result = executorService().submit( runExec.callable() ).get();
-        System.out.println("END RUNNING " + runExec.id() );
+//        System.out.println("END RUNNING " + runExec.id() );
       } finally {
         synchronized( mExecRunning ) {
           mCurrentLoad -= pWish.expectedLoad();

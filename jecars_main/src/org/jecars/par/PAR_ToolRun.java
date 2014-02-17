@@ -98,7 +98,7 @@ public class PAR_ToolRun<E> implements IPAR_ToolRun<E> {
     } else {
       // ***********************************************************************
       // **** Runnable
-      System.out.println("RUN - " + mName + " = " + Thread.currentThread().getName());
+//      System.out.println("RUN - " + mName + " = " + Thread.currentThread().getName());
 
 //      final Session sysSession = CARS_Factory.getSystemAccessSession();
         if (mResourceWish.numberOfCores() == 1) {
@@ -165,7 +165,7 @@ public class PAR_ToolRun<E> implements IPAR_ToolRun<E> {
     } else {
       // ***********************************************************************
       // **** Callable
-      System.out.println("CALL - " + mName + " = " + Thread.currentThread().getName());
+//      System.out.println("CALL - " + mName + " = " + Thread.currentThread().getName());
 
 //      final Session sysSession = CARS_Factory.getSystemAccessSession();
         if (mResourceWish.numberOfCores() == 1) {
