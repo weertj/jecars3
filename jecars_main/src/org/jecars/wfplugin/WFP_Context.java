@@ -123,6 +123,24 @@ public class WFP_Context implements IWFP_Context {
     }
     return;
   }
+
+  /** copyParameter
+   * 
+   * @param pParam
+   * @throws WFP_Exception 
+   */
+  @Override
+  public void copyParameter( final IWFP_ContextParameter pParam ) throws WFP_Exception {
+    try {
+      Session ses = mContext.getNode().getSession();
+      ses.getWorkspace().copy( pParam.getPath(), mContext.getNode().getPath() + "/" + pParam.getName()  );
+    } catch( RepositoryException re ) {
+      throw new WFP_Exception(re);
+    }
+    return;
+  }
+  
+  
   
   /** getInputs
    * 
@@ -260,6 +278,25 @@ public class WFP_Context implements IWFP_Context {
     return;
   }
 
+  /** getParameters
+   * 
+   * @return
+   * @throws WFP_Exception 
+   */
+  @Override
+  public List<IWFP_ContextParameter> getParameters() throws WFP_Exception {
+    try {
+      final List<IWFP_ContextParameter> cpars = new ArrayList<>();
+      for( Node n : mContext.getParameterNodes() ) {
+        cpars.add( new WFP_ContextParameter( n ));
+      }
+      return cpars;
+    } catch( RepositoryException re ) {
+      throw new WFP_Exception( re );
+    }
+  }
+
+  
   /** getParameter
    * 
    * @param pName

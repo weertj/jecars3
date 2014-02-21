@@ -35,6 +35,7 @@ import java.util.SortedMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
+import java.util.regex.Pattern;
 import javax.jcr.Binary;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
@@ -65,7 +66,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
 
   private final transient List<File> mInputs = new ArrayList<>();
 
-//  private final transient List<File> mResultFiles = new ArrayList<File>(16);
+  private final transient List<String> mResultFiles = new ArrayList<>(16);
   
   private transient File mWorkingDirectory = null;
 
@@ -409,6 +410,36 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
     return;
   }
 
+  /** processResultFilesEntries
+   * 
+   * @param pTemplateToolPath
+   * @param pFolder
+   * @throws RepositoryException 
+   */
+  private void processResultFilesEntries( final String pTemplateToolPath, final Node pFolder ) throws RepositoryException {
+    // **** Process the config node belonging to the toolinstance
+    final NodeIterator ni = pFolder.getNodes();
+    while( ni.hasNext() ) {
+      final Node rsn = ni.nextNode();
+      if (rsn.getName().startsWith( "JeCARS-ResultFiles_" )) {
+        if (rsn.hasProperty( "jecars:File" )) {
+          // **** Process the file entry
+          String[] vals = rsn.getProperty( "jecars:File" ).getString().split( "=" );
+          if (Pattern.compile( vals[0] ).matcher( pTemplateToolPath ).find()) {
+            File f = new File( vals[1] );
+            if (!f.isAbsolute()) {
+              f = new File( mWorkingDirectory, f.getPath() );
+            }
+            if (!mResultFiles.contains( f.getAbsolutePath() )) {
+              mResultFiles.add( f.getAbsolutePath() );
+            }
+          }
+        }
+      }
+    }
+    return;
+  }
+
   
   /** toolInput
    *
@@ -438,13 +469,24 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
         }
       }
     }
+    
     config = getConfigNode();
+
+    // **** Handle parameters
+    {
+      String fwd = getParameterString( "FixedWorkingDirectory", 0 );
+      if (fwd!=null) {
+        config.setProperty( FIXEDWORKINGDIRECTORY, fwd );
+      }
+    }
+    
     
     if (config.hasProperty( WORKINGDIRECTORY ) || (config.hasProperty( FIXEDWORKINGDIRECTORY ))) {
       // **** Check for jecars:WorkingDirectory
 
-      // ******************************
+      // ***********************************************************************
       // **** Get the working directory
+      // ****
       if (config.hasProperty( FIXEDWORKINGDIRECTORY )) {
         // **** Get the fixed working directory (priority)
         mWorkingDirectory = new File( config.getProperty( FIXEDWORKINGDIRECTORY ).getString() );
@@ -468,42 +510,47 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
       }
 
       
-/*
       // *************************************************************************
       // **** Check for result file entries
-      {
-        final NodeIterator ni = config.getNodes();
-        int currentrsn = 0;
-        while( ni.hasNext() ) {
-          final Node rsn = ni.nextNode();
-          if (("ResultFile_" + currentrsn).equals( rsn.getName())) {
-            if (rsn.hasProperty( "jecars:File" )) {
-              File f = new File( rsn.getProperty( "jecars:File" ).getString() );
-              if (!f.isAbsolute()) {
-                f = new File( mWorkingDirectory, f.getPath() );
+      // ****
+      String control = getParameterString( "JeCARS-Control", 0 );
+      if (control!=null && control.endsWith( "=rerun" )) {
+        final String templateToolPath = getToolTemplatePath();
+        if (templateToolPath!=null) {
+          if (rootToolConfig!=null) {
+            // **** Process the config node belonging to the root tool config
+            processResultFilesEntries( templateToolPath, rootToolConfig );
+          }
+        }
+        if (templateToolPath!=null) {
+          // **** Process the config node belonging to the toolinstance
+          processResultFilesEntries( templateToolPath, config );
+        }
+        { // **** Check parameter "JeCARS-ResultFiles"
+          if (templateToolPath!=null) {
+            int i = 0;
+            while( 1==1 ) {
+              String val = getParameterString( "JeCARS-ResultFiles", i );
+              if (val==null) {
+                break;
               }
-              mResultFiles.add( f );
+              // **** Process the file entry
+              String[] vals = val.split( "=" );
+              if (Pattern.compile( vals[0] ).matcher( templateToolPath ).find()) {
+                File f = new File( vals[1] );
+                if (!f.isAbsolute()) {
+                  f = new File( mWorkingDirectory, f.getPath() );
+                }
+                if (!mResultFiles.contains( f.getAbsolutePath() )) {
+                  mResultFiles.add( f.getAbsolutePath() );
+                }
+              }
+              i++;
             }
           }
         }
       }
-      if (rootToolConfig!=null) {
-        final NodeIterator ni = rootToolConfig.getNodes();
-        int currentrsn = 0;
-        while( ni.hasNext() ) {
-          final Node rsn = ni.nextNode();
-          if (("ResultFile_" + currentrsn).equals( rsn.getName())) {
-            if (rsn.hasProperty( "jecars:File" )) {
-              File f = new File( rsn.getProperty( "jecars:File" ).getString() );
-              if (!f.isAbsolute()) {
-                f = new File( mWorkingDirectory, f.getPath() );
-              }
-              mResultFiles.add( f );
-            }
-          }
-        }
-      }
-*/
+
       
       
       
@@ -581,60 +628,6 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
     return;
   }
 
-  /**
-   * Copy linkedNode contents to mWorkingDirectory
-   * @param linkedNode
-   * @throws IOException
-   * @throws IllegalStateException
-   * @throws RepositoryException 
-   */
-  //@Deprecated
-  /*
-    private void copyInputResourceToWorkingDir(final Node linkedNode) throws IOException, IllegalStateException, RepositoryException {
-        File      sourceFile = null;
-        Binary           bin = null;
-        InputStream       is = null;
-        FileOutputStream fos = null;
-        try {
-            if (linkedNode.hasProperty("jecars:URL")) {
-                final String path = linkedNode.getProperty("jecars:URL").getValue().getString();
-                final URL u = new URL(path);
-                if (path.startsWith("file:/")) {
-                    sourceFile = new File(URLDecoder.decode(u.getFile(), "UTF-8"));
-                } else {
-                    is = u.openStream();
-                }
-            } else {
-                if (linkedNode.hasProperty("jecars:PathToFile")) {
-                    sourceFile = new File(linkedNode.getProperty("jecars:PathToFile").getValue().getString());
-//                  is = new FileInputStream(  );
-                } else {
-                    bin = linkedNode.getProperty("jcr:data").getBinary();
-                    is = bin.getStream();
-                }
-            }
-            final File inputResFile = new File(mWorkingDirectory, linkedNode.getName());
-            if (sourceFile == null) {
-                fos = new FileOutputStream(inputResFile);
-                CARS_Utils.sendInputStreamToOutputStream(50000, is, fos);
-            } else {
-                CARS_Utils.sendInputToOutputNIOBuffer(sourceFile, inputResFile);
-            }
-//              mInputs.add( inputResFile );
-        } finally {
-            if (bin != null) {
-                bin.dispose();
-            }
-            if (fos != null) {
-                fos.close();
-            }
-            if (is != null) {
-                is.close();
-            }
-        }
-    }
-*/
-
 
   /** toolRun
    *
@@ -651,28 +644,51 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
       mPreRunFiles.add( file );
     }
 
-/*
+
     boolean recalculate = false;
     
+    // *************************************************************************
     // **** Check for result files   
     if (mResultFiles.isEmpty()) {
       recalculate = true;
     } else {      
       // **** Result files will be checked, if of the result file one or more files
       // **** aren't available the tool must recalculate again
-      for( final File resultFile : mResultFiles ) {
+      for( final String result : mResultFiles ) {
+        if (recalculate) {
+          break;
+        }
+        final File resultFile = new File( result );
         if (!resultFile.exists()) {
-          recalculate = true;
+          // **** Perhaps the filename is a regular expression
+          final Pattern fpat = Pattern.compile( resultFile.getName() );
+          boolean match = false;
+          for( final File checkFiles : resultFile.getParentFile().listFiles() ) {
+            if (fpat.matcher( checkFiles.getName() ).find()) {
+              recalculate = false;
+              match = true;
+              break;
+            }
+          }
+          if (!match) {
+            recalculate = true;
+          }
         }
       }
     }
 
+    // **** Check if we need to start the tool
     if (!recalculate) {
       reportStatusMessage( "No need to starting tool " + getTool().getPath() + " result is still available" );
       super.toolRun();
       return;
     }
-*/
+
+    // **** Run this tool, check we must change the JeCARS-Control parameter
+    int ix = getParameterStringIndex( "JeCARS-Control", "state=.*" );
+    if (ix!=-1) {
+      setParameterString( "JeCARS-Control", ix, "state=run" );
+    }
     
 //    System.out.println("TOOL RUN 2 " + System.currentTimeMillis());
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2013 NLR - National Aerospace Laboratory
+ * Copyright 2011-2014 NLR - National Aerospace Laboratory
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1050,7 +1050,11 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
                 toolNode.getSession().move( dataNode.getPath(), toolNode.getPath() + "/" + dataNode.getName() );
 //              }
             }
-            
+            final List<Node> pnl = getContext().getParameterNodes();
+            // **** Copy the parametersnodes
+            for( final Node paramNode : pnl ) {
+              toolNode.getSession().move( paramNode.getPath(), toolNode.getPath() + "/" + paramNode.getName() );              
+            }            
             toolNode.getSession().save();        
             ti.setStateRequest( CARS_ToolInterface.STATEREQUEST_START );
           }
@@ -1077,8 +1081,8 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
           res.setState( WFP_InterfaceResult.STATE.ERROR );          
         }
         
-//        final Workspace ws = getNode().getSession().getWorkspace();
-//        final String toPath = context.getNode().getPath();
+        final Workspace ws = getNode().getSession().getWorkspace();
+        final String toPath = context.getNode().getPath();
         final NodeIterator ni = thisTool.getNodes();
         synchronized( WRITERACCESS ) {        
           if (thisTool.hasProperty( "jecars:ExpireDate" )) {
@@ -1088,7 +1092,10 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
             final Node tnode = ni.nextNode();
 //          ws.copy( tnode.getPath(), toPath + "/" + tnode.getName() );
             // **** Check if the node must be copied to the current context            
-            if ((!"jecars:Events".equals(tnode.getName())) &&
+            if (tnode.isNodeType( "jecars:parameterdata" )) {
+              // **** Copy parameter as normal objects v4.1.1
+              ws.copy( tnode.getPath(), toPath + "/" + tnode.getName() );              
+            } else if ((!"jecars:Events".equals(tnode.getName())) &&
                 (!"jecars:Config".equals(tnode.getName()))) {
               final Node nn = context.getNode().addNode( tnode.getName(), "jecars:root" );
               nn.addMixin( "jecars:mix_link" );

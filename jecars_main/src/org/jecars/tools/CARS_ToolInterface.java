@@ -226,6 +226,22 @@ public interface CARS_ToolInterface {
    * @throws java.lang.Exception
    */
   public String getParameterString( final String pName, final int pIndex ) throws Exception;
+  
+  /** setParameterString
+   * 
+   * @param pName
+   * @param pIndex
+   * @param pValue 
+   */
+  void setParameterString( final String pName, final int pIndex, final String pValue ) throws RepositoryException;
+
+  /** getParameterStringIndex
+   * 
+   * @param pName
+   * @param pValueRegex
+   * @return 
+   */
+  int getParameterStringIndex( final String pName, final String pValueRegex );
 
   /** addInput
    * @param pInput

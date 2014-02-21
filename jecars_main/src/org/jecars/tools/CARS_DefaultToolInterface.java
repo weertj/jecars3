@@ -41,6 +41,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import javax.jcr.Binary;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
@@ -1297,13 +1298,58 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
    * @throws java.lang.Exception
    */
   @Override
-  public String getParameterString( final String pName, final int pIndex ) throws Exception {
+  public String getParameterString( final String pName, final int pIndex ) {
     if (mStringParams!=null) {
       return mStringParams.get( pName + ".string." + pIndex );
     }
     return null;
   }
 
+  /** setParameterString
+   * 
+   * @param pName
+   * @param pIndex
+   * @param pValue 
+   * @throws javax.jcr.RepositoryException 
+   */
+  @Override
+  public void setParameterString( final String pName, final int pIndex, final String pValue ) throws RepositoryException {
+    if (mStringParams==null) {
+      mStringParams = new HashMap<>(16);
+    }
+    String oldValue = mStringParams.put( pName + ".string." + pIndex, pValue );
+   
+    if (getTool().hasNode( pName )) {
+      // **** If the parameter is on tool-level available, write the data
+      if (oldValue!=null) {
+        CARS_Utils.removeMultiProperty(
+                      getTool().getNode( pName ),
+                      "jecars:string",
+                      oldValue );
+      }
+      CARS_Utils.addMultiProperty(
+                    getTool().getNode( pName ),
+                    "jecars:string",
+                    pValue,
+                    false );
+    }
+    return;
+  }
+  
+  @Override
+  public int getParameterStringIndex( final String pName, final String pValueRegex ) {
+    int i=0;
+    final Pattern valpat = Pattern.compile( pValueRegex );
+    while(1==1) {
+      if (getParameterString( pName, i )==null) {
+        return -1;
+      }
+      if (valpat.matcher( getParameterString( pName, i )).find()) {
+        return i;
+      }
+      i++;
+    }
+  }
 
 
   /** addInput

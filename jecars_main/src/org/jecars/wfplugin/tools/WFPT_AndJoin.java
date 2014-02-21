@@ -22,6 +22,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CyclicBarrier;
 import java.util.logging.Level;
 import org.jecars.wfplugin.IWFP_Context;
+import org.jecars.wfplugin.IWFP_ContextParameter;
 import org.jecars.wfplugin.IWFP_Input;
 import org.jecars.wfplugin.IWFP_Interface;
 import org.jecars.wfplugin.IWFP_Tool;
@@ -37,7 +38,8 @@ public class WFPT_AndJoin implements IWFP_Interface {
   final private static ConcurrentMap<String, CyclicBarrier> BARRIERS    = new ConcurrentHashMap<String, CyclicBarrier>();
   final private static ConcurrentMap<String, Thread>        FIRSTTHREAD = new ConcurrentHashMap<String, Thread>();
 
-  final private static ConcurrentMap<String, List<IWFP_Input>> ANDCONTEXTOBJECTS = new ConcurrentHashMap<String, List<IWFP_Input>>();
+  final private static ConcurrentMap<String, List<IWFP_Input>>            ANDCONTEXTOBJECTS = new ConcurrentHashMap<>();
+  final private static ConcurrentMap<String, List<IWFP_ContextParameter>> ANDCONTEXTOBJECTSPARAMS = new ConcurrentHashMap<>();
 //  private Thread mFirstThread = null;
   
   /** start
@@ -57,16 +59,31 @@ public class WFPT_AndJoin implements IWFP_Interface {
     try {
       if (ct!=null) {
         // **** Only store the 2,3,4th... thread
+        
         synchronized( ANDCONTEXTOBJECTS ) {
-          List<IWFP_Input>inputs =  ANDCONTEXTOBJECTS.get( taskPath );
+          List<IWFP_Input>inputs = ANDCONTEXTOBJECTS.get( taskPath );
           if (inputs==null) {
             ANDCONTEXTOBJECTS.put( taskPath, new ArrayList<IWFP_Input>() );
             inputs = ANDCONTEXTOBJECTS.get( taskPath );
           }
+          // **** Copy input to the source input
           for( final IWFP_Input input : pContext.getInputs() ) {
             inputs.add( input );
           }
         }
+        
+        synchronized( ANDCONTEXTOBJECTSPARAMS ) {
+          List<IWFP_ContextParameter>params = ANDCONTEXTOBJECTSPARAMS.get( taskPath );
+          if (params==null) {
+            ANDCONTEXTOBJECTSPARAMS.put( taskPath, new ArrayList<IWFP_ContextParameter>() );
+            params = ANDCONTEXTOBJECTSPARAMS.get( taskPath );
+          }
+          // **** Copy parameters to the source input
+          for( final IWFP_ContextParameter cpar : pContext.getParameters() ) {
+            params.add( cpar );
+          }
+        }
+      
       }
 //        System.out.println("ENTER BARRIER AWAIT");
       BARRIERS.get( taskPath ).await();
@@ -80,14 +97,23 @@ public class WFPT_AndJoin implements IWFP_Interface {
         return WFP_InterfaceResult.STOP_THREADDEATH();//new WFP_InterfaceResult( false, true );
       }
       
+      // **** Copy the gathered inputs to the new context
       for( final IWFP_Input input : ANDCONTEXTOBJECTS.get( taskPath ) ) {
         pContext.copyInput( input );
+      }
+
+      // **** Copy the gathered parameters to the new context
+      for( final IWFP_ContextParameter param : ANDCONTEXTOBJECTSPARAMS.get( taskPath ) ) {
+        pContext.copyParameter( param );
       }
       
       synchronized( ANDCONTEXTOBJECTS ) {
         BARRIERS.remove( taskPath );
         ANDCONTEXTOBJECTS.remove( taskPath );
         FIRSTTHREAD.remove( taskPath );
+      }
+      synchronized( ANDCONTEXTOBJECTSPARAMS ) {
+        ANDCONTEXTOBJECTSPARAMS.remove( taskPath );        
       }
       
       
