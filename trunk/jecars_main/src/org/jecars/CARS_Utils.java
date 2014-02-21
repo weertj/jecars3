@@ -61,7 +61,7 @@ public class CARS_Utils {
    * @return
    * @throws java.lang.Exception
    */
-  static public Node getNodeByString( Session pSession, String pValue ) throws Exception {
+  static public Node getNodeByString( Session pSession, String pValue ) throws RepositoryException {
     Node n = null;
     try {
       n = pSession.getNodeByUUID( pValue );
@@ -186,16 +186,15 @@ public class CARS_Utils {
     return pd;
   }
 
-  /** Add a value to a multiple property
-   *
+  /** addMultiProperty
+   * 
    * @param pNode
    * @param pPropName
    * @param pValue
-   * @param pIncludeDuplicates included to solve a bug that duplicated values aren't written.
-   *                           use 'false' to get the original behaviour.
-   * @throws java.lang.Exception
+   * @param pIncludeDuplicates
+   * @throws RepositoryException 
    */
-  static public void addMultiProperty( Node pNode, String pPropName, String pValue, boolean pIncludeDuplicates ) throws Exception {
+  static public void addMultiProperty( Node pNode, String pPropName, String pValue, boolean pIncludeDuplicates ) throws RepositoryException  {
     if (pNode.hasProperty( pPropName )) {
       Property prop = pNode.getProperty( pPropName );
       ArrayList<Value> al = new ArrayList<Value>(Arrays.asList(prop.getValues()));
@@ -222,7 +221,7 @@ public class CARS_Utils {
       // **** New property
       PropertyDefinition pd = getPropertyDefinition( pNode, pPropName );
       if (pd==null) {
-        throw new Exception( "No definition for propertytype: " + pPropName );
+        throw new RepositoryException( "No definition for propertytype: " + pPropName );
       }
       Value[] sv = new Value[1];
       if (pd.getRequiredType()==PropertyType.REFERENCE) {
@@ -245,7 +244,7 @@ public class CARS_Utils {
    * @param pValue
    * @throws java.lang.Exception
    */
-  static public void removeMultiProperty( final Node pNode, final String pPropName, final String pValue ) throws Exception {
+  static public void removeMultiProperty( final Node pNode, final String pPropName, final String pValue ) throws RepositoryException {
     if (pNode.hasProperty( pPropName )) {
       final Property prop = pNode.getProperty( pPropName );
       final List<Value> al = new ArrayList<Value>(Arrays.asList(prop.getValues()));
@@ -662,6 +661,7 @@ public class CARS_Utils {
             if (is==null) {
               // **** No contents
             } else {
+              // **** Copy file (sourceFile is not set)
               if (pOverwrite && inputResFile.exists()) {
                 inputResFile.delete();
               }
@@ -669,6 +669,7 @@ public class CARS_Utils {
               sendInputStreamToOutputStream(50000, is, fos);
             }
           } else {
+            // **** Copy file (sourceFile is set)
             if (!sourceFile.equals(inputResFile)) {
               if (pOverwrite && inputResFile.exists()) {
                 inputResFile.delete();

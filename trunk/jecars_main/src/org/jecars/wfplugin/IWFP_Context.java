@@ -31,6 +31,7 @@ public interface IWFP_Context {
   Node getContextNode();
 
   void copyInput( final IWFP_Node pInput ) throws WFP_Exception;
+  void copyParameter( final IWFP_ContextParameter pParam ) throws WFP_Exception;
 
   boolean    hasInput( final String pName ) throws WFP_Exception;
   IWFP_Input getInput( final String pName ) throws WFP_Exception;
@@ -49,6 +50,7 @@ public interface IWFP_Context {
   Node    getParameterNodeValue(   final String pName, final IWFP_Tool pTool ) throws WFP_Exception;
   String  getParameterStringValue( final String pName ) throws WFP_Exception;
 
+  List<IWFP_ContextParameter> getParameters() throws WFP_Exception;
   IWFP_ContextParameter getParameter( final String pName ) throws WFP_Exception;
   IWFP_ContextParameter addParameter( final String pName ) throws WFP_Exception;
   
