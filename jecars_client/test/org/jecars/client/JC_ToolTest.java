@@ -200,7 +200,7 @@ public class JC_ToolTest {
      *
      * @throws org.jecars.client.JC_Exception
      */
-//    @Test
+    @Test
     public void testExternalTool() throws JC_Exception, Exception, InterruptedException, UnsupportedEncodingException {
       final JC_Clientable client = getClient();
       client.setCredentials("toolRunner", "toolRunner".toCharArray());
@@ -238,12 +238,15 @@ public class JC_ToolTest {
         }
       }
 
-      final List<JC_Nodeable> outputs = (List<JC_Nodeable>)runTool.getOutputs();
-      assertEquals( 1, outputs.size() );
-      final JC_Nodeable result = outputs.get(0);
-
-      final JC_Streamable toolResultStream = result.getClient().getNodeAsStream( result.getPath_JC() );
-      final String toolResult = JC_Utils.readAsString( toolResultStream.getStream() );
+      final List<JC_Nodeable> outputs = (List<JC_Nodeable>)runTool.getOutputResources();
+      assertEquals( 2, outputs.size() );
+      JC_Nodeable result = outputs.get(0);
+      JC_Streamable toolResultStream = result.getClient().getNodeAsStream( result.getPath_JC() );
+      String toolResult = JC_Utils.readAsString( toolResultStream.getStream() );
+      System.out.println(toolResult);
+      result = outputs.get(1);
+      toolResultStream = result.getClient().getNodeAsStream( result.getPath_JC() );
+      toolResult = JC_Utils.readAsString( toolResultStream.getStream() );
       System.out.println(toolResult);
       assertEquals( null, runTool.getState(), JC_ToolNode.STATE_CLOSED_COMPLETED );
       return;
