@@ -389,21 +389,23 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
    * @throws RepositoryException 
    */
   protected void copyDirectoryToNode( final File pDir, final Node pNode ) throws IOException, RepositoryException {
-    final File[] fi = pDir.listFiles();
-    for( final File f : fi ) {
-      if (!pNode.hasNode( f.getName() )) {
-        if (f.isDirectory()) {
-          final Node ndf = pNode.addNode( f.getName(), "jecars:datafolder" );
-          copyDirectoryToNode( f, ndf );
-        } else {
-          final Node ndf = pNode.addNode( f.getName(), "jecars:outputresource" );
-          ndf.setProperty( "jecars:IsLink", true );
-          ndf.setProperty( "jecars:ContentLength", f.length() );
-          ndf.setProperty( "jecars:Partial", false );
-          ndf.setProperty( "jecars:Available", true );
-          ndf.setProperty( "jcr:data", "" );
-          ndf.addMixin( "jecars:mix_filelink" );
-          ndf.setProperty( "jecars:PathToFile", CARS_Utils.getAbsolutePath( f ) );
+    if (pDir!=null) {
+      final File[] fi = pDir.listFiles();
+      for( final File f : fi ) {
+        if (!pNode.hasNode( f.getName() )) {
+          if (f.isDirectory()) {
+            final Node ndf = pNode.addNode( f.getName(), "jecars:datafolder" );
+            copyDirectoryToNode( f, ndf );
+          } else {
+            final Node ndf = pNode.addNode( f.getName(), "jecars:outputresource" );
+            ndf.setProperty( "jecars:IsLink", true );
+            ndf.setProperty( "jecars:ContentLength", f.length() );
+            ndf.setProperty( "jecars:Partial", false );
+            ndf.setProperty( "jecars:Available", true );
+            ndf.setProperty( "jcr:data", "" );
+            ndf.addMixin( "jecars:mix_filelink" );
+            ndf.setProperty( "jecars:PathToFile", CARS_Utils.getAbsolutePath( f ) );
+          }
         }
       }
     }
@@ -639,9 +641,11 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
 //    System.out.println("TOOL RUN 1 " + System.currentTimeMillis());
     // **** file snapshot
     final File workDir = getWorkingDirectory();
-    final File[] files = workDir.listFiles();
-    for( final File file : files ) {
-      mPreRunFiles.add( file );
+    if (workDir!=null) {
+      final File[] files = workDir.listFiles();
+      for( final File file : files ) {
+        mPreRunFiles.add( file );
+      }
     }
 
 
