@@ -494,7 +494,10 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
 
   }
 
-
+  public CARS_DefaultToolInterface() {
+    return;
+  }
+  
   /** setRunningExpireMinutes
    *
    * @param pMin
@@ -539,31 +542,61 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
     return mClosedExpireMinutes;
   }
 
+  /** runOnSystem
+   * 
+   * @return 
+   */
   public String runOnSystem() {
+    String sys = ".*";
     try {
       final Node cn = getConfigNode();
-      return cn.getProperty( "jecars:RunOnSystem" ).getString();
+      if (cn.hasProperty( "jecars:RunOnSystem" )) {
+        sys = cn.getProperty( "jecars:RunOnSystem" ).getString();
+      }
+      if (getTool().hasNode( "JeCARS-RunOnSystem" )) {
+        sys = getTool().getNode( "JeCARS-RunOnSystem" ).getProperty( "jecars:string" ).getValues()[0].getString();
+      }
     } catch( Exception e ) {     
     }
-    return ".*";    
+    return sys;    
   }
 
+  /** runOnCPU
+   * 
+   * @return 
+   */
   public String runOnCPU() {
+    String cpu = ".*";
     try {
       final Node cn = getConfigNode();
-      return cn.getProperty( "jecars:RunOnCPU" ).getString();
+      if (cn.hasProperty( "jecars:RunOnCPU" )) {
+        cpu = cn.getProperty( "jecars:RunOnCPU" ).getString();
+      }
+      if (getTool().hasNode( "JeCARS-RunOnCPU" )) {
+        cpu = getTool().getNode( "JeCARS-RunOnCPU" ).getProperty( "jecars:string" ).getValues()[0].getString();
+      }
     } catch( Exception e ) {     
     }
-    return ".*";    
+    return cpu;    
   }
 
+  /** runOnCore
+   * 
+   * @return 
+   */
   public String runOnCore() {
+    String core = ".*";
     try {
       final Node cn = getConfigNode();
-      return cn.getProperty( "jecars:RunOnCore" ).getString();
+      if (cn.hasProperty( "jecars:RunOnCore" )) {
+        core = cn.getProperty( "jecars:RunOnCore" ).getString();
+      }
+      if (getTool().hasNode( "JeCARS-RunOnCore" )) {
+        core = getTool().getNode( "JeCARS-RunOnCore" ).getProperty( "jecars:string" ).getValues()[0].getString();
+      }
     } catch( Exception e ) {     
     }
-    return ".*";
+    return core;
   }
 
   public long getUsesNumberOfCores() {

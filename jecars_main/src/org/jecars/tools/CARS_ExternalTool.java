@@ -76,7 +76,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
     /** IOStreamThreadFile
    *
    */
-  private class IOStreamThreadFile extends Thread {
+  protected class IOStreamThreadFile extends Thread {
     final private String      mName;
     final private InputStream mInput;
     final private File        mOutput;
@@ -86,7 +86,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
      * @param pName
      * @param pIs 
      */
-    private IOStreamThreadFile( final String pName, final InputStream pIs, final File pOutput ) {
+    protected IOStreamThreadFile( final String pName, final InputStream pIs, final File pOutput ) {
       super();
       setName( pName + '_' + IOSTREAMTHREAD_ID.incrementAndGet() );
       mName  = pName;
@@ -241,7 +241,19 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
   protected File getWorkingDirectory() {
     return mWorkingDirectory;
   }
+  
+  protected List<File> getPreRunFiles() {
+    return mPreRunFiles;
+  }
 
+  protected List<String> getResultFiles() {
+    return mResultFiles;
+  }
+
+  protected List<File> getFileInputs() {
+    return mInputs;
+  }
+  
   /** toolInit
    * 
    * @throws Exception
@@ -631,6 +643,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
   }
 
 
+
   /** toolRun
    *
    * @throws Exception
@@ -757,8 +770,222 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
           commands.add( nn.getName() );
         }
       }
+      // **** Tool execution
+      toolExecution( config, commands, execPath );
+    } else {
+      throw new InvalidParameterException( "No execpath" );
+    }
+    super.toolRun();
+//    System.out.println("TOOL RUN END " + System.currentTimeMillis());
+//  System.out.println("START TOOL EXIT  time=" + System.currentTimeMillis()  );
+    return;
+  }
+
+  /** toolExecution
+   * 
+   * @param pConfig
+   * @param pCommands
+   * @throws RepositoryException
+   * @throws CARS_ToolException
+   * @throws Exception 
+   */
+  protected void toolExecution( final Node pConfig, final List<String> pCommands, final String pExecPath ) throws RepositoryException, CARS_ToolException, Exception {
+
+      final ProcessBuilder pb = new ProcessBuilder( pCommands );
+      if (pConfig.hasProperty( WORKINGDIRECTORY )) {
+        pb.directory( mWorkingDirectory );
+      }
+ 
+      reportStatusMessage( "Starting tool " + getTool().getPath() + " as " + pCommands );
+      
+      // **** Remove error.txt & stdout.txt before running
+      if (getTool().hasNode( "error.txt" )) {
+        getTool().getNode( "error.txt" ).remove();
+      }
+      if (getTool().hasNode( "stdout.txt" )) {
+        getTool().getNode( "stdout.txt" ).remove();
+      }
+      
+      reportProgress( 0 );      
+      int err;
+      IOStreamThreadFile error = null;
+      IOStreamThreadFile input = null;
+      try {
+        final Process process = pb.start();
+        error = new IOStreamThreadFile( "__error.txt",  process.getErrorStream(), new File( mWorkingDirectory, "__error.txt" ) );
+        input = new IOStreamThreadFile( "__stdout.txt", process.getInputStream(), new File( mWorkingDirectory, "__stdout.txt" ) );
+        error.start();
+        input.start();
+        addFileToOutput( new File( mWorkingDirectory, "__error.txt" ) );
+        addFileToOutput( new File( mWorkingDirectory, "__stdout.txt" ) );
+        err = process.waitFor();
+        error.join( 4000 );
+        input.join( 4000 );
+        process.destroy();
+        synchronized( WF_WorkflowRunner.WRITERACCESS ) {
+          reportProgress( 1 );
+          try {
+            getTool().save();
+          } catch( RepositoryException re ) {
+            LOG.warning( re.getMessage() );
+          }
+        }
+      } catch( Throwable e ) {
+        reportException( e, Level.SEVERE );
+        super.toolRun();
+        throw e;
+      } finally {
+        if (error!=null) {
+          error.finish();
+        }
+        if (input!=null) {
+          input.finish();
+        }
+      }
+      synchronized( WF_WorkflowRunner.WRITERACCESS ) {
+        reportStatusMessage( "External tool " + getTool().getPath() + " is ending result = " + err );
+        if (err!=0) {
+          String logmessage =  "External tool " + getTool().getPath() + "(" + pExecPath + ") has produced an error " + err;
+          LOG.warning( logmessage );
+          getTool().save();
+          throw new CARS_ToolException( logmessage );
+        }
+        getTool().save();
+      }
+    return;
+  }
+
+
+  
+  /** toolRun
+   *
+   * @throws Exception
+   */
+/*
+  @Override
+  @SuppressWarnings("LoggerStringConcat")
+  protected void toolRun() throws Exception {
+//    System.out.println("TOOL RUN 1 " + System.currentTimeMillis());
+    // **** file snapshot
+    final File workDir = getWorkingDirectory();
+    if (workDir!=null) {
+      final File[] files = workDir.listFiles();
+      for( final File file : files ) {
+        mPreRunFiles.add( file );
+      }
+    }
+
+
+    boolean recalculate = false;
+    
+    // *************************************************************************
+    // **** Check for result files   
+    if (mResultFiles.isEmpty()) {
+      recalculate = true;
+    } else {      
+      // **** Result files will be checked, if of the result file one or more files
+      // **** aren't available the tool must recalculate again
+      for( final String result : mResultFiles ) {
+        if (recalculate) {
+          break;
+        }
+        final File resultFile = new File( result );
+        if (!resultFile.exists()) {
+          // **** Perhaps the filename is a regular expression
+          final Pattern fpat = Pattern.compile( resultFile.getName() );
+          boolean match = false;
+          for( final File checkFiles : resultFile.getParentFile().listFiles() ) {
+            if (fpat.matcher( checkFiles.getName() ).find()) {
+              recalculate = false;
+              match = true;
+              break;
+            }
+          }
+          if (!match) {
+            recalculate = true;
+          }
+        }
+      }
+    }
+
+    // **** Check if we need to start the tool
+    if (!recalculate) {
+      reportStatusMessage( "No need to starting tool " + getTool().getPath() + " result is still available" );
+      super.toolRun();
+      return;
+    }
+
+    // **** Run this tool, check we must change the JeCARS-Control parameter
+    int ix = getParameterStringIndex( "JeCARS-Control", "state=.*" );
+    if (ix!=-1) {
+      setParameterString( "JeCARS-Control", ix, "state=run" );
+    }
+    
+//    System.out.println("TOOL RUN 2 " + System.currentTimeMillis());
+
+    final Node config = getConfigNode();
+    if (config.hasProperty( "jecars:ExecPath" )) {
+      String execPath = config.getProperty( "jecars:ExecPath" ).getString();
+      // **** Check if the tools is available
+      final File execFile = new File( execPath );
+      if (!execFile.exists()) {
+        // **** Check if the exec file is given
+        final Node toolTemplate = getToolTemplate( getTool() );
+        final NodeIterator ni = toolTemplate.getNodes();
+        while( ni.hasNext() ) {
+          final Node execn = ni.nextNode();
+          if ((execn.hasProperty( "jcr:mimeType" )) && ("application/x-exe".equals( execn.getProperty( "jcr:mimeType" ).getString() ))) {
+            execFile.getParentFile().mkdirs();
+            final Binary bin = execn.getProperty( "jcr:data" ).getBinary();
+            final FileOutputStream fos = new FileOutputStream( execFile );
+            final InputStream is = bin.getStream();
+            CARS_Utils.sendInputStreamToOutputStream( 10000, is, fos );
+            fos.close();
+            is.close();
+          }
+        }
+      }
+      reportMessage( Level.CONFIG, "ExecPath=" + execPath, false );
+//    System.out.println("TOOL RUN 3 " + System.currentTimeMillis());
+// ****** @Deprecated START
+      final String cmdParam = getParameterString( "commandLine", 0 );
+      final List<String> commands = new ArrayList<>(8);
+      commands.add( execPath );
+      if (cmdParam!=null) {
+        String[] cmdParams = cmdParam.split( " " );
+        for( final String cp : cmdParams ) {
+          commands.add( cp );
+        }
+      }
+      for(final File input : mInputs ) {
+        commands.add( input.getAbsolutePath() );
+      }
+// ****** @Deprecated  END
 //    System.out.println("TOOL RUN 4 " + System.currentTimeMillis());
-              
+      
+      // **********************************
+      // **** Command option parsing
+      final SortedMap<Long,Node> commandOptions = new ConcurrentSkipListMap<>();
+      final NodeIterator ni = getTool().getNodes();
+      while( ni.hasNext() ) {
+        final Node node = ni.nextNode();
+        if (node.isNodeType( "jecars:mix_commandlineitem" )) {
+          commandOptions.put( node.getProperty( "jecars:Priority" ).getLong(), node );
+        }
+      }
+      final Set<Map.Entry<Long, Node>> cmdopts = commandOptions.entrySet();
+      for( final Map.Entry<Long, Node> cmdopt : cmdopts ) {
+        Node nn = cmdopt.getValue();
+        if (nn.isNodeType( "jecars:parameterdata" )) {
+          commands.add( getParameterString( nn.getName(), 0 ) );
+        } else if (nn.hasProperty( "jecars:string" )) {          
+          commands.add( getParameterString( nn.getName(), 0 ) );
+        } else {
+          commands.add( nn.getName() );
+        }
+      }
+//    System.out.println("TOOL RUN 4 " + System.currentTimeMillis());
+
       final ProcessBuilder pb = new ProcessBuilder( commands );
       if (config.hasProperty( WORKINGDIRECTORY )) {
         pb.directory( mWorkingDirectory );
@@ -856,6 +1083,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
 //  System.out.println("START TOOL EXIT  time=" + System.currentTimeMillis()  );
     return;
   }
+ */
 
   /** toolOutput
    *
@@ -877,7 +1105,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
    * @return
    * @throws RepositoryException 
    */
-  private Node addFileToOutput( File pFile ) throws RepositoryException {
+  protected Node addFileToOutput( File pFile ) throws RepositoryException {
     final Node output = addOutputTransient( getTool(), null, pFile.getName() );
     if (output!=null) {
       final long len = pFile.length();

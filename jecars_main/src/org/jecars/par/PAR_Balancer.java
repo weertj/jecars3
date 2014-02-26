@@ -143,44 +143,32 @@ public class PAR_Balancer implements IPAR_Balancer {
                   // **** Core check
                   if (core.name().matches( pWish.runOnCore() )) {
                     cores.add( core );
-//                    nrCores--;
                   }
-//                  if (nrCores<=0) {
-//                      break;
-//                  }
-                  
-                  
-                  
-//                  // **** Core check
-//                  if (((core.coreType()==EPAR_CoreType.AVAILABLE) ||
-//                      (pWish.expectedLoad()==0 && core.coreType()==EPAR_CoreType.ALLOCATED)) &&
-//                      (core.name().matches( pWish.runOnCore() ))) {
-//                    if (pAllocate) {
-//                      if (allocateWishToCore( core, pWish )) {
-////                      if (core.allocate( pWish.expectedLoad() )) {
-////                        // **** The resource is allocated
-////                        synchronized( mResources ) {
-////                          if (!mResources.contains( pWish )) {
-////                            mResources.add( pWish );
-////                          }
-////                        }
-//                        cores.add( core );
-//                        nrCores--;
-//                      }
-////                      }
-//                    } else {
-//                      cores.add( core );
-//                      nrCores--;
-//                    }
-//                    if (nrCores<=0) {
-//                      break;
-//                    }
-//                  }
                 }
               }
             }
           }
         }
+      } else {
+        // **** NON LOCAL systems
+        for (final IPAR_System sys : systems()) {
+          // **** System check
+          if ((sys.systemType()==EPAR_SystemType.LOCAL) &&
+              (sys.name().matches( pWish.runOnSystem()))) {
+            for (final IPAR_CPU cpu : sys.cpus(EPAR_CPUType.AVAILABLE)) {
+              // **** CPU check
+              if (cpu.name().matches( pWish.runOnCPU())) {
+                for (final IPAR_Core core : cpu.cores()) {
+                  
+                  // **** Core check
+                  if (core.name().matches( pWish.runOnCore() )) {
+                    cores.add( core );
+                  }
+                }
+              }
+            }
+          }
+        }        
       }
     }
     return cores;
