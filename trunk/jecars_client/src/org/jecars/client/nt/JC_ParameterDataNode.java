@@ -30,7 +30,7 @@ public class JC_ParameterDataNode extends JC_DefaultNode {
    * @throws org.jecars.client.JC_Exception
    */
   public JC_ParameterDataNode addParameter( final String pValue ) throws JC_Exception {
-    setProperty( "jecars:string", pValue );
+    setProperty( "jecars:string", "+" + pValue );
     save();
     return this;
   }
