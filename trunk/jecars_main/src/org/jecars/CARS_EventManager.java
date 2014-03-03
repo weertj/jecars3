@@ -418,6 +418,7 @@ public class CARS_EventManager {
    * @param pMessage
    * @throws Exception 
    */
+  @Deprecated
   public void addEventThreaded( final CARS_Main pMain, final Node pUser, final Node pSource, final String pApplication, final String pCategory, final String pType, final String pMessage ) throws Exception {
     Session eses = getSession();
     final Node user;

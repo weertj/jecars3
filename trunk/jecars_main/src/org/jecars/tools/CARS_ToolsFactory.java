@@ -54,22 +54,30 @@ public class CARS_ToolsFactory {
    * @return
    * @throws java.lang.Exception
    */
-  static private CARS_ToolInterface getTool( final CARS_Main pMain, final Node pTplTool, final Node pParentTool ) throws Exception {
+  static private CARS_ToolInterface getTool( final CARS_Main pMain, final Node pTplTool, final Node pParentTool, final boolean pCreateNewMain ) throws Exception {
     if (pTplTool.hasProperty( "jecars:ToolClass" )) {
       final Class c = Class.forName( pTplTool.getProperty( "jecars:ToolClass" ).getString() );
       final CARS_ToolInterface ti = (CARS_ToolInterface)c.newInstance();
-      final CARS_Main main = pMain.getFactory().createMain( pMain, CARS_ActionContext.createActionContext(pMain.getContext()) );
-      ti.setTool( main, pParentTool );
+      if (pCreateNewMain) {
+        final CARS_Main main = pMain.getFactory().createMain( pMain, CARS_ActionContext.createActionContext(pMain.getContext()) );
+        ti.setTool( main, pParentTool );
+      } else {
+        ti.setTool( pMain, pParentTool );        
+      }
       return ti;
     } else if (pTplTool.hasProperty( "jecars:ToolTemplate" )) {
       final String path = pTplTool.getProperty( "jecars:ToolTemplate" ).getString();
 //    System.out.println( "GET TOOL = " + path );
       final Node tplTool = pTplTool.getSession().getRootNode().getNode( path.substring(1) );
-      return getTool( pMain, tplTool, pParentTool );
+      return getTool( pMain, tplTool, pParentTool, pCreateNewMain );
     } else {
       final CARS_DefaultToolInterface dti = new CARS_DefaultToolInterface();
-      final CARS_Main main = pMain.getFactory().createMain( pMain, CARS_ActionContext.createActionContext(pMain.getContext()) );
-      dti.setTool( main, pParentTool );
+      if (pCreateNewMain) {
+        final CARS_Main main = pMain.getFactory().createMain( pMain, CARS_ActionContext.createActionContext(pMain.getContext()) );
+        dti.setTool( main, pParentTool );
+      } else {
+        dti.setTool( pMain, pParentTool );        
+      }
       return dti;
     }
   }
@@ -104,13 +112,13 @@ public class CARS_ToolsFactory {
       try {
         final Node tplTool = pTplTool.getSession().getNode( path );
 //        Node tplTool = pTplTool.getSession().getRootNode().getNode( path.substring(1) );
-        return getTool( pMain, tplTool, pTplTool );
+        return getTool( pMain, tplTool, pTplTool, pCreateNewMain );
       } catch (PathNotFoundException pfe) {
         if (pFallbackSession==null) {
           throw pfe;
         } else {
           Node tplTool = pFallbackSession.getRootNode().getNode( path.substring(1) );
-          return getTool( pMain, tplTool, pTplTool );
+          return getTool( pMain, tplTool, pTplTool, pCreateNewMain );
         }
       }
     } else {
