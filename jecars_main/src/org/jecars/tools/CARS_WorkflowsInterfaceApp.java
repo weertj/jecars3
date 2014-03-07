@@ -40,7 +40,7 @@ import static org.jecars.tools.CARS_ToolInterfaceApp.getWorkingDirectory;
  */
 public class CARS_WorkflowsInterfaceApp extends CARS_DefaultInterface {
 
-  static final boolean DELETEWORKINGDIRECTORY = false;
+  static final boolean DELETEWORKINGDIRECTORY = true;
   
   static final protected Logger LOG = Logger.getLogger( "org.jecars.tools" );
 

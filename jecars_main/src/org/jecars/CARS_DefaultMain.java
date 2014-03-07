@@ -431,7 +431,7 @@ public class CARS_DefaultMain implements CARS_Main {
   /** Get the root
    */
   @Override
-  public Node getRoot() throws Exception {
+  public Node getRoot() throws RepositoryException {
     return mSession.getRootNode();
   }
 
@@ -1459,6 +1459,24 @@ koasdkaso
     return !pNode.isNodeType( "jecars:Tool" );
   }
   
+  /** getNodeDirect
+   * Get Node without(!) using the interface nodes
+   * 
+   * @param pFullPath
+   * @return
+   * @throws RepositoryException 
+   */
+  @Override
+  public Node getNodeDirect( final String pFullPath ) throws Exception {
+    Node n;
+    setCurrentViewNode( null );
+    setCurrentViewProperty( null );
+    n = mSession.getNode( pFullPath );
+    setCurrentViewNode(n);
+    return n;
+  }
+
+  
   /** Get the full node using all possible resolving options
    * @param pFullPath the path to be resolved
    * @param pTags taglist for storing parameters;
@@ -1466,6 +1484,7 @@ koasdkaso
    *         "CARS_Interface" = ..
    * @param pAsHead
    * @return The node found
+   * @throws java.lang.Exception
    */    
   @Override
   public Node getNode( final String pFullPath, final JD_Taglist pTags, final boolean pAsHead ) throws Exception {
@@ -1475,9 +1494,9 @@ koasdkaso
     Node rn = getRoot();
     final StringBuilder     appPath = new StringBuilder("");
     final StringTokenizer      stok = new StringTokenizer( pFullPath, "/" );
-    final ArrayList<String>  fparts = new ArrayList<String>();
-    final ArrayList<String>   parts = new ArrayList<String>();
-    final StringBuilder       ppart = new StringBuilder();
+    final ArrayList<String>  fparts = new ArrayList<String>(12);
+    final ArrayList<String>   parts = new ArrayList<String>(12);
+    final StringBuilder       ppart = new StringBuilder(128);
     String part;
     while( stok.hasMoreTokens() ) {
       part = stok.nextToken();
