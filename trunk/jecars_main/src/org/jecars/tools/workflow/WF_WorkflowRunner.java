@@ -645,6 +645,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
           }
           throw new AccessDeniedException( "Class instance not allowed: " + javaclasspath );
         }
+ //   System.out.println("Start " + javaclasspath + " time=" + System.currentTimeMillis());
         final Class ji = Class.forName( javaclasspath );
         iface = (IWFP_Interface)ji.newInstance();        
       } catch( Throwable t ) {
@@ -1053,6 +1054,9 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
             final List<Node> pnl = getContext().getParameterNodes();
             // **** Copy the parametersnodes
             for( final Node paramNode : pnl ) {
+              if (toolNode.hasNode( paramNode.getName() )) {
+                toolNode.getNode( paramNode.getName() ).remove();
+              }
               toolNode.getSession().move( paramNode.getPath(), toolNode.getPath() + "/" + paramNode.getName() );              
             }            
             toolNode.getSession().save();        

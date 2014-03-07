@@ -60,6 +60,7 @@ public interface CARS_Main {
   Node updateNode( String pFullPath, JD_Taglist pParamsTL, InputStream pBody, String pBodyContentType ) throws Exception;
   Node getRoot() throws Exception;
   Node getNode( String pFullPath, JD_Taglist pTags, boolean pAsHead ) throws Exception;
+  Node getNodeDirect( String pFullPath ) throws Exception;
   void removeNode( String pFullPath, JD_Taglist pTags ) throws Exception;
 
   Property setParamProperty( Node pNode, String pPropName, String pValue ) throws Exception;
