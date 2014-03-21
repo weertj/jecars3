@@ -90,8 +90,12 @@ public class CARS_Utils {
     } catch (IOException e) {
       e.printStackTrace();
     } finally {
-      in.close();
-      out.close();
+      if (in!=null) {
+        in.close();
+      }
+      if (out!=null) {
+        out.close();
+      }
     }
   }
   

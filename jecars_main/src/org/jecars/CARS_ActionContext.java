@@ -90,6 +90,7 @@ public class CARS_ActionContext {
   public final static String gDefRights       = DEF_NS + "rights";
   public final static String gDefKeywords     = DEF_NS + "keywords";
   public final static String gDefChildNodeDefs= DEF_NS + "childnodedefs";
+  public final static String gDefRecursive    = DEF_NS + "recursive";
   public final static String gDefDeep         = DEF_NS + "deep";
   public final static String gDefUpdatedMin   = DEF_NS + "updated-min";
   public final static String gDefUpdatedMax   = DEF_NS + "updated-max";
@@ -2056,26 +2057,62 @@ public class CARS_ActionContext {
     }
     return;
   }
-
+ 
+  /** putGetNodeResults
+   * 
+   * @param pReply
+   * @param pNI
+   * @param pCount
+   * @param pMaxResult
+   * @param pAlt
+   * @param pIsFeed
+   * @param pOG
+   * @return
+   * @throws Exception 
+   */
+  private long putGetNodeResults( final CARS_Buffer pReply, final NodeIterator pNI,
+          final long pCount,  final long pMaxResult,
+          final String pAlt,  final boolean pIsFeed,
+          final CARS_OutputGenerator pOG, final boolean pRecursive ) throws Exception {
+    long count = pCount;
+    while( pNI.hasNext() ) {
+      count++;
+      if (count>pMaxResult) {
+        break;
+      }
+      final Node n = pNI.nextNode();      
+      if (pRecursive) {
+        mMain.getNode( n.getPath(), null, false );
+        count = putGetNodeResults( pReply, n.getNodes(), pCount, pMaxResult, pAlt, pIsFeed, pOG, pRecursive );
+      }
+      addNodeEntry( pReply, n, null, pAlt, false, pIsFeed, 0L, 0L, count, pOG );
+    }
+    return count;
+  }
   
   /** Create the reply for a GET message
-   *
+   * 
    * @param pReply
+   * @param pRecursive 
    */
-  private void createGetNodesResult( final CARS_Buffer pReply ) {
+  private void createGetNodesResult( final CARS_Buffer pReply, final boolean pRecursive ) {
     String alt = gDefaultOutputFormat;
     boolean isFeed = true;
     long maxResult = MAX_NO_GETOBJECTS;
     CARS_OutputGenerator outputGen = null;
     try {
       final JD_Taglist params = getQueryPartsAsTaglist();
-      if (params.getData( gDefAlt )!=null) alt = (String)params.getData( gDefAlt );
+      if (params.getData( gDefAlt )!=null) {
+        alt = (String)params.getData( gDefAlt );
+      }
       outputGen = (CARS_OutputGenerator)gOutputGenerators.getData( alt );
       
       if (outputGen!=null) {
         outputGen.createHeader( this, pReply );
       } else {
-        if ("atom_entry".equals( alt ) || "atomsvc".equals( alt )) isFeed = false;
+        if ("atom_entry".equals( alt ) || "atomsvc".equals( alt )) {
+          isFeed = false;
+        }
         pReply.append( createHeader( alt, isFeed ) );
       }
       
@@ -2111,7 +2148,9 @@ public class CARS_ActionContext {
           final long maxresults = Long.parseLong( (String)params.getData( gDefMaxResults ) );
           if (maxResult>maxresults) {
             maxResult = maxresults;
-            if (fromNode==0L) fromNode = 1L;
+            if (fromNode==0L) {
+              fromNode = 1L;
+            }
             toNode = (fromNode+maxResult)-1;
 //            paging = true;
           }
@@ -2131,13 +2170,16 @@ public class CARS_ActionContext {
         if (getNodesResult instanceof NodeIterator) {
           final NodeIterator ni = (NodeIterator)getNodesResult;
 
-          int count = 0;
-          while( ni.hasNext() ) {
-            count++;
-            if (count>maxResult) break;
-            final Node n = ni.nextNode();
-            addNodeEntry( pReply, n, null, alt, false, isFeed, 0L, 0L, count, outputGen );
-          }
+                  
+          long count = 0;
+          count = putGetNodeResults( pReply, ni, count, maxResult, alt, isFeed, outputGen, pRecursive );
+          
+//          while( ni.hasNext() ) {
+//            count++;
+//            if (count>maxResult) break;
+//            final Node n = ni.nextNode();
+//            addNodeEntry( pReply, n, null, alt, false, isFeed, 0L, 0L, count, outputGen );
+//          }
           // **** TODO, Issue #1, Result paging implementation
           // **** Skipping to start-index
       /*
@@ -2345,8 +2387,14 @@ public class CARS_ActionContext {
     setThisProperty( pProperty );
     Object result = null;
     String alt = null;
+    boolean recursive = false;
     if (pParams.getData( gDefAlt )!=null) {
       alt = (String)pParams.getData( gDefAlt );
+    }
+    if (pParams.getData( gDefRecursive )!=null) {
+      if ("true".equalsIgnoreCase( (String)pParams.getData( gDefRecursive ))) {
+        recursive = true;
+      }
     }
     if (pProperty!=null) {
 
@@ -2431,7 +2479,7 @@ public class CARS_ActionContext {
           setContentType( mResultContentsType );
         } else {
           CARS_Buffer buffer = new CARS_Buffer( new StringBuilder() );
-          createGetNodesResult( buffer );
+          createGetNodesResult( buffer, recursive );
           if (mError!=null) {
             buffer = new CARS_Buffer( new StringBuilder() );
             createError( buffer );
@@ -2576,7 +2624,13 @@ public class CARS_ActionContext {
             } else {
 //              StringBuilder replyString = new StringBuilder();
               CARS_Buffer buffer = new CARS_Buffer( new StringBuilder() );
-              createGetNodesResult( buffer );
+              boolean recursive = false;
+              if (params.getData( gDefRecursive )!=null) {
+                if ("true".equalsIgnoreCase( (String)params.getData( gDefRecursive ))) {
+                  recursive = true;
+                }
+              }
+              createGetNodesResult( buffer, recursive );
               String callback = getParameterStringFromMap( "callback" );
               if (callback!=null) {
                 buffer.prefix( callback + "("
