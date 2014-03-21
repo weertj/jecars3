@@ -41,6 +41,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.jcr.AccessDeniedException;
 import javax.jcr.RepositoryException;
+import javax.jcr.Node;
+import javax.jcr.Session;
 import javax.security.auth.login.CredentialExpiredException;
 import javax.servlet.ServletException;
 import javax.servlet.ServletInputStream;
@@ -280,6 +282,39 @@ public class JeCARS_RESTServlet extends HttpServlet {
       CARSFACTORY.init( null, false );
 //      WEBDAV.init();
       WEBDAV.init( getServletContext(), this );
+
+      // ********************************
+      // **** Auto directory app elements
+      i = 0;
+      while( getInitParameter( "AUTO_DIRECTORYAPP_JECARSPATH." + i )!=null ) {
+        final String adjp = getInitParameter( "AUTO_DIRECTORYAPP_JECARSPATH." + i );
+        if (getInitParameter( "AUTO_DIRECTORYAPP_DIR." + i )!=null ) {
+          final String add = getInitParameter( "AUTO_DIRECTORYAPP_DIR." + i );
+          File fadd = new File( add );
+          if (fadd.exists()) {
+            final Session session = CARS_Factory.getSystemAccessSession();
+            synchronized( session ) {
+              try {
+                final String parent = adjp.substring( 0, adjp.lastIndexOf( "/" ));
+                final String name = adjp.substring( adjp.lastIndexOf( "/" )+1 );
+                final Node pn = session.getNode( parent );
+                if (pn.hasNode( name )) {
+                  pn.getNode( name ).remove();
+                }
+                final Node nn = pn.addNode( name, "jecars:localstorage" );
+                nn.setProperty( "jecars:StorageDirectory", "(ABS)" + fadd.getAbsolutePath() );
+                nn.setProperty( "jecars:InterfaceClass", "org.jecars.apps.CARS_DirectoryReadApp" );
+              } finally {
+                session.save();
+              }
+            }
+          } else {
+            gLog.log( Level.WARNING, "AUTO_DIRECTORYAPP_DIR.{0} file not found", i );            
+          }
+        }
+        i++;
+      }    
+    
     } catch (Exception e) {
       gLog.log( Level.SEVERE, null, e );
     }
