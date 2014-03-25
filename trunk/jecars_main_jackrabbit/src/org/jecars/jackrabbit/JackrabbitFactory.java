@@ -132,7 +132,8 @@ public class JackrabbitFactory extends CARS_Factory {
       gLog.info( "Repository vendor: " + gRepository.getDescriptor( Repository.REP_VENDOR_DESC ));
 
       gEventManager = new CARS_EventManager();
-      gEventService = new CARS_EventService( gRepository.login( pCreds ));
+//      gEventService = new CARS_EventService( gRepository.login( pCreds ));
+      gEventService = new CARS_EventService( gRepository, pCreds );
       gSystemLoginSession       = gRepository.login( pCreds );
       gSystemAccessSession      = gRepository.login( pCreds );
       gSystemApplicationSession = gRepository.login( pCreds );
