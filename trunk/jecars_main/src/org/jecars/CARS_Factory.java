@@ -78,7 +78,7 @@ abstract public class CARS_Factory {
   static private   Object               gServletContext           = null;
   static final private Calendar         gStartTime                = Calendar.getInstance();
   static private   boolean              gEnableFET                = true;
-  static private   boolean              gEnableFETLogging         = true;
+  static private   boolean              gEnableFETLogging         = false;
   
   /** Creates a new instance of CARS_Factory */
   @SuppressWarnings("LeakingThisInConstructor")

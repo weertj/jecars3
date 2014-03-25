@@ -30,7 +30,9 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.jcr.Node;
+import javax.jcr.Repository;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import static org.jecars.CARS_EventManager.SEP_DAY;
@@ -38,6 +40,7 @@ import static org.jecars.CARS_EventManager.SEP_HOUR;
 import static org.jecars.CARS_EventManager.SEP_MINUTE;
 import static org.jecars.CARS_EventManager.SEP_MONTH;
 import static org.jecars.CARS_EventManager.SEP_YEAR;
+import org.jecars.jaas.CARS_Credentials;
 import org.jecars.tools.CARS_ToolInstanceEvent;
 
 /**
@@ -46,8 +49,12 @@ import org.jecars.tools.CARS_ToolInstanceEvent;
  */
 public class CARS_EventService implements ICARS_EventService, Runnable {
 
+  static final public Logger LOG = Logger.getLogger( "org.jecars" );
+
+  private final transient Repository                  mRepository;
+  private final transient CARS_Credentials            mCredentials;
   private final transient Thread                      mServiceThread;
-  private final transient Session                     mSession;
+  private       transient Session                     mSession;
   private       transient long                        mNumberOfEventsWritten = 0;
   private       transient long                        mTopEventsInQueue = 0;
   private final transient BlockingQueue<ICARS_Event>  mEventsQueue = new LinkedBlockingQueue<>(1024);
@@ -60,12 +67,23 @@ public class CARS_EventService implements ICARS_EventService, Runnable {
    * 
    * @param pSession 
    */
-  public CARS_EventService(final Session pSession) {
-    mSession = pSession;
+//  public CARS_EventService( final Session pSession ) {
+//    mSession = pSession;
+//    mServiceThread = new Thread(this);
+//    mServiceThread.setPriority(Thread.MIN_PRIORITY);
+//    mServiceThread.setName("CARS_EventService");
+//    mServiceThread.start();
+//    return;
+//  }
+
+  public CARS_EventService( final Repository pRepository, final CARS_Credentials pCreds ) throws RepositoryException {
+    mRepository = pRepository;
+    mCredentials = pCreds;
+    mSession = mRepository.login( mCredentials );
     mServiceThread = new Thread(this);
     mServiceThread.setPriority(Thread.MIN_PRIORITY);
     mServiceThread.setName("CARS_EventService");
-    mServiceThread.start();
+    mServiceThread.start();    
     return;
   }
 
@@ -155,7 +173,17 @@ public class CARS_EventService implements ICARS_EventService, Runnable {
             }
             mNumberOfEventsWritten++;
           } finally {
-            mSession.save();
+            try {
+              mSession.save();
+            } catch( RepositoryException re ) {
+              try {
+                mSession.logout();
+              } finally {
+                mSession = mRepository.login( mCredentials );
+                LOG.log( Level.SEVERE, re.getMessage(), re );
+                re.printStackTrace();
+              }
+            }
           }
         }
       } catch (Throwable e) {
