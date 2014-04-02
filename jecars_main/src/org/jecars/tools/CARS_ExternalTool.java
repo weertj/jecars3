@@ -503,10 +503,16 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
       // ****
       if (config.hasProperty( FIXEDWORKINGDIRECTORY )) {
         // **** Get the fixed working directory (priority)
-        mWorkingDirectory = new File( config.getProperty( FIXEDWORKINGDIRECTORY ).getString() );
-        if (!mWorkingDirectory.exists()) {
-          if (!mWorkingDirectory.mkdirs()) {
-            throw new IOException( "Cannot create directory (Fixed): " + mWorkingDirectory.getAbsolutePath() );
+        final String dirname = config.getProperty( FIXEDWORKINGDIRECTORY ).getString();
+        if (dirname.startsWith( "(JeCARS)" )) {
+          String filePath = CARS_Utils.resolveFileFromJeCARSPath( getMain(), dirname.substring( "(JeCARS)".length() ) );
+          mWorkingDirectory = new File( filePath );
+        } else {
+          mWorkingDirectory = new File( dirname );
+          if (!mWorkingDirectory.exists()) {
+            if (!mWorkingDirectory.mkdirs()) {
+              throw new IOException( "Cannot create directory (Fixed): " + mWorkingDirectory.getAbsolutePath() );
+            }
           }
         }
       } else {
