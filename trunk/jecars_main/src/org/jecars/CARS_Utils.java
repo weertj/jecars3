@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2011 NLR - National Aerospace Laboratory
+ * Copyright 2007-2014 NLR - National Aerospace Laboratory
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.jecars;
 import com.google.gdata.util.common.base.CharEscapers;
 import com.google.gdata.util.common.base.Escaper;
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
@@ -696,5 +698,41 @@ public class CARS_Utils {
       return inputResFile;
     }
 
+  /** resolveFileFromJeCARSPath
+   * 
+   * @param pMain
+   * @param jecarspath
+   * @return 
+   * @throws org.jecars.CARS_Exception 
+   * @throws javax.jcr.RepositoryException 
+   * @throws java.net.URISyntaxException 
+   */
+  public static String resolveFileFromJeCARSPath( final CARS_Main pMain, String pJecarspath) throws CARS_Exception, RepositoryException, URISyntaxException {
+    Node resolvedNode;
+    try {           
+      Node n;
+      try {
+        n = pMain.getNodeDirect( pJecarspath );
+      } catch( Exception ee ) {            
+        n = pMain.getNode(pJecarspath, null, false);              
+      }
+      resolvedNode = CARS_Utils.getLinkedNode( pMain, n);
+    } catch( Exception e ) {
+      throw new CARS_Exception( "Cannot convert jecars path="+pJecarspath+" to filesystem path", e );
+    }
+    if (resolvedNode.hasProperty("jecars:URL")) {
+      Property prop = resolvedNode.getProperty("jecars:URL");
+      URI fileuri = new URI(prop.getString());
+      File rf = new File(fileuri);
+      return rf.getAbsolutePath(); // .replace("\\", "/");
+    } else if (resolvedNode.hasProperty("jecars:DirectoryURL")) {
+      Property prop = resolvedNode.getProperty("jecars:DirectoryURL");
+      URI fileuri = new URI(prop.getString());
+      File rf = new File(fileuri);
+      return rf.getAbsolutePath(); // .replace("\\", "/");
+    } else {
+      throw new CARS_Exception("Cannot convert jecars path="+pJecarspath+" to filesystem path. Reason:Resolved node=" + resolvedNode.getPath() + " does not have a jecars:URL property, for JeCARS path= " + pJecarspath );
+    }
+  }
   
 }
