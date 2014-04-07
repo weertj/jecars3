@@ -87,6 +87,11 @@ public class CARS_EventService implements ICARS_EventService, Runnable {
     return;
   }
 
+  @Override
+  public Session session() {
+    return mSession;
+  }
+
   /**
    * numberOfEventsWritten
    *

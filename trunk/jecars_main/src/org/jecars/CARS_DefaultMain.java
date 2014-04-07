@@ -1476,6 +1476,30 @@ koasdkaso
     return n;
   }
 
+  /** getNodeHighestAvailable
+   * Go up the pFullPath until an available node is encountered
+   * The getNodeDirect() call is used for resolving
+   * 
+   * @param pFullPath
+   * @return
+   * @throws Exception 
+   */
+  @Override
+  public Node getNodeHighestAvailable( String pFullPath ) throws Exception {
+    try {
+      return getNodeDirect( pFullPath );
+    } catch( Exception e ) {
+      int ix = pFullPath.lastIndexOf( '/' );
+      if (ix==-1) {
+        // **** Node not available
+        return null;
+      } else {
+        return getNodeHighestAvailable( pFullPath.substring( 0, ix ) );
+      }
+    }
+  }
+
+  
   
   /** Get the full node using all possible resolving options
    * @param pFullPath the path to be resolved
