@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import javax.jcr.Node;
+import javax.jcr.NodeIterator;
 import javax.jcr.Property;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
@@ -318,6 +319,49 @@ public class WFP_Node implements IWFP_Node {
     return pNode;
   }
 
+  @Override
+  public List<Node> getParameterNodes() throws RepositoryException {
+    final List<Node> nl = new ArrayList<Node>(8);
+    NodeIterator ni = getNode().getNodes();
+    while( ni.hasNext() ) {
+      Node n = ni.nextNode();
+      if (n.isNodeType("jecars:parameterresource")) {
+        nl.add( n );
+      }
+    }
+    return nl;
+  }
+
+  @Override
+  public IWFP_Parameter getParameter( final String pName ) throws WFP_Exception {
+    try {
+      for( Node n : getParameterNodes() ) {
+        if (n.getName().equals( pName )) {
+          return new WFP_Parameter( n );
+        }
+      }
+    } catch( RepositoryException re ) {
+      throw new WFP_Exception(re);
+    }
+    return null;
+  }
+
   
+  @Override
+  public IWFP_Parameter addParameter( final String pName ) throws WFP_Exception {
+    try {
+      IWFP_Parameter cpar = getParameter( pName );
+      if (cpar==null) {
+        Node n = getNode().addNode( pName, "jecars:parameterdata" );
+        n.setProperty( "jcr:data", "" );
+        n.setProperty( "jcr:mimeType", "jecars/workflowparameter" );
+        cpar = new WFP_Parameter( n );
+      }
+      return cpar;
+    } catch( RepositoryException re ) {
+      throw new WFP_Exception(re);
+    }
+  }
+
     
 }

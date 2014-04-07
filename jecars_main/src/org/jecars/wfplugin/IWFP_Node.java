@@ -4,8 +4,11 @@
  */
 package org.jecars.wfplugin;
 
+import java.util.ArrayList;
 import java.util.List;
 import javax.jcr.Node;
+import javax.jcr.NodeIterator;
+import javax.jcr.RepositoryException;
 
 /**
  *
@@ -37,5 +40,10 @@ public interface IWFP_Node {
   Object                makeLocalCopy() throws WFP_Exception;
   
   void                  save() throws WFP_Exception;
+ 
+  List<Node>      getParameterNodes() throws RepositoryException;
+  IWFP_Parameter  getParameter( final String pName ) throws WFP_Exception;
+  IWFP_Parameter  addParameter( final String pName ) throws WFP_Exception;
+
   
 }
