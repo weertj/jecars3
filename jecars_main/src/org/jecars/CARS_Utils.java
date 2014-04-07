@@ -712,7 +712,7 @@ public class CARS_Utils {
   public static File resolveFileFromPath( final CARS_Main pMain, final String pJeCARSPath, final boolean pCreatePath ) throws CARS_Exception, RepositoryException, URISyntaxException, IOException {
     final File wd;
     if (pJeCARSPath.startsWith( "(JeCARS)" )) {
-      String filePath = CARS_Utils.resolveFileFromJeCARSPath( pMain, pJeCARSPath.substring( "(JeCARS)".length() ) );
+      final String filePath = CARS_Utils.resolveFileFromJeCARSPath( pMain, pJeCARSPath.substring( "(JeCARS)".length() ), pCreatePath );
       wd = new File( filePath );
     } else {
       wd = new File( pJeCARSPath );
@@ -727,7 +727,7 @@ public class CARS_Utils {
     return wd;
   }
 
-  
+    
   /** resolveFileFromJeCARSPath
    * 
    * @param pMain
@@ -737,14 +737,33 @@ public class CARS_Utils {
    * @throws javax.jcr.RepositoryException 
    * @throws java.net.URISyntaxException 
    */
-  public static String resolveFileFromJeCARSPath( final CARS_Main pMain, String pJecarspath) throws CARS_Exception, RepositoryException, URISyntaxException {
+  public static String resolveFileFromJeCARSPath( final CARS_Main pMain, final String pJecarspath, final boolean pCreatePath ) throws CARS_Exception, RepositoryException, URISyntaxException {
     Node resolvedNode;
     try {           
-      Node n;
+      Node n = null;
       try {
         n = pMain.getNodeDirect( pJecarspath );
-      } catch( Exception ee ) {            
-        n = pMain.getNode(pJecarspath, null, false);              
+      } catch( Exception ee ) {
+        try {
+          n = pMain.getNode(pJecarspath, null, false);
+        } catch( Exception eee ) {
+          if (pCreatePath) {
+            // **** Try to create the path
+            final Node highestNode = pMain.getNodeHighestAvailable( pJecarspath );
+            if (highestNode.hasProperty("jecars:DirectoryURL")) {
+              // **** Create the directory on disk and return it.
+              final Property prop = highestNode.getProperty("jecars:DirectoryURL");
+              final URI fileuri = new URI(prop.getString());
+              final File rf = new File(fileuri);
+              rf.mkdirs();              
+              final File realrf = new File( rf, pJecarspath.substring( highestNode.getPath().length()+1 ) );
+              realrf.mkdirs();
+              return realrf.getAbsolutePath();
+            }
+          } else {
+            throw eee;
+          }
+        }
       }
       resolvedNode = CARS_Utils.getLinkedNode( pMain, n);
     } catch( Exception e ) {

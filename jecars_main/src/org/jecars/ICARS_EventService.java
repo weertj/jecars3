@@ -16,12 +16,16 @@
 
 package org.jecars;
 
+import javax.jcr.Session;
+
 /**
  *
  * @author weert
  */
 public interface ICARS_EventService {
 
+  Session session();
+  
   long    eventsInQueue();
   long    topEventsInQueue();
   long    numberOfEventsWritten();

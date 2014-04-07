@@ -109,7 +109,7 @@ public class CARS_EventsApp extends CARS_DefaultInterface {
         
 //        final CARS_EventManager eventManager = CARS_Factory.getEventManager();
         ICARS_Event event = null;
-        final Session appSession = CARS_Factory.getSystemApplicationSession();
+        final Session appSession = es.session();
         synchronized( appSession ) {
           try {
             Node eventPathFolder = null;
