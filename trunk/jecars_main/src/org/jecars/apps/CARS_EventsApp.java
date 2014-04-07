@@ -17,14 +17,13 @@ package org.jecars.apps;
 
 import java.io.UnsupportedEncodingException;
 import javax.jcr.Node;
+import javax.jcr.PathNotFoundException;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import javax.jcr.nodetype.ConstraintViolationException;
 import nl.msd.jdots.JD_Taglist;
-import org.jecars.CARS_ActionContext;
 import org.jecars.CARS_Definitions;
 import org.jecars.CARS_Event;
-import org.jecars.CARS_EventManager;
 import org.jecars.CARS_Factory;
 import org.jecars.CARS_Main;
 import org.jecars.ICARS_Event;
@@ -113,7 +112,26 @@ public class CARS_EventsApp extends CARS_DefaultInterface {
         final Session appSession = CARS_Factory.getSystemApplicationSession();
         synchronized( appSession ) {
           try {
-            final Node eventPathFolder   = appSession.getNode( eventPath );
+            Node eventPathFolder = null;
+            try {
+              eventPathFolder = appSession.getNode( eventPath );
+            } catch( PathNotFoundException pe ) {
+              // **** Check we must create the event folder
+              final int ix = eventPath.lastIndexOf( '/' );
+              if (ix>-1) {
+                final String ep = eventPath.substring( 0, ix );
+                String type = eventPath.substring( ix+1 );
+                final Node parentFolder = appSession.getNode( ep );
+                if (type.startsWith( "jecars:Events" ) && parentFolder.isNodeType( "jecars:EventsFolder" )) {
+                  eventPathFolder = parentFolder.addNode( type, "jecars:EventsFolder" );
+                  eventPathFolder.setProperty( "jecars:StoreEventsPer",
+                          parentFolder.getProperty( "jecars:StoreEventsPer" ).getString() );
+                  eventPathFolder.setProperty( "jecars:ExpireHour" + type.substring( "jecars:Events".length() ),
+                          parentFolder.getProperty( "jecars:ExpireHour" + type.substring( "jecars:Events".length() ) ).getLong() );
+                }
+              }
+            }
+            appSession.save();
 //            final Node loginUserAsSystem = appSession.getNode( pMain.getLoginUser().getPath() );
 //            final Node parentNode        = appSession.getNode( pParentNode.getPath() );
             // **** An event object will be created

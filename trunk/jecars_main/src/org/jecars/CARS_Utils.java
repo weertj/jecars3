@@ -698,6 +698,36 @@ public class CARS_Utils {
       return inputResFile;
     }
 
+  /** resolveFileFromPath
+   * 
+   * @param pMain
+   * @param pJeCARSPath
+   * @param pCreatePath
+   * @return
+   * @throws CARS_Exception
+   * @throws RepositoryException
+   * @throws URISyntaxException
+   * @throws IOException 
+   */
+  public static File resolveFileFromPath( final CARS_Main pMain, final String pJeCARSPath, final boolean pCreatePath ) throws CARS_Exception, RepositoryException, URISyntaxException, IOException {
+    final File wd;
+    if (pJeCARSPath.startsWith( "(JeCARS)" )) {
+      String filePath = CARS_Utils.resolveFileFromJeCARSPath( pMain, pJeCARSPath.substring( "(JeCARS)".length() ) );
+      wd = new File( filePath );
+    } else {
+      wd = new File( pJeCARSPath );
+    }
+    if (pCreatePath) {
+      if (!wd.exists()) {
+        if (!wd.mkdirs()) {
+          throw new IOException( "Cannot create directory (Fixed): " + wd.getAbsolutePath() );
+        }
+      }
+    }
+    return wd;
+  }
+
+  
   /** resolveFileFromJeCARSPath
    * 
    * @param pMain
