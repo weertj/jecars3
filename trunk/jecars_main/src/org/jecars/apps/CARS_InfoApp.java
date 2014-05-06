@@ -16,8 +16,10 @@
 package org.jecars.apps;
 
 import javax.jcr.Node;
+import javax.jcr.NodeIterator;
 import javax.jcr.RepositoryException;
 import javax.jcr.Session;
+import javax.jcr.query.Query;
 import org.jecars.CARS_Definitions;
 import org.jecars.CARS_Factory;
 import org.jecars.CARS_Main;
@@ -69,9 +71,36 @@ public class CARS_InfoApp extends CARS_DefaultInterface {
       }
     } else {
       if ("/InfoApp/WhoAmI".equals( pLeaf )) {
-        final Node user = pMain.getLoginUser();
-        pParentNode.setProperty( "jecars:Username", user.getName() );
         // **** /InfoApp/GroupMembers
+        final Session appSession = CARS_Factory.getSystemApplicationSession();
+        synchronized( appSession ) {
+          try {
+            final Node pn = appSession.getNode( pParentNode.getPath() );
+            final Node user = pMain.getLoginUser();
+            pn.setProperty( "jecars:Username", user.getName() );
+            int n = 0;
+            // **** Remove old group entries
+            while( n<1000 ) {
+              if (pn.hasProperty( "jecars:GroupMember" + n )) {
+                pn.setProperty( "jecars:GroupMember" + n, (String)null );
+              } else {
+                break;
+              }
+              n++;
+            }
+            final String query = "SELECT * FROM jecars:root WHERE jecars:GroupMembers = '" + user.getPath() + "'";
+            final Query q = appSession.getWorkspace().getQueryManager().createQuery( query, Query.SQL );
+            final NodeIterator ni = q.execute().getNodes();
+            n = 0;
+            while( ni.hasNext() ) {
+              Node node = ni.nextNode();
+              pn.setProperty( "jecars:GroupMember" + n, node.getPath() );
+              n++;
+            }
+          } finally {
+            appSession.save();
+          }
+        }    
       }
     }
 
