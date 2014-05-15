@@ -329,9 +329,12 @@ public class CARS_DirectoryApp extends CARS_DefaultInterface implements CARS_Int
     // **** sys* nodes have all rights.
 //    Node sysParentNode = appSession.getRootNode().getNode( pParentNode.getPath().substring(1) );
     synchronized( appSession ) {
-      Node sysParentNode = appSession.getNode( pParentNode.getPath() );
-      synchronizeDirectory( pMain, pInterfaceNode, sysParentNode, pLeaf );
-      sysParentNode.save();
+      try {
+        Node sysParentNode = appSession.getNode( pParentNode.getPath() );
+        synchronizeDirectory( pMain, pInterfaceNode, sysParentNode, pLeaf );
+      } finally {
+        appSession.save();
+      }
     }
     return;
   }
