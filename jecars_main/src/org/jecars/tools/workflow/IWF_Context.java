@@ -37,7 +37,8 @@ public interface IWF_Context extends IWF_Default {
   
   void restore( final int pStepNumber ) throws RepositoryException;
   
-  void filter( final IWF_WorkflowRunner pRunner, final List<IWF_LinkEndPoint>pEndPoints ) throws RepositoryException;
+  boolean hasFilter( final List<IWF_LinkEndPoint>pEndPoints ) throws RepositoryException;
+  void    filter(    final IWF_WorkflowRunner pRunner, final List<IWF_LinkEndPoint>pEndPoints ) throws RepositoryException;
 
   void linkFunctions( final IWF_WorkflowRunner pRunner,
             final List<IWF_LinkEndPoint>pFromPoints, final List<IWF_LinkEndPoint>pToPoints

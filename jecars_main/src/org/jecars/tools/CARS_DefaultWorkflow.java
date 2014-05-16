@@ -18,6 +18,7 @@ package org.jecars.tools;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
@@ -32,14 +33,12 @@ import org.jecars.CARS_ActionContext;
 import org.jecars.CARS_Factory;
 import org.jecars.CARS_Main;
 import static org.jecars.tools.CARS_ToolInterface.STATEREQUEST_RERUN;
+import static org.jecars.tools.CARS_ToolInterface.STATE_CLOSED_ABNORMALCOMPLETED_ABORTED;
+import org.jecars.tools.workflow.EWF_RunnerInstruction;
 import org.jecars.tools.workflow.IWF_WorkflowRunner;
 import org.jecars.tools.workflow.WF_WorkflowRunner;
-import org.jecars.wfplugin.IWFP_Context;
 import org.jecars.wfplugin.IWFP_InterfaceResult;
-import org.jecars.wfplugin.WFP_Context;
 import org.jecars.wfplugin.WFP_InterfaceResult;
-import org.jecars.wfplugin.WFP_Tool;
-import org.jecars.wfplugin.tools.WFPT_Archive;
 
 /** CARS_DefaultWorkflow
  *
@@ -49,12 +48,51 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
  
   static final private Object LOCK = new Object();
 
+  static final private List<IWF_WorkflowRunner> GLOBAL_RUNNERS = new ArrayList<>(16);
+  
+  /** addRunner
+   * 
+   * @param pWR 
+   */
+  static public void addRunner( final IWF_WorkflowRunner pWR ) {
+    synchronized( GLOBAL_RUNNERS ) {
+      GLOBAL_RUNNERS.add( pWR );
+    }
+  }
+  
+  /** getRunners
+   * IMPORTANT, handle with care, do not(!) manipulate the runners (READ ONLY)
+   * @param pPathPrefix
+   * @return 
+   */
+  static public List<IWF_WorkflowRunner> getRunners( final String pPathPrefix ) {
+    synchronized( GLOBAL_RUNNERS ) {      
+      final List<IWF_WorkflowRunner> wrs = new ArrayList<>( GLOBAL_RUNNERS.size() );
+      for( final IWF_WorkflowRunner wf : GLOBAL_RUNNERS ) {
+        if (wf.getPath().startsWith( pPathPrefix )) {
+          wrs.add( wf );
+        }
+      }
+      return Collections.unmodifiableList( wrs );
+    }
+  }
+  
+  /** removeRunner
+   * 
+   * @param pWR 
+   */
+  static public void removeRunner( final IWF_WorkflowRunner pWR ) {
+    synchronized( GLOBAL_RUNNERS ) {
+      GLOBAL_RUNNERS.remove( pWR );
+    }
+  }
+  
   private transient long mToolStartTime = 0;
   private transient long mToolAverageRunningTime = 0;
 
   private final ExecutorService                         mExecutor = Executors.newCachedThreadPool();
   private final CompletionService<IWFP_InterfaceResult> mExecutorService = new ExecutorCompletionService<>( mExecutor );
-
+  
   
   /** toolInit
    * 
@@ -66,22 +104,27 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
     super.toolInit();
     getTool().addMixin( "jecars:mix_datafolder" );
     final Session syssession = CARS_Factory.getSystemToolsSession();
-    synchronized( syssession ) {        
-      final Node tt = syssession.getNode( getToolTemplate( getTool() ).getPath() );
-      if (tt!=null) {
-        if (!tt.isNodeType( "jecars:mix_toolstatistics" )) {
-          tt.addMixin( "jecars:mix_toolstatistics" );
-          tt.save();
-        }
-        if (!tt.hasNode( "toolstatistics" )) {
-          tt.addNode( "toolstatistics", "jecars:ToolStatistics" );
-        }
-        Node tstat = tt.getNode( "toolstatistics" );
-        tstat.setProperty( "LastStarted", Calendar.getInstance() );
+    synchronized( syssession ) {
+      try {
+        final Node tt = syssession.getNode( getToolTemplate( getTool() ).getPath() );
+        if (tt!=null) {
+        
+          // **** Tool statistics
+          if (!tt.isNodeType( "jecars:mix_toolstatistics" )) {
+            tt.addMixin( "jecars:mix_toolstatistics" );
+            syssession.save();
+          }
+          if (!tt.hasNode( "toolstatistics" )) {
+            tt.addNode( "toolstatistics", "jecars:ToolStatistics" );
+          }
+          Node tstat = tt.getNode( "toolstatistics" );
+          tstat.setProperty( "LastStarted", Calendar.getInstance() );
+          syssession.save();
+          mToolAverageRunningTime = tstat.getProperty( "AverageRunTimeInSecs" ).getLong();
+        }        
+      } finally {
         syssession.save();
-        mToolAverageRunningTime = tstat.getProperty( "AverageRunTimeInSecs" ).getLong();
       }
-      syssession.save();
     }
     mToolStartTime = System.currentTimeMillis();        
     
@@ -190,7 +233,8 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
               }
               for( final IWF_WorkflowRunner wrun : currentRunners ) {
                 if (wrun.getPath().equals( runner.getPath() )) {
-                  currentRunners.remove( wrun );
+                  CARS_DefaultWorkflow.removeRunner( wrun );
+                  currentRunners.remove( wrun );                  
 //                  System.out.println("CANCEL 1111 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ");
 //                  wrun.cancel();
                   break;
@@ -208,8 +252,9 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
                 // **** Create a new workflow
                 final CARS_Main newmain = main.getFactory().createMain( CARS_ActionContext.createActionContext(getMain().getContext()) );
                 final Node newrunnerNode = newmain.getSession().getNode( runner.getPath() );              
-                final WF_WorkflowRunner wrun = new WF_WorkflowRunner( newmain, newrunnerNode, RERUN );
+                final WF_WorkflowRunner wrun = new WF_WorkflowRunner( newmain, newrunnerNode, RERUN );                
                 currentRunners.add( wrun );
+                CARS_DefaultWorkflow.addRunner( wrun );
                 runWorkflowRunner wr = new runWorkflowRunner( wrun );
                 final Future<IWFP_InterfaceResult> tir = mExecutorService.submit( wr );                
                 wrun.setFuture( tir );
@@ -255,105 +300,16 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
         }
     } finally {
 //      main.getSession().save();
+      // **** Clean up the currentRunners, and stop
+      for( final IWF_WorkflowRunner wr : currentRunners ) {        
+        CARS_DefaultWorkflow.removeRunner( wr );
+        wr.addInstruction( EWF_RunnerInstruction.STOP );
+      }
       main.destroy();
     }
 
     return;
   }
-
-  
-  /** toolRun
-   * 
-   * @throws Exception 
-   */
-/*
-  @Override
-  @SuppressWarnings("SleepWhileInLoop")
-  protected void toolRun() throws Exception {
-    super.toolRun();
-    System.out.println("DEFAULT WORKFLOW 1 " + System.currentTimeMillis());
-    
-    final List<WF_WorkflowRunner> currentRunners = new ArrayList<WF_WorkflowRunner>();
-    final CARS_Main main = getMain().getFactory().createMain( CARS_ActionContext.createActionContext(getMain().getContext()) );
-    final Node runnerNode = main.getSession().getNode( getTool().getNode( "runners/Main" ).getPath() );
-    final boolean RERUN = (STATEREQUEST_RERUN.equals(getStateRequest()));
-    final WF_WorkflowRunner mainwr = new WF_WorkflowRunner( main, runnerNode, RERUN );
-    try {
-        mainwr.restart( RERUN );
-        final List<Node> nodesInError = new ArrayList<Node>();
-        do {
-          final NodeIterator rin = getTool().getNode( "runners" ).getNodes();
-          while( rin.hasNext() ) {
-            // **** Write progress
-            double runtime = (System.currentTimeMillis()-mToolStartTime)/1000;
-            double progress = runtime/(double)mToolAverageRunningTime;
-            if (progress>0.95) {
-              progress = 0.95;
-            }
-            synchronized( WF_WorkflowRunner.WRITERACCESS ) {
-              getTool().setProperty( "jecars:PercCompleted", 100.0*progress );
-              getTool().save();
-            }
-
-            final Node runner = rin.nextNode();
-    //    System.out.println("check 00 " + runner.getPath() + " - " + runner.getProperty( "jecars:State" ).getString() );
-            if (runner.getProperty( "jecars:State" ).getString().startsWith( CARS_ToolInterface.STATE_CLOSED ) ) {
-              // **** Runner is finished
-              if (runner.getProperty( "jecars:State" ).getString().startsWith( CARS_ToolInterface.STATE_CLOSED_ABNORMALCOMPLETED )) {
-                // **** Runner is finished with an error
-                nodesInError.add( runner );
-              }
-              for( final WF_WorkflowRunner wrun : currentRunners ) {
-                if (wrun.getPath().equals( runner.getPath() )) {
-                  currentRunners.remove( wrun );
-                  break;
-                }
-              }
-            } else {
-              boolean isNew = true;
-              for( final WF_WorkflowRunner wrun : currentRunners ) {
-                if (wrun.getPath().equals( runner.getPath() )) {
-                  isNew = false;
-                  break;
-                }
-              }
-              if (isNew) {
-                final CARS_Main newmain = main.getFactory().createMain( CARS_ActionContext.createActionContext(getMain().getContext()) );
-                final Node newrunnerNode = newmain.getSession().getNode( runner.getPath() );              
-                final WF_WorkflowRunner wrun = new WF_WorkflowRunner( newmain, newrunnerNode, RERUN );
-                currentRunners.add( wrun );
-                runWorkflowRunner wr = new runWorkflowRunner( wrun );
-                final Thread t = new Thread( wr );
-                t.setPriority( Thread.currentThread().getPriority() );
-                t.setName( wrun.getPath() );
-                t.start();
-                wrun.setThread( t );
-              }
-            }
-          }
-          if (!nodesInError.isEmpty()) {
-            // **** Runner(s) are in error state
-            for( final WF_WorkflowRunner runner : currentRunners ) {
-              runner.getThread().interrupt();
-            }
-            break;
-          }
-          Thread.sleep( 100 );      
-//          Thread.sleep( 2000 );      
-        } while( !currentRunners.isEmpty() );
-
-        // **** Check for the runner errors
-        if (!nodesInError.isEmpty()) {
-          throw new CARS_ToolException( "Runner in Error " + nodesInError );
-        }
-    } finally {
-//      main.getSession().save();
-      main.destroy();
-    }
-
-    return;
-  }
- */
 
   /** runWorkflowRunner
    * 
@@ -395,6 +351,11 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
             } else {
               currentSource = mRunner.getCurrentLink().toString();            
 //              System.out.println("Child LINK wrun: " + currentSource );
+            }
+            if (mRunner.hasInstruction( EWF_RunnerInstruction.STOP )) {
+              // **** Runner has received instruction to stop
+              mRunner.setState( STATE_CLOSED_ABNORMALCOMPLETED_ABORTED );
+              break;              
             }
             if (STATE_PAUSED.equals( getState() )) {
               mRunner.setState( STATE_OPEN_RUNNING + STATE_PAUSED );

@@ -16,7 +16,6 @@
 package org.jecars.apps;
 
 import java.io.*;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Calendar;
 import javax.jcr.Node;
@@ -117,9 +116,10 @@ public class CARS_DirectoryApp extends CARS_DefaultInterface implements CARS_Int
             }
           } else {
             // **** Is File
+            final Calendar mod = Calendar.getInstance();
+            final long fileLength = files[i].length();
             if (!pParentNode.hasNode( files[i].getName() )) {
               final Node n = pParentNode.addNode( files[i].getName(), "jecars:datafile" );
-              final Calendar mod = Calendar.getInstance();
               mod.setTimeInMillis( files[i].lastModified() );
               final Calendar c = Calendar.getInstance();
               if (mod.before(c)) c.setTime( mod.getTime() );
@@ -129,7 +129,7 @@ public class CARS_DirectoryApp extends CARS_DefaultInterface implements CARS_Int
               n.setProperty( "jcr:data", "" );
               n.setProperty( "jcr:mimeType", CARS_Mime.getMIMEType( files[i].getName(), null ) );
               n.setProperty( "jecars:URL", files[i].toURI().toURL().toExternalForm() );
-              n.setProperty( "jecars:ContentLength", files[i].length() );
+              n.setProperty( "jecars:ContentLength", fileLength );
               directoryConfigurationEvent( pMain.getLoginUser(), n, "update", "EXTERNAL ADDED FILE: " + n.getPath() );
             } else {
               // **** Check modification
@@ -137,14 +137,22 @@ public class CARS_DirectoryApp extends CARS_DefaultInterface implements CARS_Int
               final long tm1 = files[i].lastModified();
               final long tm2 = n.getProperty( "jecars:Modified" ).getDate().getTimeInMillis();
               if (tm1!=tm2) {
-                final Calendar mod = Calendar.getInstance();
                 mod.setTimeInMillis( files[i].lastModified() );
                 n.setProperty( "jecars:Modified", mod );
                 n.setProperty( "jcr:lastModified", mod );
-                n.setProperty( "jecars:ContentLength", files[i].length() );
-              }
-              
+              }              
             }
+//            final Node n = pParentNode.getNode( files[i].getName() );
+//            n.setProperty( "jecars:CanExecute", files[i].canExecute());
+//            n.setProperty( "jecars:CanRead", files[i].canRead());
+//            n.setProperty( "jecars:CanWrite", files[i].canWrite());
+//            long oldLength = n.getProperty( "jecars:ContentLength" ).getLong();
+//            if (oldLength!=fileLength) {
+//              n.setProperty( "jecars:ContentLength", fileLength );
+//              n.setProperty( "jecars:SizeChanged", true );
+//            } else {
+//              n.setProperty( "jecars:SizeChanged", false );              
+//            }
           }
           Node n = pParentNode.getNode( files[i].getName() );
           n.setProperty( "jecars:LastAccessed", Calendar.getInstance() );
@@ -329,12 +337,9 @@ public class CARS_DirectoryApp extends CARS_DefaultInterface implements CARS_Int
     // **** sys* nodes have all rights.
 //    Node sysParentNode = appSession.getRootNode().getNode( pParentNode.getPath().substring(1) );
     synchronized( appSession ) {
-      try {
-        Node sysParentNode = appSession.getNode( pParentNode.getPath() );
-        synchronizeDirectory( pMain, pInterfaceNode, sysParentNode, pLeaf );
-      } finally {
-        appSession.save();
-      }
+      Node sysParentNode = appSession.getNode( pParentNode.getPath() );
+      synchronizeDirectory( pMain, pInterfaceNode, sysParentNode, pLeaf );
+      sysParentNode.save();
     }
     return;
   }

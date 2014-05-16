@@ -16,6 +16,7 @@
 
 package org.jecars.tools.workflow;
 
+import java.util.EnumSet;
 import java.util.concurrent.Future;
 import javax.jcr.RepositoryException;
 import org.jecars.CARS_Main;
@@ -48,9 +49,9 @@ public interface IWF_WorkflowRunner extends IWF_Default {
 
   void cancel();
   
-//  @Deprecated
-//  void   setThread( final Thread pT );
-//  @Deprecated
-//  Thread getThread();
-  
+  void    addInstruction(    final EWF_RunnerInstruction pRI );
+  boolean hasInstruction(    final EWF_RunnerInstruction pRI );
+  void    removeInstruction( final EWF_RunnerInstruction pRI );
+  EnumSet<EWF_RunnerInstruction> getInstructions();
+
 }

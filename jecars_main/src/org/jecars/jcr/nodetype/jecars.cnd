@@ -141,6 +141,10 @@
 - jecars:QueryPart      (String)
 
 [jecars:dataresource] > jecars:root
+- jecars:CanRead        (Boolean)
+- jecars:CanWrite       (Boolean)
+- jecars:CanExecute     (Boolean)
+- jecars:SizeChanged    (Boolean)
 
 [jecars:datafile] > jecars:dataresource, nt:resource, jecars:urlresource
 - jecars:ContentLength  (Long)
@@ -164,6 +168,8 @@
 - jecars:long      (Long)   multiple
 
 [jecars:mix_inputresource] mixin
+
+[jecars:mix_temporaryresource] mixin
 
 [jecars:inputresource] > jecars:mix_inputresource, jecars:datafile
 
