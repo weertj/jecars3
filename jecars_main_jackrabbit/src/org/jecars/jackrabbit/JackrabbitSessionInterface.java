@@ -19,11 +19,15 @@ public class JackrabbitSessionInterface implements ICARS_Session {
   @Override
   public int runGarbageCollector( final Session pSession ) throws RepositoryException {
     GarbageCollector gc = ((SessionImpl)pSession).createDataStoreGarbageCollector();
-    System.out.println(" GC : MARK Started");
-    gc.mark();
-    System.out.println(" GC : SWEEP Started");
-    final int du = gc.sweep();
-    return du;
+    try {
+      System.out.println(" GC : MARK Started");
+      gc.mark();
+      System.out.println(" GC : SWEEP Started");
+      final int du = gc.sweep();
+      return du;
+    } finally {
+      gc.close();
+    }
   }
 
   @Override
