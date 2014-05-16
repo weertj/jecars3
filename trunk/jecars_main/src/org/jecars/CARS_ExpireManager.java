@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2010 NLR - National Aerospace Laboratory
+ * Copyright 2007-2014 NLR - National Aerospace Laboratory
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.jecars;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 import java.util.logging.Level;
 import javax.jcr.InvalidItemStateException;
 import javax.jcr.ItemNotFoundException;
@@ -45,7 +46,11 @@ public class CARS_ExpireManager extends CARS_DefaultToolInterface {
   static private final long    MAX_ACCESSMANAGER_CACHE    = 1000000L;
   static private       long    gCHECKEVERY                = 5*60000L; // **** 5 minutes
   static private       int     gDATASTORE_GC_TIMES        = 20;     // **** Datastore garbage collect every (20*30) seconds
-  static private       boolean gDISABLED                = false;
+  static private       int     gGC_BETWEEN_FROM_HOUR      = 0;
+  static private       int     gGC_BETWEEN_TO_HOUR        = 6;
+  static private       int     gEXPIRE_BETWEEN_FROM_HOUR  = 0;
+  static private       int     gEXPIRE_BETWEEN_TO_HOUR    = 24;
+  static private       boolean gDISABLED                  = false;
 
   static private final Object    LOCK = new Object();
 
@@ -146,34 +151,40 @@ public class CARS_ExpireManager extends CARS_DefaultToolInterface {
     if (mSession==null) {
       return;
     }
+    final Calendar cal = Calendar.getInstance( Locale.getDefault() );
+    if ((cal.get( Calendar.HOUR_OF_DAY )<gEXPIRE_BETWEEN_FROM_HOUR) ||
+        (cal.get( Calendar.HOUR_OF_DAY )>gEXPIRE_BETWEEN_TO_HOUR)) {
+      LOG.info( "ExpireManager: Expire not running " + cal.get( Calendar.HOUR_OF_DAY ) + " not between " + gEXPIRE_BETWEEN_FROM_HOUR + " : " + gEXPIRE_BETWEEN_TO_HOUR );
+      return;
+    }
     if ((System.currentTimeMillis()-gCHECKEVERY)>mLastExpireCheck) {
       try {
         synchronized( LOCK ) {
           if ((++mDataStoreGCCurrent)==gDATASTORE_GC_TIMES) {
-//            GarbageCollector gc = null;
-            try {
-              int du = CARS_Factory.getLastFactory().getSessionInterface().runGarbageCollector( mSession );
-//              gc = ((SessionImpl)mSession).createDataStoreGarbageCollector();
-//     System.out.println(" GC : MARK Started");
-//              gc.mark();
-//     System.out.println(" GC : SWEEP Started");
-//              final int du = gc.sweep();
-              if (du>0) {
-                LOG.info( "ExpireManager: Ready removing " + du + " datastore objects" );
+            if ((cal.get( Calendar.HOUR_OF_DAY )>=gGC_BETWEEN_FROM_HOUR) &&
+                (cal.get( Calendar.HOUR_OF_DAY )<=gGC_BETWEEN_TO_HOUR)) {
+              try {
+                int du = CARS_Factory.getLastFactory().getSessionInterface().runGarbageCollector( mSession );
+                if (du>0) {
+                  LOG.info( "ExpireManager: Ready removing " + du + " datastore objects" );
+                }
+                // **** Check accessmanager cache size
+                final long cs = CARS_Factory.getLastFactory().getAccessManager().getCacheSize();
+                if (cs>MAX_ACCESSMANAGER_CACHE) {
+                  CARS_Factory.getLastFactory().getAccessManager().clearPathCache();
+                  LOG.info( "ExpireManager: Accessmanager cache CLEAR" );
+                }
+                mDataStoreGCCurrent = 0;
+              } catch( NullPointerException npe) {
+                LOG.log( Level.WARNING, "Garbage Collector", npe );
+              } finally {
+  //              if (gc!=null) {
+  //                gc.close();
+  //              }
               }
-              // **** Check accessmanager cache size
-              final long cs = CARS_Factory.getLastFactory().getAccessManager().getCacheSize();
-              if (cs>MAX_ACCESSMANAGER_CACHE) {
-                CARS_Factory.getLastFactory().getAccessManager().clearPathCache();
-                LOG.info( "ExpireManager: Accessmanager cache CLEAR" );
-              }
-              mDataStoreGCCurrent = 0;
-            } catch( NullPointerException npe) {
-              LOG.log( Level.WARNING, "Garbage Collector", npe );
-            } finally {
-//              if (gc!=null) {
-//                gc.close();
-//              }
+            } else {
+              // **** GC sweep not between
+              LOG.info( "ExpireManager: GC not running " + cal.get( Calendar.HOUR_OF_DAY ) + " not between " + gEXPIRE_BETWEEN_FROM_HOUR + " : " + gEXPIRE_BETWEEN_TO_HOUR );
             }
           }
           
