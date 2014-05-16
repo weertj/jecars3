@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
@@ -115,11 +116,12 @@ public class JackrabbitAccessManager extends DefaultAccessManager implements Acc
     // ***** CACHING members
     transient static Node[]                    mLastAllRightGivers     = null;
     transient static private String            mLastAllRightGiversUUID = null;
-    transient static private HashSet<String>   mReadPathCache          = new HashSet<String>();
-    transient static private HashSet<String>   mDenyReadPathCache      = new HashSet<String>();
-    transient static private HashSet<String>   mWritePathCache         = new HashSet<String>();
-    transient static private HashSet<String>   mSetPropPathCache       = new HashSet<String>();
-    transient static private HashSet<String>   mRemovePathCache        = new HashSet<String>();
+    transient static private final Set<String>   mALLPERMDelegatePathCache  = new HashSet<>(128);
+    transient static private final HashSet<String>   mReadPathCache          = new HashSet<>(128);
+    transient static private final HashSet<String>   mDenyReadPathCache      = new HashSet<>(128);
+    transient static private final HashSet<String>   mWritePathCache         = new HashSet<>(128);
+    transient static private final HashSet<String>   mSetPropPathCache       = new HashSet<>(128);
+    transient static private final HashSet<String>   mRemovePathCache        = new HashSet<>(128);
     transient private QueryManager      mQueryManager           = null;
     transient private String            mLastPermDeleg_Select   = null;
     transient private QueryResult       mLastPermDeleg_Result   = null;
@@ -153,6 +155,7 @@ public class JackrabbitAccessManager extends DefaultAccessManager implements Acc
  /** setSession
    * 
    * @param pSession
+   * @throws javax.jcr.RepositoryException
    */
   public void setSession( SessionImpl pSession ) throws RepositoryException {
     mSASession = pSession;
@@ -275,16 +278,11 @@ public class JackrabbitAccessManager extends DefaultAccessManager implements Acc
     /** clearCache
      */
     public void clearCache() {
-//      if (RUNNING_IN_EXCLUSIVE_MODE==false) {
-        mLastAllRightGiversUUID = null;
-        mLastAllRightGivers = null;
-//      mLastPermQuery = null;
-//        mReadPathCache.clear();
-//        mDenyReadPathCache.clear();
-        clearPathCache();
-        mLastPermDeleg_Select = null;
-        mLastPermDeleg_Result = null;
-//      }
+      mLastAllRightGiversUUID = null;
+      mLastAllRightGivers = null;
+      clearPathCache();
+      mLastPermDeleg_Select = null;
+      mLastPermDeleg_Result = null;
       return;
     }
     
@@ -293,6 +291,10 @@ public class JackrabbitAccessManager extends DefaultAccessManager implements Acc
      */
     static public void clearPathCache( final String pPrefix ) {
       synchronized( EXCLUSIVE_CONTROL ) {
+        
+        // **** Delegate all permission cache
+        mALLPERMDelegatePathCache.clear();
+        
         Iterator<String> it = mReadPathCache.iterator();
         String p, cp = pPrefix.substring(pPrefix.indexOf('/'));
         while( it.hasNext() ) {
@@ -342,6 +344,7 @@ public class JackrabbitAccessManager extends DefaultAccessManager implements Acc
     @Override
     public void clearPathCache() {
       synchronized( EXCLUSIVE_CONTROL ) {
+        mALLPERMDelegatePathCache.clear();
         mReadPathCache.clear();
         mDenyReadPathCache.clear();
         mWritePathCache.clear();
@@ -350,28 +353,39 @@ public class JackrabbitAccessManager extends DefaultAccessManager implements Acc
       }
       return;
     }
+
+    @Override
+    @SuppressWarnings("ReturnOfCollectionOrArrayField")
+    public Set<String> getAllPermissionsDelegatePathCache() {
+      return mALLPERMDelegatePathCache;
+    }
     
     @Override
+    @SuppressWarnings("ReturnOfCollectionOrArrayField")
     public HashSet<String> getReadPathCache() {
       return mReadPathCache;
     }
 
     @Override
+    @SuppressWarnings("ReturnOfCollectionOrArrayField")
     public HashSet<String> getWritePathCache() {
       return mWritePathCache;
     }
 
     @Override
+    @SuppressWarnings("ReturnOfCollectionOrArrayField")
     public HashSet<String> getRemovePathCache() {
       return mRemovePathCache;
     }
 
     @Override
+    @SuppressWarnings("ReturnOfCollectionOrArrayField")
     public HashSet<String> getSetPropPathCache() {
       return mSetPropPathCache;
     }
 
     @Override
+    @SuppressWarnings("ReturnOfCollectionOrArrayField")
     public HashSet<String> getDenyReadPathCache() {
       return mDenyReadPathCache;
     }
@@ -383,6 +397,9 @@ public class JackrabbitAccessManager extends DefaultAccessManager implements Acc
     @Override
     public long getCacheSize() {
       long size = 0;
+      for (String c : mALLPERMDelegatePathCache) {
+        size += c.length();
+      }
       for (String c : mReadPathCache) {
         size += c.length();
       }
@@ -475,12 +492,39 @@ public class JackrabbitAccessManager extends DefaultAccessManager implements Acc
       return mReadPathCache.contains( pPath );
     }
     
+    /** checkAllPermissionsDelegateReadCache
+     * 
+     * @param pPath
+     * @return 
+     */
+    private boolean checkAllPermissionsDelegateReadCache( final String pPath ) {
+      synchronized( EXCLUSIVE_CONTROL ) {
+        for( final String cdr : mALLPERMDelegatePathCache ) {
+          if (pPath.startsWith( cdr )) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+    
     /** addReadCache
      * @param pPath
      */
     private void addReadCache( final String pPath ) {
       synchronized( EXCLUSIVE_CONTROL ) {
         mReadPathCache.add( pPath );
+      }
+      return;
+    }
+
+    /** addAllPermDelegateCache
+     * 
+     * @param pPath 
+     */
+    private void addAllPermDelegateCache( final String pPath ) {
+      synchronized( EXCLUSIVE_CONTROL ) {
+        mALLPERMDelegatePathCache.add( pPath );
       }
       return;
     }
@@ -673,9 +717,9 @@ public class JackrabbitAccessManager extends DefaultAccessManager implements Acc
           if (mLoggedInUsername!=null) {
 
             if (mLoggedInUsername.equals( gUSERNAME_GRANTALL )) {
-              if ((pPermissions&Permission.READ)==0) {
-                clearCache();
-              }
+//              if ((pPermissions&Permission.READ)==0) {
+//                clearCache(); // **** TODO ?
+//              }
               return true;
             }
 
@@ -730,8 +774,8 @@ public class JackrabbitAccessManager extends DefaultAccessManager implements Acc
 //      } else {
 //        System.out.println( "-P- " + uuidfp + "/" + propId.getName() + " : " + pPermissions + " : " + perm );
 //      }
+
               if (perm.equals(P_READ) || perm.equals( P_GETPROPERTY )) {
-//              if (perm.equals(P_READ)) {
                 // **** READ Cache
                 if (checkReadCache(     uuidfp )) return true;
                 if (checkDenyReadCache( uuidfp )) return false;
@@ -745,9 +789,13 @@ public class JackrabbitAccessManager extends DefaultAccessManager implements Acc
               if (perm.equals(P_REMOVE)) {
                 if (checkRemoveCache( uuidfp )) return true;
               }
+              // **** Check if the path is available in the All permissions cache
+              if (checkAllPermissionsDelegateReadCache( uuidfp )) {
+                return true;
+              }
               // **** getAllRightGivers will clear the cache when an other user is detected
               final Node rn[]     = getAllRightGiversForUser( mLoggedInUsername );
-//        System.out.println( "--- " + pPath.getString() + " : " + pPermissions + " : " + pPermissions + " : " + perm );
+//        System.out.println( "--- " + pPath.getString() + " : " + pPermissions + " : " + perm );
 //        System.out.println( "  **** " + uuidfp + " : " + pPermissions + " : " + perm );
 //      if (uuidfp.endsWith( "/defaultQueryDef" )) {
 //          int u = 2;
@@ -772,7 +820,7 @@ public class JackrabbitAccessManager extends DefaultAccessManager implements Acc
                 mLastPermDeleg_Result = getQueryManager().createQuery( qus, Query.SQL ).execute();
               }
               NodeIterator ni = mLastPermDeleg_Result.getNodes();
-                while( ni.hasNext() ) {
+              while( ni.hasNext() ) {
                 final Node cn = ni.nextNode();
                 String chPath = cn.getParent().getPath();
 //                if (!chPath.endsWith( "/" )) {
@@ -806,7 +854,17 @@ public class JackrabbitAccessManager extends DefaultAccessManager implements Acc
                       addRemoveCache( uuidfp );
                     }
                   } else {
-                    addReadCache( uuidfp );
+                    // **** Check if this object is an ALL permission object
+                    String  actions = "";
+                    for( final Value val : cn.getProperty( "jecars:Actions" ).getValues() ) {
+                      actions += "|" + val.getString();
+                    }
+                    if (actions.contains( "add_node" ) && actions.contains( "add_node" ) && actions.contains( "get_property" ) &&
+                        actions.contains( "set_property" ) && actions.contains( "remove" )) {
+                      addAllPermDelegateCache( mLoggedInUsername + cn.getParent().getPath() );
+                    } else {
+                      addReadCache( uuidfp );
+                    }
                   }
                   return true;
                 }
