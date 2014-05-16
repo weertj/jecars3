@@ -852,12 +852,15 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
       IOStreamThreadFile input = null;
       try {
         final Process process = pb.start();
-        error = new IOStreamThreadFile( "__error.txt",  process.getErrorStream(), new File( mWorkingDirectory, "__error.txt" ) );
-        input = new IOStreamThreadFile( "__stdout.txt", process.getInputStream(), new File( mWorkingDirectory, "__stdout.txt" ) );
+        final Node tt = getToolTemplate( getTool() ); // **** This goes wrong when in one workflow with the same working directory there are two tool runs of the same tool
+        String errorFile  = "__error_" + tt.getName() + ".txt";
+        String stdoutFile = "__stdout_" + tt.getName() + ".txt";
+        error = new IOStreamThreadFile( errorFile,  process.getErrorStream(), new File( mWorkingDirectory, errorFile ) );
+        input = new IOStreamThreadFile( stdoutFile, process.getInputStream(), new File( mWorkingDirectory, stdoutFile ) );
         error.start();
         input.start();
-        addFileToOutput( new File( mWorkingDirectory, "__error.txt" ) );
-        addFileToOutput( new File( mWorkingDirectory, "__stdout.txt" ) );
+        addFileToOutput( new File( mWorkingDirectory, errorFile ) );
+        addFileToOutput( new File( mWorkingDirectory, stdoutFile ) );
         err = process.waitFor();
         error.join( 4000 );
         input.join( 4000 );
@@ -1146,10 +1149,21 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
    * @throws RepositoryException 
    */
   protected Node addFileToOutput( File pFile ) throws RepositoryException {
+    return addFileToOutput( pFile, pFile.getName() );
+  }
+
+  /** addFileToOutput
+   * 
+   * @param pFile
+   * @param pTitle
+   * @return
+   * @throws RepositoryException 
+   */
+  protected Node addFileToOutput( File pFile, String pTitle ) throws RepositoryException {
     final Node output = addOutputTransient( getTool(), null, pFile.getName() );
     if (output!=null) {
       final long len = pFile.length();
-      output.setProperty( "jecars:Title", pFile.getName() );
+      output.setProperty( "jecars:Title", pTitle );
 //      output.setProperty( "jecars:IsLink", outputLink );
       output.setProperty( "jecars:ContentLength", len );
       output.setProperty( "jecars:Partial", false );
