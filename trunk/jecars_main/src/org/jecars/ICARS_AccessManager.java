@@ -17,6 +17,7 @@ package org.jecars;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import javax.jcr.Node;
 import javax.jcr.RepositoryException;
 import javax.jcr.query.QueryManager;
@@ -30,6 +31,7 @@ public interface ICARS_AccessManager {
   void clearPathCache();
   long getCacheSize();
   void fillPrincipalsForGroupMembers( final QueryManager pQM, final List<Node> pAL, final String pUUID ) throws RepositoryException;
+  Set<String>     getAllPermissionsDelegatePathCache();
   HashSet<String> getReadPathCache();
   HashSet<String> getWritePathCache();
   HashSet<String> getRemovePathCache();
