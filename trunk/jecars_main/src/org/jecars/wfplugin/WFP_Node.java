@@ -206,6 +206,22 @@ public class WFP_Node implements IWFP_Node {
   }
 
   /** setProperty
+   *  
+   * @param pName
+   * @param pValue
+   * @return
+   * @throws WFP_Exception 
+   */
+  @Override
+  public IWFP_Property setProperty( String pName, boolean pValue ) throws WFP_Exception{
+    try {
+      return new WFP_Property( mNode.setProperty( pName, pValue ) );
+    } catch( RepositoryException re ) {
+      throw new WFP_Exception( re );
+    }
+  }
+
+  /** setProperty
    * 
    * @param pName
    * @param pValue

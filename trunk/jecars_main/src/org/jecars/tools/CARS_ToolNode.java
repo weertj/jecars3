@@ -71,17 +71,21 @@ public class CARS_ToolNode {
   public Property setParamProperty( final CARS_Main pMain, final Node pInterfaceNode, final Node pNode, final String pPropName, final String pValue ) throws Exception {
 //    System.out.println("set tool param " + pPropName + " = " + pValue );
     if (pPropName.equals( STATE_REQUEST )) {
-      final CARS_ActionContext ac = CARS_ActionContext.createActionContext( pMain.getContext(0) );
-      final CARS_Main main = pMain.getFactory().createMain( ac );
+      if ("start".equals( pValue )) {
+        final CARS_ActionContext ac = CARS_ActionContext.createActionContext( pMain.getContext(0) );
+        final CARS_Main main = pMain.getFactory().createMain( ac );
         final Node n = main.getSession().getNode( pNode.getPath() );
-//      final Node n = main.getSession().getRootNode().getNode( pNode.getPath().substring(1) );
-//       if (n.isNodeType( "mix:lockable")==false) n.addMixin( "mix:lockable" );
-//       n.save();
-      if (n.isLocked()) {
-        return n.getProperty( pPropName );
+        if (n.isLocked()) {
+          return n.getProperty( pPropName );
+        } else {
+          final CARS_ToolInterface ti = CARS_ToolsFactory.getTool( main, n, null, false );
+          return ti.setStateRequest( pValue );
+        }
       } else {
-        final CARS_ToolInterface ti = CARS_ToolsFactory.getTool( main, n, null, false );
-        return ti.setStateRequest( pValue );
+        // **** Other state values
+        if ("stop".equals( pValue )) {
+          CARS_WorkflowController.stopRunners( pNode.getPath() );
+        }
       }
     }
     return null;

@@ -47,12 +47,6 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
   static final public Object WRITERACCESS = new Object();
   
   static public IWF_WorkflowRunner NULL;
-
-  private final CARS_Main                     mMain;
-  private final WFP_Context                   mTransientContext;
-//  private       Thread                        mRunnerThread = null;
-  private       Future<IWFP_InterfaceResult>  mRunnerFuture;
-  private       boolean                       mRerunMode = false;
   
   static {
     try {
@@ -62,11 +56,20 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
       re.printStackTrace();
     }
   }
+
+  private final CARS_Main                       mMain;
+  private final WFP_Context                     mTransientContext;
+  private final EnumSet<EWF_RunnerInstruction>  mInstructions = EnumSet.noneOf(EWF_RunnerInstruction.class);
+  private       Future<IWFP_InterfaceResult>    mRunnerFuture;
+  private       boolean                         mRerunMode = false;
+
   
   /** WF_WorkflowRunner
    * 
    * @param pMain
    * @param pNode 
+   * @param pRerun 
+   * @throws javax.jcr.RepositoryException 
    */
   public WF_WorkflowRunner( final CARS_Main pMain, final Node pNode, final boolean pRerun ) throws RepositoryException {
     super(pNode);    
@@ -89,6 +92,46 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
     }
   }
 
+  /** getInstructions
+   * 
+   * @return 
+   */
+  @Override
+  public EnumSet<EWF_RunnerInstruction> getInstructions() {
+    return mInstructions.clone();
+  }
+
+  /** hasInstruction
+   * 
+   * @param pRI
+   * @return 
+   */
+  @Override
+  public boolean hasInstruction(EWF_RunnerInstruction pRI) {
+    return mInstructions.contains( pRI );
+  }
+
+  /** addInstruction
+   * 
+   * @param pRI 
+   */
+  @Override
+  public void addInstruction(EWF_RunnerInstruction pRI) {
+    mInstructions.add( pRI );
+    return;
+  }
+
+  /** removeInstruction
+   * 
+   * @param pRI 
+   */
+  @Override
+  public void removeInstruction(EWF_RunnerInstruction pRI) {
+    mInstructions.remove( pRI );
+    return;
+  }
+  
+  
   /** setFuture
    * 
    * @param pIR
@@ -111,29 +154,12 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
 
   @Override
   public void cancel() {
-//    if (mRunnerThread!=null) {
-//      mRunnerThread.interrupt();
-//    }
     if (mRunnerFuture!=null) {
       mRunnerFuture.cancel( true );
     }
     return;
   }
 
-  @Deprecated
-//  @Override
-  public void setThread(Thread pT) {
-//    mRunnerThread = pT;
-    return;
-  }
-
-  @Deprecated
-//  @Override
-  public Thread getThread() {
-//    return mRunnerThread;
-    return null;
-  }
-  
   
   /** destroy
    * 
@@ -177,6 +203,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
   /** restart
    * 
    * @param pReRun true will not(!!) delete the runners, use false to start with a clean situation
+   * @param pRestoreFromCurrentContext
    * @throws RepositoryException 
    */
   @Override
@@ -244,7 +271,6 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
    */
   @Override
   public WFP_InterfaceResult singleStep() throws Exception {
-//      System.out.println("single step " + getNode().getPath() + " time: " + System.currentTimeMillis() );
 
     String state = getState();
     if ((state.startsWith( CARS_ToolInterface.STATE_CLOSED ))) {
@@ -384,6 +410,8 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
     final IWF_Workflow workflow = getWorkflow();
     final IWF_Task  currentTask = getCurrentTask();
     final IWF_Link  currentLink = getCurrentLink();
+
+  System.out.println("+++++ next step time: " + System.currentTimeMillis() + " == " + currentTask.getPath() + " : " + currentLink.getPath() );
     
     if (currentTask.isNULL() && currentLink.isNULL()) {
       
@@ -420,6 +448,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
 //  System.out.println("WFRUN  time: " + System.currentTimeMillis() );
 
       if (currentTask.isNULL()) {
+/*        
         // *************************
         // **** Execute current link
         synchronized( WRITERACCESS ) {
@@ -456,7 +485,57 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
           getContext().convertTo( oleps );
           save();
         }
-        
+*/
+                
+        final List<IWF_LinkEndPoint> leps = new ArrayList<>(1);
+        leps.add( currentLink.getFromEndPoint() );
+        final boolean hasFilter = getContext().hasFilter( leps );
+        if (hasFilter) {
+          synchronized( WRITERACCESS ) {
+            getContext().setUsedLink( currentLink );
+            save();
+            backupContext();
+            final IWF_Task toTask = currentLink.getToEndPoint().getEndPoint();        
+            setCurrentTask( toTask.getNode().getPath() );
+            setCurrentLink( "" );
+            save();
+          }
+  //        final IWF_Task fromTask = currentLink.getFromEndPoint().getEndPoint();
+  //        final List<IWF_Link> links = workflow.getFromLinkByTask( fromTask );
+
+          // **** Filter the copied items
+          synchronized( WRITERACCESS ) {
+            getContext().filter( this, leps );
+            final List<IWF_LinkEndPoint> lepsto = new ArrayList<>(16);
+            lepsto.add( currentLink.getToEndPoint() );
+            getContext().filter( this, lepsto );
+            // **** Execute link functions... property manipulation        
+            getContext().linkFunctions( this, leps, lepsto );
+            save();
+          }
+
+          // **** Convert (nodetype) the items (TURNED OFF)        
+  //        final List<IWF_LinkEndPoint> oleps = new ArrayList<>();
+  //        for( final IWF_Link link : links ) {
+  //          leps.add( link.getToEndPoint() );
+  //        }
+  //        synchronized( WRITERACCESS ) {
+  //          getContext().convertTo( oleps );
+  //          save();
+  //        }
+        } else {
+          // **** No filter available
+          synchronized( WRITERACCESS ) {
+            getContext().setUsedLink( currentLink );
+            save();
+//            backupContext();
+            final IWF_Task toTask = currentLink.getToEndPoint().getEndPoint();        
+            setCurrentTask( toTask.getNode().getPath() );
+            setCurrentLink( "" );
+            save();
+          }          
+        }
+
       } else {
         // **************************
         // **** Execute current task
@@ -968,6 +1047,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
                 nn.setProperty( "jcr:lastModified", Calendar.getInstance() );
                 nn.addMixin(    "jecars:mix_link" );
                 nn.setProperty( "jecars:Link" , tnode.getPath() );
+//                nn.setProperty( "jecars:Link" , CARS_Utils.getLinkedNode(tnode).getPath() );
               }
               save();
             }
@@ -1105,6 +1185,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
               nn.addMixin( "jecars:mix_link" );
               nn.addMixin( "jecars:mix_inputresource" );
               nn.setProperty( "jecars:Link" , tnode.getPath() );
+//              nn.setProperty( "jecars:Link" , CARS_Utils.getLinkedNode(tnode).getPath() );
             }
           }
           save();
@@ -1162,6 +1243,12 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
   public String getState() throws RepositoryException {
     return getNode().getProperty( "jecars:State" ).getString();
   }
+
+  @Override
+  public String toString() {
+    return getPath();
+  }
+  
   
   
 }

@@ -66,13 +66,15 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
 
   private final transient List<File> mInputs = new ArrayList<>();
 
+  private final transient List<File> mTemporaryFiles = new ArrayList<>();
+
   private final transient List<String> mResultFiles = new ArrayList<>(16);
   
   private transient File mWorkingDirectory = null;
 
   private transient long mToolStartTime = 0;
   private transient long mToolAverageRunningTime = 0;
-
+  
     /** IOStreamThreadFile
    *
    */
@@ -292,6 +294,12 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
   @Override
   protected void toolFinally() {
     try {
+      
+      // **** Delete temporary files
+      for( File del : mTemporaryFiles ) {
+        del.delete();
+      }
+      
       final Session syssession = CARS_Factory.getSystemToolsSession();
       synchronized( syssession ) {        
         final Node tt = syssession.getNode( getToolTemplate( getTool() ).getPath() );
@@ -440,13 +448,14 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
           // **** Process the file entry
           String[] vals = rsn.getProperty( "jecars:File" ).getString().split( "=" );
           if (Pattern.compile( vals[0] ).matcher( pTemplateToolPath ).find()) {
-            File f = new File( vals[1] );
-            if (!f.isAbsolute()) {
-              f = new File( mWorkingDirectory, f.getPath() );
-            }
-            if (!mResultFiles.contains( f.getAbsolutePath() )) {
-              mResultFiles.add( f.getAbsolutePath() );
-            }
+            mResultFiles.add( vals[1] );
+//            File f = new File( vals[1] );
+///            if (!f.isAbsolute()) {
+//             f = new File( mWorkingDirectory, f.getPath() );
+//           }
+//           if (!mResultFiles.contains( f.getAbsolutePath() )) {
+//              mResultFiles.add( f.getAbsolutePath() );
+//            }
           }
         }
       }
@@ -558,13 +567,16 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
               // **** Process the file entry
               String[] vals = val.split( "=" );
               if (Pattern.compile( vals[0] ).matcher( templateToolPath ).find()) {
-                File f = new File( vals[1] );
-                if (!f.isAbsolute()) {
-                  f = new File( mWorkingDirectory, f.getPath() );
+                if (!mResultFiles.contains( vals[1] )) {
+                  mResultFiles.add( vals[1] );
                 }
-                if (!mResultFiles.contains( f.getAbsolutePath() )) {
-                  mResultFiles.add( f.getAbsolutePath() );
-                }
+//                File f = new File( vals[1] );
+//                if (!f.isAbsolute()) {
+//                  f = new File( mWorkingDirectory, f.getPath() );
+//                }
+//                if (!mResultFiles.contains( f.getAbsolutePath() )) {
+//                  mResultFiles.add( f.getAbsolutePath() );
+//                }
               }
               i++;
             }
@@ -592,7 +604,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
 
       // *****************************************************************
       // **** Copy the input resource of the tool to the working directory
-      final Map<String, File> copiedInputs = new HashMap<String, File>();
+      final Map<String, File> copiedInputs = new HashMap<>( 16 );
       {
         final List<Node> inputRes = getInputResources( getTool() );
         for ( final Node input : inputRes ) {
@@ -608,10 +620,14 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
                 copiedInputs.put( nextNode.getName(), inputResFile );          
               }
             } else {
-              CARS_Utils.copyInputResourceToDirectory( linkedNode, mWorkingDirectory, true );
+              final File resultFile = CARS_Utils.copyInputResourceToDirectory( linkedNode, mWorkingDirectory, true );
 //             copyInputResourceToWorkingDir(linkedNode);
               final File inputResFile = new File( mWorkingDirectory, linkedNode.getName() );
-              copiedInputs.put( linkedNode.getName(), inputResFile );
+              copiedInputs.put( linkedNode.getName(), inputResFile );              
+//              if (linkedNode.hasProperty( "jecars:Temporary" ) && linkedNode.getProperty( "jecars:Temporary" ).getBoolean()) {
+              if (linkedNode.isNodeType( "jecars:mix_temporaryresource" )) {
+                mTemporaryFiles.add( resultFile );
+              }
             }
           }
         }
@@ -685,14 +701,31 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
         final File resultFile = new File( result );
         if (!resultFile.exists()) {
           // **** Perhaps the filename is a regular expression
-          final Pattern fpat = Pattern.compile( resultFile.getName() );
+          final Pattern fpat = Pattern.compile( result );
           boolean match = false;
-          for( final File checkFiles : resultFile.getParentFile().listFiles() ) {
-            if (fpat.matcher( checkFiles.getName() ).find()) {
-              recalculate = false;
-              match = true;
-              break;
+          // **** Search parent directory
+          File parentDir = resultFile.getParentFile();
+          if (parentDir!=null) {
+            final File[] pdfiles = parentDir.listFiles();
+            if (pdfiles!=null) {
+              for( final File checkFiles : pdfiles ) {
+                if (fpat.matcher( checkFiles.getName() ).find()) {
+                  recalculate = false;
+                  match = true;
+                  break;
+                }
+              }
             }
+          }
+          if (!match) {
+            // **** Check the working directory
+            for( final File checkFiles : mWorkingDirectory.listFiles() ) {
+              if (fpat.matcher( checkFiles.getName() ).find()) {
+                recalculate = false;
+                match = true;
+                break;
+              }
+            }            
           }
           if (!match) {
             recalculate = true;
@@ -703,7 +736,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
 
     // **** Check if we need to start the tool
     if (!recalculate) {
-      reportStatusMessage( "No need to starting tool " + getTool().getPath() + " result is still available" );
+      reportStatusMessage( "No need to start tool " + getTool().getPath() + " result is still available" );
       super.toolRun();
       return;
     }
@@ -774,7 +807,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
         } else if (nn.hasProperty( "jecars:string" )) {          
           commands.add( getParameterString( nn.getName(), 0 ) );
         } else {
-          commands.add( nn.getName() );
+          commands.add( CARS_Utils.getAbsoluteFilePathFromNode( nn ));
         }
       }
       // **** Tool execution

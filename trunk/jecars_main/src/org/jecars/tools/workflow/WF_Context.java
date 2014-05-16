@@ -212,9 +212,28 @@ public class WF_Context extends WF_Default implements IWF_Context {
     }
   }  
     
+  /** hasFilter
+   * 
+   * @param pEndPoints
+   * @return
+   * @throws RepositoryException 
+   */
+  @Override
+  public boolean hasFilter( final List<IWF_LinkEndPoint>pEndPoints ) throws RepositoryException {
+    for( final IWF_LinkEndPoint lep : pEndPoints ) {
+      for( final IWF_TaskPortRef tpr : lep.getTaskPortRefs() ) {
+        final IWF_TaskPort tp = tpr.getTaskPort();
+        if (!".*".equals( tp.getNodeType() )) {
+          return false;
+        }
+      }
+    }
+    return false;
+  }
   
   /** filter
    * 
+   * @param pRunner
    * @param pEndPoints
    * @throws RepositoryException 
    */

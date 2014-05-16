@@ -30,6 +30,7 @@ public interface IWFP_Node {
   IWFP_Property         getProperty( final String pName ) throws WFP_Exception;
   IWFP_Node             getResolvedNode() throws WFP_Exception;
 
+  IWFP_Property         setProperty( String pName, boolean pValue ) throws WFP_Exception;
   IWFP_Property         setProperty( String pName, String pValue ) throws WFP_Exception;
   IWFP_Property         setProperty( String pName, long pValue   ) throws WFP_Exception;
 

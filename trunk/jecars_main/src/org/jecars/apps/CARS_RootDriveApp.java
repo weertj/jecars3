@@ -49,20 +49,29 @@ public class CARS_RootDriveApp extends CARS_DefaultInterface implements CARS_Int
     CARS_DirectoryApp.gFORCEREADONLY = true;
     
     final Session appSession = CARS_Factory.getSystemApplicationSession();
-    // **** sys* nodes have all rights.
-    final Node sysParentNode = appSession.getRootNode().getNode( pParentNode.getPath().substring(1) );
     synchronized( appSession ) {
-      final File[] roots = File.listRoots();
-      for( final File root : roots ) {
-        final String driveLetter = root.getPath().substring(0,1);
-        if (!sysParentNode.hasNode( driveLetter )) {
-          final Node dl = sysParentNode.addNode( driveLetter, "jecars:localstorage" );
-          dl.setProperty( "jecars:InterfaceClass", "org.jecars.apps.CARS_DirectoryApp" );
-          dl.setProperty( "jecars:StorageDirectory", "(ABS)" + root.getPath() );
+      try {
+        // **** sys* nodes have all rights.
+        final Node sysParentNode = appSession.getRootNode().getNode( pParentNode.getPath().substring(1) );
+        final File[] roots = File.listRoots();
+        for( final File root : roots ) {
+          final String driveLetter = root.getPath().substring(0,1);
+          if ("/".equals( driveLetter )) {
+            if (!sysParentNode.hasNode( "slash" )) {
+              final Node dl = sysParentNode.addNode( "slash", "jecars:localstorage" );
+              dl.setProperty( "jecars:InterfaceClass", "org.jecars.apps.CARS_DirectoryApp" );
+              dl.setProperty( "jecars:StorageDirectory", "(ABS)/" );
+            }            
+          } else if (!sysParentNode.hasNode( driveLetter )) {
+            final Node dl = sysParentNode.addNode( driveLetter, "jecars:localstorage" );
+            dl.setProperty( "jecars:InterfaceClass", "org.jecars.apps.CARS_DirectoryApp" );
+            dl.setProperty( "jecars:StorageDirectory", "(ABS)" + root.getPath() );
+          }
+  //          System.out.println("root - - " + root );
         }
-//          System.out.println("root - - " + root );
+      } finally {
+        appSession.save();
       }
-      appSession.save();
     }
     return;
   }

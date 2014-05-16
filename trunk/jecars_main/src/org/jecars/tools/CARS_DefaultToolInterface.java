@@ -57,6 +57,8 @@ import org.jecars.par.IPAR_ToolRun;
 import org.jecars.par.PAR_ResourceWish;
 import org.jecars.par.PAR_ToolRun;
 import static org.jecars.tools.CARS_ToolInterface.STATEREQUEST_START;
+import org.jecars.tools.workflow.EWF_RunnerInstruction;
+import org.jecars.tools.workflow.IWF_WorkflowRunner;
 import org.jecars.wfplugin.IWFP_InterfaceResult;
 import org.jecars.wfplugin.WFP_InterfaceResult;
 
@@ -1115,7 +1117,7 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
           mFuture.cancel( true );
         }
         setState( STATE_OPEN_ABORTING );
-      } else if (isScheduledTool()) {
+      } else if (isScheduledTool()) {                
         if (mScheduledFuture!=null) {
           if (!mScheduledFuture.cancel( false )) {
             throw new CARS_ToolException( getTool().getPath() + " cannot be cancelled" );
@@ -1624,13 +1626,15 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
    * @throws RepositoryException
    */
   public List<Node> getInputResources( final Node pTool ) throws RepositoryException {
-    final List<Node> nodes = new ArrayList<Node>();
+    final List<Node> nodes = new ArrayList<>(16);
     final NodeIterator ni = pTool.getNodes();
     Node n;
     while( ni.hasNext() ) {
       n = ni.nextNode();
       if (n.isNodeType( "jecars:inputresource" )) {
-        nodes.add( n );
+        if (!n.isNodeType( "jecars:mix_commandlineitem" )) {
+          nodes.add( n );
+        }
       }
     }
     return nodes;

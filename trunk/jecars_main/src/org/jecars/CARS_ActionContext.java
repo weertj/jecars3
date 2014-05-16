@@ -1173,15 +1173,19 @@ public class CARS_ActionContext {
    * @return
    * @throws Exception
    */
-  public String getPublishedDate( final Node pNode ) throws Exception {
+  public String getPublishedDate( final Node pNode ) throws RepositoryException {
     String pub;
-    if (pNode.hasProperty( gDefPublished )) {
-      pub = pNode.getProperty( gDefPublished ).getString();        
-    } else if (pNode.hasProperty( "jcr:created" )) {
-      pub = pNode.getProperty( "jcr:created" ).getString();
-    } else {
-      pub = ISO8601.format(Calendar.getInstance());
-    }
+//    try {
+      if (pNode.hasProperty( gDefPublished )) {
+        pub = pNode.getProperty( gDefPublished ).getString();        
+      } else if (pNode.hasProperty( "jcr:created" )) {
+        pub = pNode.getProperty( "jcr:created" ).getString();
+      } else {
+        pub = ISO8601.format(Calendar.getInstance());
+      }
+//    } catch( RepositoryException re ) {
+//      pub = ISO8601.format(Calendar.getInstance());      
+//    }
     return pub;    
   }
 
@@ -1191,7 +1195,7 @@ public class CARS_ActionContext {
    * @return
    * @throws Exception
    */
-  public String getUpdatedDate( final Node pNode ) throws Exception {
+  public String getUpdatedDate( final Node pNode )  throws RepositoryException {
     String upd;
     if (pNode.hasProperty( DEF_MODIFIED )) {
       upd = pNode.getProperty( DEF_MODIFIED ).getString();
@@ -2576,15 +2580,21 @@ public class CARS_ActionContext {
              ((thisNode.hasProperty(gDefURL)) || (thisNode.hasProperty("jcr:data"))) ) {              
             if (thisNode.hasProperty(gDefURL)) {
               final String urlString = thisNode.getProperty( gDefURL ).getString();
-              final URL url = new URL( urlString );
-//              result = url.openStream();
-              final URLConnection urlc = url.openConnection();
-              setContentsLength( urlc.getContentLength() );
-              result = urlc.getInputStream();
-              if (thisNode.hasProperty( "jcr:mimeType" )) {
-                setContentType( thisNode.getProperty( "jcr:mimeType" ).getString() );                  
+              if (urlString.startsWith( "file:/\\\\" )) {
+                // **** File UNC path
+                final File f = new File( urlString.substring( "file:/".length() ));
+                setContentsLength( f.length() );
+                result = new FileInputStream( f );
               } else {
-                setContentType( CARS_Mime.getMIMEType( urlString, null ) );
+                final URL url = new URL( urlString );
+                final URLConnection urlc = url.openConnection();
+                setContentsLength( urlc.getContentLength() );
+                result = urlc.getInputStream();
+                if (thisNode.hasProperty( "jcr:mimeType" )) {
+                  setContentType( thisNode.getProperty( "jcr:mimeType" ).getString() );                  
+                } else {
+                  setContentType( CARS_Mime.getMIMEType( urlString, null ) );
+                }
               }
             } else {
               Binary bin = null;
