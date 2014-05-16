@@ -75,6 +75,12 @@ public class CARS_Utils {
     return n;
   }
   
+  /** sendInputToOutputNIOBuffer
+   * 
+   * @param pSource
+   * @param pTarget
+   * @throws IOException 
+   */
   public static void sendInputToOutputNIOBuffer( final File pSource, final File pTarget ) throws IOException {
     FileChannel in = null;
     FileChannel out = null;
@@ -89,8 +95,6 @@ public class CARS_Utils {
         }
         buffer.clear();
       }
-    } catch (IOException e) {
-      e.printStackTrace();
     } finally {
       if (in!=null) {
         in.close();
@@ -535,6 +539,7 @@ public class CARS_Utils {
    * @throws RepositoryException 
    */
   static public Node getLinkedNode( final Node pN ) throws RepositoryException {
+//    if (pN.hasProperty( "jecars:Link" ) && !pN.isNodeType( "jecars:mix_linkresolved" )) {
     if (pN.hasProperty( "jecars:Link" )) {
       return getLinkedNode( pN.getProperty( "jecars:Link" ).getNode() );
     }
@@ -614,6 +619,9 @@ public class CARS_Utils {
         path = st + File.separator + path;
       }
     }
+    if ("".equals( path )) {
+      path = pN.getName();
+    }
     return path;
   }
 
@@ -652,7 +660,13 @@ public class CARS_Utils {
             final String path = pLinkedNode.getProperty("jecars:URL").getValue().getString();
             final URL u = new URL(path);
             if (path.startsWith("file:/")) {
-              sourceFile = new File(URLDecoder.decode(u.getFile(), "UTF-8"));
+              // **** Extra check for double backslash (UNC)
+              String uncpath = path.substring( "file:/".length() );
+              if (uncpath.startsWith( "\\\\" )) {
+                sourceFile = new File( uncpath );
+              } else {
+                sourceFile = new File(URLDecoder.decode(u.getFile(), "UTF-8"));
+              }
             } else {
               is = u.openStream();
             }
