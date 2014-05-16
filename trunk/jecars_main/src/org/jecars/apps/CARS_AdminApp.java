@@ -46,6 +46,7 @@ import org.jecars.backup.JB_ExportData;
 import org.jecars.backup.JB_Options;
 import org.jecars.output.CARS_InputStream;
 import org.jecars.tools.*;
+import org.jecars.tools.workflow.IWF_WorkflowRunner;
 
 /**
  * CARS_AdminApp
@@ -192,6 +193,12 @@ public class CARS_AdminApp extends CARS_DefaultInterface {
         tool.setProperty( CARS_ActionContext.gDefExpireDate, (Calendar)null );
         pParentNode.save();
       }
+      if (!pParentNode.hasNode( "PerformanceTest")) {
+        pParentNode.addNode( "PerformanceTest", CARS_ActionContext.NTJ_ROOT );
+      }
+      if (!pParentNode.hasNode( "WorkflowRunners")) {
+        pParentNode.addNode( "WorkflowRunners", "jecars:datafolder" );
+      }      
       if (!pParentNode.hasNode( "Config")) {
         pParentNode.addNode( "Config", CARS_ActionContext.NTJ_ROOT );
       }
@@ -231,6 +238,10 @@ public class CARS_AdminApp extends CARS_DefaultInterface {
       } else if (pLeaf.equals( "/AdminApp/BackupFacility/jecars:StartBackup" )) {
         // **** Backup facility
         backupFacility( pLeaf, pParentNode.getParent() );
+      } else if (pLeaf.equals( "/AdminApp/PerformanceTest" )) {
+        jecars_PerformanceTest( pMain, pParentNode );
+      } else if (pLeaf.equals( "/AdminApp/WorkflowRunners" )) {
+        jecars_WorkflowRunners( pMain );
       } else if (pLeaf.equals( "/AdminApp/Config" )) {
         jecars_Config( pMain );
 //      } else if (pLeaf.equals( "/AdminApp/ObservationServer" )) {
@@ -268,6 +279,14 @@ public class CARS_AdminApp extends CARS_DefaultInterface {
    */
   private void jecars_GC( CARS_Main pMain ) {
     System.gc();
+    final Session session = CARS_Factory.getSystemApplicationSession();
+    synchronized( session ) {
+      try {
+        int du = CARS_Factory.getLastFactory().getSessionInterface().runGarbageCollector( session );
+      } catch( RepositoryException re ) {
+        re.printStackTrace();
+      }
+    }
     return;
   }
 
@@ -323,7 +342,89 @@ public class CARS_AdminApp extends CARS_DefaultInterface {
     return;
   }
 
+  /** jecars_PerformanceTest
+   * 
+   * @param pMain
+   * @param pParentNode
+   * @throws RepositoryException 
+   */
+  protected void jecars_PerformanceTest( final CARS_Main pMain, final Node pParentNode ) throws RepositoryException {
+    pParentNode.addMixin( "jecars:mixin_unstructured" );
+    pParentNode.save();
+    StringBuilder report = new StringBuilder();    
+    long time = System.currentTimeMillis();
+    report.append( "# Performance test start at " ).append( time ).append( "\n" );
+    
+    // *************************************************************************
+    // **** Test 1
+    report.append( "# Test 1 Create 500 nodes under " ).append( pParentNode.getPath() ).append( "\n" );
+    for( int i=0; i<500; i++ ) {
+      pParentNode.addNode( "Node_" + i, "jecars:unstructured" );
+      pParentNode.save();
+    }
+    report.append( "test1.time=" ).append( System.currentTimeMillis()-time ).append( "\n" );
 
+    // *************************************************************************
+    // **** Test 2
+    time = System.currentTimeMillis();
+    report.append( "# Test 2 Query/SetProperty 500 nodes under " ).append( pParentNode.getPath() ).append( "\n" );
+    for( int i=0; i<500; i++ ) {
+      if (pParentNode.hasNode( "Node_" + i )) {
+        Node n = pParentNode.getNode( "Node_" + i );
+        n.setProperty( "prop1", "value1" );
+        pParentNode.save();
+      }
+      pParentNode.save();
+    }    
+    report.append( "test2.time=" ).append( System.currentTimeMillis()-time ).append( "\n" );
+
+    // *************************************************************************
+    // **** Test 3
+    time = System.currentTimeMillis();
+    report.append( "# Test 3 Remove 500 nodes under " ).append( pParentNode.getPath() ).append( "\n" );
+    for( int i=0; i<500; i++ ) {
+      if (pParentNode.hasNode( "Node_" + i )) {
+        pParentNode.getNode( "Node_" + i ).remove();
+      }
+      pParentNode.save();
+    }    
+    report.append( "test3.time=" ).append( System.currentTimeMillis()-time ).append( "\n" );
+
+    
+    time = System.currentTimeMillis();
+
+    final CARS_ActionContext ac = pMain.getContext();
+    ac.setErrorCode( HttpURLConnection.HTTP_OK );
+    final ByteArrayInputStream bais = new ByteArrayInputStream( report.toString().getBytes() );
+    ac.setContentsResultStream( bais, "text/plain" );
+    return;
+  }
+
+  /** jecars_WorkflowRunners
+   * 
+   * @param pMain 
+   */
+  protected void jecars_WorkflowRunners( final CARS_Main pMain ) {
+
+    final CARS_ActionContext ac = pMain.getContext();
+    ac.setErrorCode( HttpURLConnection.HTTP_OK );
+    StringBuilder report = new StringBuilder( 128 );
+    
+    final List<IWF_WorkflowRunner> wfpaths = CARS_DefaultWorkflow.getRunners( "/JeCARS" );
+    int ix = 0;
+    for( IWF_WorkflowRunner wfp : wfpaths ) {
+      report.append( "WorkflowRunner.Current." ).append( ix ).append( "=" ).append( wfp.getPath() ).append( '\n' );
+      report.append( "WorkflowRunner.Current." ).append( ix ).append( ".Instructions=" ).append( wfp.getInstructions() ).append( '\n' );
+      ix++;
+    }
+    
+    final ByteArrayInputStream bais = new ByteArrayInputStream( report.toString().getBytes() );
+    ac.setContentsResultStream( bais, "text/plain" );
+
+    return;
+  }
+
+  
   /** jecars_Config
    *
    * @param pMain
@@ -428,9 +529,15 @@ public class CARS_AdminApp extends CARS_DefaultInterface {
     String report;
     report  = "ACCESSMANAGER\n==================================\n\n";
     report += "Cache size = " + CARS_Factory.getLastFactory().getAccessManager().getCacheSize() + " bytes\n";
+
+    report += "\nREAD DELEGATE PATH CACHE\n==================================\n\n";
+    Set<String> cache = CARS_Factory.getLastFactory().getAccessManager().getAllPermissionsDelegatePathCache();
+    for (String c : cache) {
+      report += c + '\n';
+    }
     
     report += "\nREAD PATH CACHE\n==================================\n\n";
-    HashSet<String> cache = CARS_Factory.getLastFactory().getAccessManager().getReadPathCache();
+    cache = CARS_Factory.getLastFactory().getAccessManager().getReadPathCache();
     for (String c : cache) {
       report += c + '\n';
     }
