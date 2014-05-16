@@ -97,29 +97,30 @@ public class WFPT_AndJoin implements IWFP_Interface {
         return WFP_InterfaceResult.STOP_THREADDEATH();//new WFP_InterfaceResult( false, true );
       }
       
-      // **** Copy the gathered inputs to the new context
-      for( final IWFP_Input input : ANDCONTEXTOBJECTS.get( taskPath ) ) {
-        pContext.copyInput( input );
-      }
+      try{
+        // **** Copy the gathered inputs to the new context
+        for( final IWFP_Input input : ANDCONTEXTOBJECTS.get( taskPath ) ) {
+          pContext.copyInput( input );
+        }
 
-      // **** Copy the gathered parameters to the new context
-      for( final IWFP_ContextParameter param : ANDCONTEXTOBJECTSPARAMS.get( taskPath ) ) {
-        pContext.copyParameter( param );
-      }
-      
-      synchronized( ANDCONTEXTOBJECTS ) {
-        BARRIERS.remove( taskPath );
-        ANDCONTEXTOBJECTS.remove( taskPath );
-        FIRSTTHREAD.remove( taskPath );
-      }
-      synchronized( ANDCONTEXTOBJECTSPARAMS ) {
-        ANDCONTEXTOBJECTSPARAMS.remove( taskPath );        
-      }
-      
+        // **** Copy the gathered parameters to the new context
+        for( final IWFP_ContextParameter param : ANDCONTEXTOBJECTSPARAMS.get( taskPath ) ) {
+          pContext.copyParameter( param );
+        }
+      } finally {
+        synchronized( ANDCONTEXTOBJECTS ) {
+          BARRIERS.remove( taskPath );
+          ANDCONTEXTOBJECTS.remove( taskPath );
+          FIRSTTHREAD.remove( taskPath );
+        }
+        synchronized( ANDCONTEXTOBJECTSPARAMS ) {
+          ANDCONTEXTOBJECTSPARAMS.remove( taskPath );        
+        }
+      }      
       
     } catch( Exception e ) {
       pTool.reportException( Level.SEVERE, e);
-      return WFP_InterfaceResult.STOP();
+      return WFP_InterfaceResult.STOP().setError( e );
     }
     return WFP_InterfaceResult.OK();
   }

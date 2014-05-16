@@ -530,7 +530,7 @@ public class CARS_AdminApp extends CARS_DefaultInterface {
     report  = "ACCESSMANAGER\n==================================\n\n";
     report += "Cache size = " + CARS_Factory.getLastFactory().getAccessManager().getCacheSize() + " bytes\n";
 
-    report += "\nREAD DELEGATE PATH CACHE\n==================================\n\n";
+    report += "\nALL PERMISSIONS DELEGATE PATH CACHE\n==================================\n\n";
     Set<String> cache = CARS_Factory.getLastFactory().getAccessManager().getAllPermissionsDelegatePathCache();
     for (String c : cache) {
       report += c + '\n';
