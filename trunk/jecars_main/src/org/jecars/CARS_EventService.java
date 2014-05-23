@@ -241,6 +241,7 @@ public class CARS_EventService implements ICARS_EventService, Runnable {
     } else {
       event = CARS_DefaultMain.addNode(storeEvents, pEvent.category() + "_" + pEvent.type() + "_" + count, pEvent.eventType());    // **** Tracker 2542920
     }
+//    System.out.println("CARS_EventService: Event added: " + event.getPath() );
     folder.setProperty(CARS_Definitions.DEFAULTNS + "EventsCount", count + 1);
     event.setProperty(CARS_Definitions.DEFAULTNS + "Category", pEvent.category());
 //        if (pSource!=null)     event.setProperty( CARS_Definitions.DEFAULTNS + "Source", pSource.getPath() );

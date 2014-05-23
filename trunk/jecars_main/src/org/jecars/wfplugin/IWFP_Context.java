@@ -30,7 +30,7 @@ public interface IWFP_Context {
     
   Node getContextNode();
 
-  void copyInput( final IWFP_Node pInput ) throws WFP_Exception;
+  void copyInput( final IWFP_Node pInput, final boolean pOverwrite, final boolean pSkipWhenAvailable ) throws WFP_Exception;
   void copyParameter( final IWFP_ContextParameter pParam ) throws WFP_Exception;
 
   boolean    hasInput( final String pName ) throws WFP_Exception;

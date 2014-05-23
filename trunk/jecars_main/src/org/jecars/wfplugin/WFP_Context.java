@@ -111,13 +111,26 @@ public class WFP_Context implements IWFP_Context {
   /** copyInput
    * 
    * @param pInput
+   * @param pOverwrite
+   * @param pSkipWhenAvailable
    * @throws WFP_Exception 
    */
   @Override
-  public void copyInput( final IWFP_Node pInput ) throws WFP_Exception {
+  public void copyInput( final IWFP_Node pInput, final boolean pOverwrite, final boolean pSkipWhenAvailable ) throws WFP_Exception {
     try {
-      Session ses = mContext.getNode().getSession();
+      final Session ses = mContext.getNode().getSession();
+      if (pSkipWhenAvailable) {
+        if (mContext.getNode().hasNode( pInput.getName() )) {
+          return;
+        }        
+      }
+      if (pOverwrite) {
+        if (mContext.getNode().hasNode( pInput.getName() )) {
+          mContext.getNode().getNode( pInput.getName() ).remove();
+        }
+      }
       ses.getWorkspace().copy( pInput.getPath(), mContext.getNode().getPath() + "/" + pInput.getName()  );
+      ses.save();
     } catch( RepositoryException re ) {
       throw new WFP_Exception(re);
     }
@@ -131,9 +144,10 @@ public class WFP_Context implements IWFP_Context {
    */
   @Override
   public void copyParameter( final IWFP_ContextParameter pParam ) throws WFP_Exception {
-    try {
+    try {      
       Session ses = mContext.getNode().getSession();
       ses.getWorkspace().copy( pParam.getPath(), mContext.getNode().getPath() + "/" + pParam.getName()  );
+      ses.save();
     } catch( RepositoryException re ) {
       throw new WFP_Exception(re);
     }

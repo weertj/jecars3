@@ -411,8 +411,8 @@
 
 [jecars:main] > jecars:root
 - jecars:MajorVersion    (Long)='4'         mandatory autocreated
-- jecars:MinorVersion    (Long)='1'         mandatory autocreated
-- jecars:BuildVersion    (Long)='20140228'  mandatory autocreated
+- jecars:MinorVersion    (Long)='4'         mandatory autocreated
+- jecars:BuildVersion    (Long)='20140522'  mandatory autocreated
 - jecars:CurrentId       (Long)='0'         mandatory autocreated
 - jecars:Started         (Date)
 + *

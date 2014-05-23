@@ -32,6 +32,7 @@ public interface ICARS_AccessManager {
   long getCacheSize();
   void fillPrincipalsForGroupMembers( final QueryManager pQM, final List<Node> pAL, final String pUUID ) throws RepositoryException;
   Set<String>     getAllPermissionsDelegatePathCache();
+  Set<String>     getAllReadPermissionsDelegatePathCache();
   HashSet<String> getReadPathCache();
   HashSet<String> getWritePathCache();
   HashSet<String> getRemovePathCache();

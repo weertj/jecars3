@@ -282,7 +282,9 @@ public class CARS_AdminApp extends CARS_DefaultInterface {
     final Session session = CARS_Factory.getSystemApplicationSession();
     synchronized( session ) {
       try {
+        System.out.println("GC Start: ");
         int du = CARS_Factory.getLastFactory().getSessionInterface().runGarbageCollector( session );
+        System.out.println("GC End: " + du + " object cleared");
       } catch( RepositoryException re ) {
         re.printStackTrace();
       }
@@ -530,8 +532,14 @@ public class CARS_AdminApp extends CARS_DefaultInterface {
     report  = "ACCESSMANAGER\n==================================\n\n";
     report += "Cache size = " + CARS_Factory.getLastFactory().getAccessManager().getCacheSize() + " bytes\n";
 
-    report += "\nALL PERMISSIONS DELEGATE PATH CACHE\n==================================\n\n";
+    report += "\nALL (R/W) PERMISSIONS DELEGATE PATH CACHE\n==================================\n\n";
     Set<String> cache = CARS_Factory.getLastFactory().getAccessManager().getAllPermissionsDelegatePathCache();
+    for (String c : cache) {
+      report += c + '\n';
+    }
+
+    report += "\nALL READ PERMISSIONS DELEGATE PATH CACHE\n==================================\n\n";
+    cache = CARS_Factory.getLastFactory().getAccessManager().getAllReadPermissionsDelegatePathCache();
     for (String c : cache) {
       report += c + '\n';
     }

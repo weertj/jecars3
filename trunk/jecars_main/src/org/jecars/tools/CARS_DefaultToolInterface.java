@@ -22,7 +22,6 @@ import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -57,8 +56,6 @@ import org.jecars.par.IPAR_ToolRun;
 import org.jecars.par.PAR_ResourceWish;
 import org.jecars.par.PAR_ToolRun;
 import static org.jecars.tools.CARS_ToolInterface.STATEREQUEST_START;
-import org.jecars.tools.workflow.EWF_RunnerInstruction;
-import org.jecars.tools.workflow.IWF_WorkflowRunner;
 import org.jecars.wfplugin.IWFP_InterfaceResult;
 import org.jecars.wfplugin.WFP_InterfaceResult;
 
@@ -103,7 +100,7 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
   private transient String                            mPauseAtState     = STATE_NONE;
   private transient String                            mInterruptAtState = STATE_NONE;
   private transient List<CARS_ToolInstanceListener>   mListeners    = null;
-  private transient String                            mUUID         = null;
+//  private transient String                            mUUID         = null;
   private transient Node                              mConfigNode   = null;
   private transient Map<String,String>                mToolArgs      = null;
   private transient boolean                           mStoreEvents   = false;
@@ -872,11 +869,16 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
    */
   @Override
   public String getUUID() {
-    return mUUID;
+    try {
+      return getTool().getProperty( "jcr:uuid" ).getString();
+    } catch( RepositoryException e ) {
+      return "no uuid";
+    }
+//    return mUUID;
   }
   
   protected void setUUID( final String pUuid ) {
-    mUUID = pUuid;
+//    mUUID = pUuid;
     return;
   }
   

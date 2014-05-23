@@ -267,6 +267,11 @@ public class CARS_DefaultInterface implements CARS_Interface, EventListener {
     pMain.getSession().getWorkspace().copy( pCopyNode.getPath(), pParentNode.getPath() + '/' + pName );
     return pMain.getSession().getNode( pParentNode.getPath() + '/' + pName );
 
+//  System.out.println("NEW COPOPYOPY " + pCopyNode.getPath());
+//    Node n = CARS_Utils.copyNodeDeep( pCopyNode, pParentNode, pName );
+//    System.out.println("NEW COPOPYOPY " + pCopyNode.getPath() + "----- READY");
+//    return n;
+    
    // **** Changed in v1.3.2
 //    final PropertyIterator pi = pCopyNode.getProperties();
 //    Property cprop;

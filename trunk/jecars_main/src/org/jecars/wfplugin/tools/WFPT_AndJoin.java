@@ -100,7 +100,7 @@ public class WFPT_AndJoin implements IWFP_Interface {
       try{
         // **** Copy the gathered inputs to the new context
         for( final IWFP_Input input : ANDCONTEXTOBJECTS.get( taskPath ) ) {
-          pContext.copyInput( input );
+          pContext.copyInput( input, false, true );
         }
 
         // **** Copy the gathered parameters to the new context
