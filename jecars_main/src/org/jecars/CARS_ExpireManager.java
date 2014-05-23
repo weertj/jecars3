@@ -44,8 +44,8 @@ public class CARS_ExpireManager extends CARS_DefaultToolInterface {
 
   static private final int     MIN_REMOVEDOBJECTS_FOR_LOG = 4;
   static private final long    MAX_ACCESSMANAGER_CACHE    = 1000000L;
-  static private       long    gCHECKEVERY                = 5*60000L; // **** 5 minutes
-  static private       int     gDATASTORE_GC_TIMES        = 20;     // **** Datastore garbage collect every (20*30) seconds
+  static private       long    gCHECKEVERY                = 7*60000L; // **** 7 minutes
+  static private       int     gDATASTORE_GC_TIMES        = 10;     // **** Datastore garbage collect every (10*7) minutes
   static private       int     gGC_BETWEEN_FROM_HOUR      = 0;
   static private       int     gGC_BETWEEN_TO_HOUR        = 6;
   static private       int     gEXPIRE_BETWEEN_FROM_HOUR  = 0;
@@ -160,7 +160,7 @@ public class CARS_ExpireManager extends CARS_DefaultToolInterface {
     if ((System.currentTimeMillis()-gCHECKEVERY)>mLastExpireCheck) {
       try {
         synchronized( LOCK ) {
-          if ((++mDataStoreGCCurrent)==gDATASTORE_GC_TIMES) {
+          if ((++mDataStoreGCCurrent)>=gDATASTORE_GC_TIMES) {
             if ((cal.get( Calendar.HOUR_OF_DAY )>=gGC_BETWEEN_FROM_HOUR) &&
                 (cal.get( Calendar.HOUR_OF_DAY )<=gGC_BETWEEN_TO_HOUR)) {
               try {
@@ -184,7 +184,7 @@ public class CARS_ExpireManager extends CARS_DefaultToolInterface {
               }
             } else {
               // **** GC sweep not between
-              LOG.info( "ExpireManager: GC not running " + cal.get( Calendar.HOUR_OF_DAY ) + " not between " + gEXPIRE_BETWEEN_FROM_HOUR + " : " + gEXPIRE_BETWEEN_TO_HOUR );
+              LOG.info( "ExpireManager: GC not running " + cal.get( Calendar.HOUR_OF_DAY ) + " not between " + gGC_BETWEEN_FROM_HOUR + " : " + gGC_BETWEEN_TO_HOUR );
             }
           }
           

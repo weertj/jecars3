@@ -637,27 +637,27 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
       // **** Copy the input resource of the template tool to the working directory
       final Node templateTool = getToolTemplate( getTool() );
       if (templateTool!=null) {
-            final List<Node> inputRes = getInputResources( templateTool );
-            for ( final Node input : inputRes ) {
-              if (!copiedInputs.containsKey( input.getName() )) {
-                InputStream       is = null;
-                FileOutputStream fos = null;
-                try {
-                  final Binary bin = input.getProperty( "jcr:data" ).getBinary();
-                  is = bin.getStream();
-                  final File inputResFile = new File( mWorkingDirectory, input.getName() );
-                  fos = new FileOutputStream( inputResFile );
-                  CARS_Utils.sendInputStreamToOutputStream( 50000, is, fos );
-                } finally {
-                  if (fos!=null) {
-                    fos.close();
-                  }
-                  if (is!=null) {
-                    is.close();
-                  }
-                }
+        final List<Node> inputRes = getInputResources( templateTool );
+        for ( final Node input : inputRes ) {
+          if (!copiedInputs.containsKey( input.getName() )) {
+            InputStream       is = null;
+            FileOutputStream fos = null;
+            try {
+              final Binary bin = input.getProperty( "jcr:data" ).getBinary();
+              is = bin.getStream();
+              final File inputResFile = new File( mWorkingDirectory, input.getName() );
+              fos = new FileOutputStream( inputResFile );
+              CARS_Utils.sendInputStreamToOutputStream( 50000, is, fos );
+            } finally {
+              if (fos!=null) {
+                fos.close();
+              }
+              if (is!=null) {
+                is.close();
               }
             }
+          }
+        }
       }
 
     }
@@ -712,6 +712,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
                 if (fpat.matcher( checkFiles.getName() ).find()) {
                   recalculate = false;
                   match = true;
+                  reportStatusMessage( "Checkfile: File (P) " + checkFiles.getAbsolutePath() + " is still available (pattern=" + result + ", recalculate is " + recalculate );
                   break;
                 }
               }
@@ -723,6 +724,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
               if (fpat.matcher( checkFiles.getName() ).find()) {
                 recalculate = false;
                 match = true;
+                reportStatusMessage( "Checkfile: File (W) " + checkFiles.getAbsolutePath() + " is still available (pattern=" + result + ", recalculate is " + recalculate );
                 break;
               }
             }            
@@ -734,8 +736,18 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
       }
     }
 
+    // *************************************************************************
     // **** Check if we need to start the tool
     if (!recalculate) {
+      final Node tt = getToolTemplate( getTool() ); // **** This goes wrong when in one workflow with the same working directory there are two tool runs of the same tool
+      String errorFile  = "__error_" + tt.getName() + ".txt";
+      File errorF = new File( mWorkingDirectory, errorFile );
+      errorF.createNewFile();
+      String stdoutFile = "__stdout_" + tt.getName() + ".txt";
+      File stdoutF = new File( mWorkingDirectory, stdoutFile );
+      try (FileOutputStream fos = new FileOutputStream( stdoutF )) {
+        fos.write( ("No need to start tool " + getTool().getPath() + " result is still available").getBytes() );
+      }      
       reportStatusMessage( "No need to start tool " + getTool().getPath() + " result is still available" );
       super.toolRun();
       return;

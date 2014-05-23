@@ -798,4 +798,64 @@ public class CARS_Utils {
     }
   }
   
+  /** copyNodeDeep
+   * 
+   * @param pFromNode
+   * @param pToParentNode
+   * @param pNewName
+   * @return
+   * @throws RepositoryException 
+   */
+  public static Node copyNodeDeep( final Node pFromNode, final Node pToParentNode, final String pNewName ) throws RepositoryException {
+    
+    Node newParent = copyNode( pFromNode, pToParentNode, pNewName );
+    
+    NodeIterator ni = pFromNode.getNodes();
+    while( ni.hasNext() ) {
+      Node cn = ni.nextNode();
+      copyNodeDeep( cn, newParent, cn.getName() );
+    }
+    return newParent;
+  }
+  
+  /** copyNode
+   * 
+   * @param pFromNode
+   * @param pToParentNode
+   * @param pNewName
+   * @return
+   * @throws RepositoryException 
+   */
+  public static Node copyNode( final Node pFromNode, final Node pToParentNode, final String pNewName ) throws RepositoryException {        
+    
+    String nt = pFromNode.getPrimaryNodeType().getName();
+    Node n;
+    if (pToParentNode.hasNode( pNewName )) {
+      n = pToParentNode.getNode( pNewName );      
+    } else {
+      n = pToParentNode.addNode( pNewName, nt );
+    }
+    
+    for( NodeType mixin : pFromNode.getMixinNodeTypes() ) {
+      n.addMixin( mixin.getName() );
+    }
+    
+    PropertyIterator pi = pFromNode.getProperties();
+    while( pi.hasNext() ) {      
+      Property prop = (Property)pi.next();
+      try {
+        if (prop.isMultiple()) {
+          n.setProperty( prop.getName(), prop.getValues() );
+        } else {
+          n.setProperty( prop.getName(), prop.getValue() );
+        }
+      } catch( RepositoryException re ) {
+//        System.out.println( "er " + re.getMessage() );
+      }
+    }
+    
+    return n;
+  }
+  
+  
 }

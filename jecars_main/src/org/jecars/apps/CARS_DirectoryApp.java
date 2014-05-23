@@ -16,11 +16,13 @@
 package org.jecars.apps;
 
 import java.io.*;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Calendar;
 import javax.jcr.Node;
 import javax.jcr.NodeIterator;
 import javax.jcr.PathNotFoundException;
+import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import nl.msd.jdots.JD_Taglist;
 import org.jecars.CARS_Definitions;
@@ -37,7 +39,7 @@ import org.jecars.support.CARS_Mime;
 public class CARS_DirectoryApp extends CARS_DefaultInterface implements CARS_Interface {
   
   static public boolean gFORCEREADONLY = true;
-  static public boolean gWRITEEVENTS   = true;
+  static public boolean gWRITEEVENTS   = false;
   
   private transient boolean mReadOnly = true;
     
@@ -79,7 +81,7 @@ public class CARS_DirectoryApp extends CARS_DefaultInterface implements CARS_Int
    * @param pRelative
    * @throws Exception 
    */
-  public void synchronizeDirectory( CARS_Main pMain, Node pInterfaceNode, Node pParentNode, String pRelative ) throws Exception {
+  public void synchronizeDirectory( final CARS_Main pMain, final Node pInterfaceNode, final Node pParentNode, final String pRelative, final String pTargetPath ) throws Exception {
 //   System.out.println( "a=-=--= " + pInterfaceNode.getProperty( "jecars:StorageDirectory" ).getString() + " ::: " + pRelative );    
     final String pathStart = pInterfaceNode.getProperty( "jecars:StorageDirectory" ).getString();
     final File f;
@@ -96,98 +98,182 @@ public class CARS_DirectoryApp extends CARS_DefaultInterface implements CARS_Int
     if (f.exists()) {
 //      Calendar synchTime = Calendar.getInstance();
 //      Thread.sleep(10);
-      final File files[] = f.listFiles();
-      final Calendar synchTime = Calendar.getInstance();
-      if (files!=null) {
-        for( int i=0; i<files.length; i++ ) {
-          if (files[i].isDirectory()) {
-            // **** Is Directory
-            if (!pParentNode.hasNode( files[i].getName() )) {
-              final Node n = pParentNode.addNode( files[i].getName(), "jecars:datafolder" );
-              final Calendar mod = Calendar.getInstance();
-              mod.setTimeInMillis( files[i].lastModified() );
-              final Calendar c = Calendar.getInstance();
-              if (mod.before(c)) c.setTime( mod.getTime() );
-//              n.setProperty( "jecars:Created",  c );
-              n.addMixin( "jecars:mixin_unstructured" );
-              n.setProperty( "jecars:Modified", mod );
-              n.setProperty( "jecars:DirectoryURL", files[i].toURI().toURL().toExternalForm() );
-              directoryConfigurationEvent( pMain.getLoginUser(), n, "update", "EXTERNAL ADDED DIRECTORY: " + n.getPath() );
-            }
-          } else {
-            // **** Is File
-            final Calendar mod = Calendar.getInstance();
-            final long fileLength = files[i].length();
-            if (!pParentNode.hasNode( files[i].getName() )) {
-              final Node n = pParentNode.addNode( files[i].getName(), "jecars:datafile" );
-              mod.setTimeInMillis( files[i].lastModified() );
-              final Calendar c = Calendar.getInstance();
-              if (mod.before(c)) c.setTime( mod.getTime() );
-//              n.setProperty( "jecars:Created",  c );
-              n.setProperty( "jecars:Modified", mod );
-              n.setProperty( "jcr:lastModified", mod );
-              n.setProperty( "jcr:data", "" );
-              n.setProperty( "jcr:mimeType", CARS_Mime.getMIMEType( files[i].getName(), null ) );
-              n.setProperty( "jecars:URL", files[i].toURI().toURL().toExternalForm() );
-              n.setProperty( "jecars:ContentLength", fileLength );
-              directoryConfigurationEvent( pMain.getLoginUser(), n, "update", "EXTERNAL ADDED FILE: " + n.getPath() );
-            } else {
-              // **** Check modification
-              final Node n = pParentNode.getNode( files[i].getName() );
-              final long tm1 = files[i].lastModified();
-              final long tm2 = n.getProperty( "jecars:Modified" ).getDate().getTimeInMillis();
-              if (tm1!=tm2) {
+      
+      // **** Special target path check
+      if (pParentNode.getPath().equals(pTargetPath)) {
+        
+        final File files[] = f.listFiles();
+        final Calendar synchTime = Calendar.getInstance();
+        if (files!=null) {
+          for( int i=0; i<files.length; i++ ) {
+            if (files[i].isDirectory()) {
+              // **** Is Directory
+              if (!pParentNode.hasNode( files[i].getName() )) {
+                final Node n = pParentNode.addNode( files[i].getName(), "jecars:datafolder" );
+                final Calendar mod = Calendar.getInstance();
                 mod.setTimeInMillis( files[i].lastModified() );
+                final Calendar c = Calendar.getInstance();
+                if (mod.before(c)) c.setTime( mod.getTime() );
+  //              n.setProperty( "jecars:Created",  c );
+                n.addMixin( "jecars:mixin_unstructured" );
                 n.setProperty( "jecars:Modified", mod );
-                n.setProperty( "jcr:lastModified", mod );
-              }              
-            }
-//            final Node n = pParentNode.getNode( files[i].getName() );
-//            n.setProperty( "jecars:CanExecute", files[i].canExecute());
-//            n.setProperty( "jecars:CanRead", files[i].canRead());
-//            n.setProperty( "jecars:CanWrite", files[i].canWrite());
-//            long oldLength = n.getProperty( "jecars:ContentLength" ).getLong();
-//            if (oldLength!=fileLength) {
-//              n.setProperty( "jecars:ContentLength", fileLength );
-//              n.setProperty( "jecars:SizeChanged", true );
-//            } else {
-//              n.setProperty( "jecars:SizeChanged", false );              
-//            }
-          }
-          Node n = pParentNode.getNode( files[i].getName() );
-          n.setProperty( "jecars:LastAccessed", Calendar.getInstance() );
-//          directoryConfigurationEvent( pMain.getLoginUser(), n, "browse", pRelative );
-        }
-        // **** Check for files/directories which are removed
-        NodeIterator ni = pParentNode.getNodes();
-        Node n;
-        boolean remove;
-        while( ni.hasNext() ) {
-          n = ni.nextNode();
-          remove = false;
-          if (n.isNodeType( "jecars:dataresource" )) {
-            if (n.hasProperty( "jecars:LastAccessed" )) {
-              if (n.getProperty( "jecars:LastAccessed" ).getDate().before( synchTime )) {
-                remove = true;
+                n.setProperty( "jecars:DirectoryURL", files[i].toURI().toURL().toExternalForm() );
+                directoryConfigurationEvent( pMain.getLoginUser(), n, "update", "EXTERNAL ADDED DIRECTORY: " + n.getPath() );
               }
             } else {
-              remove = true;
+              // **** Is File
+              final Calendar mod = Calendar.getInstance();
+              final long fileLength = files[i].length();
+              if (!pParentNode.hasNode( files[i].getName() )) {
+                final Node n = pParentNode.addNode( files[i].getName(), "jecars:datafile" );
+                mod.setTimeInMillis( files[i].lastModified() );
+                final Calendar c = Calendar.getInstance();
+                if (mod.before(c)) c.setTime( mod.getTime() );
+  //              n.setProperty( "jecars:Created",  c );
+                n.setProperty( "jecars:Modified", mod );
+                n.setProperty( "jcr:lastModified", mod );
+                n.setProperty( "jcr:data", "" );
+                n.setProperty( "jcr:mimeType", CARS_Mime.getMIMEType( files[i].getName(), null ) );
+                n.setProperty( "jecars:URL", files[i].toURI().toURL().toExternalForm() );
+                n.setProperty( "jecars:ContentLength", fileLength );
+                directoryConfigurationEvent( pMain.getLoginUser(), n, "update", "EXTERNAL ADDED FILE: " + n.getPath() );
+              } else {
+                // **** Check modification
+                final Node n = pParentNode.getNode( files[i].getName() );
+                final long tm1 = files[i].lastModified();
+                final long tm2 = n.getProperty( "jecars:Modified" ).getDate().getTimeInMillis();
+                if (tm1!=tm2) {
+                  mod.setTimeInMillis( files[i].lastModified() );
+                  n.setProperty( "jecars:Modified", mod );
+                  n.setProperty( "jcr:lastModified", mod );
+                }              
+              }
+
+              if ("true".equalsIgnoreCase(pMain.getContext().getParameterStringFromMap( "filecheck" ))) {
+                final Node n = pParentNode.getNode( files[i].getName() );
+//    System.out.println("aoijs " + n.getPath());
+  //            n.setProperty( "jecars:CanExecute", files[i].canExecute());
+                try {
+                  try (FileOutputStream fos = new FileOutputStream( files[i], true )) {
+                    n.setProperty( "jecars:CanRead", true );
+                  }
+                } catch( IOException ioe ) {
+                  n.setProperty( "jecars:CanRead", false );              
+                }
+  ////            n.setProperty( "jecars:CanWrite", files[i].canWrite());
+  ////            long oldLength = n.getProperty( "jecars:ContentLength" ).getLong();
+  ////            if (oldLength!=fileLength) {
+                n.setProperty( "jecars:ContentLength", fileLength );
+              }
+  ////              n.setProperty( "jecars:SizeChanged", true );
+  ////            } else {
+  ////              n.setProperty( "jecars:SizeChanged", false );              
+  ////            }
             }
+            Node n = pParentNode.getNode( files[i].getName() );
+            n.setProperty( "jecars:LastAccessed", Calendar.getInstance() );
+  //          directoryConfigurationEvent( pMain.getLoginUser(), n, "browse", pRelative );
           }
-          if (remove==true) {
-            if (n.isNodeType( "jecars:datafile" )) {
-              directoryConfigurationEvent( pMain.getLoginUser(), n, "update", "EXTERNAL REMOVED FILE: " + n.getPath() );
-            } else {
-              directoryConfigurationEvent( pMain.getLoginUser(), n, "update", "EXTERNAL REMOVED DIRECTORY: " + n.getPath() );
+          // **** Check for files/directories which are removed
+          NodeIterator ni = pParentNode.getNodes();
+          Node n;
+          boolean remove;
+          while( ni.hasNext() ) {
+            n = ni.nextNode();
+            remove = false;
+            if (n.isNodeType( "jecars:dataresource" )) {
+              if (n.hasProperty( "jecars:LastAccessed" )) {
+                if (n.getProperty( "jecars:LastAccessed" ).getDate().before( synchTime )) {
+                  remove = true;
+                }
+              } else {
+                remove = true;
+              }
             }
-            n.remove();
+            if (remove==true) {
+              if (n.isNodeType( "jecars:datafile" )) {
+                directoryConfigurationEvent( pMain.getLoginUser(), n, "update", "EXTERNAL REMOVED FILE: " + n.getPath() );
+              } else {
+                directoryConfigurationEvent( pMain.getLoginUser(), n, "update", "EXTERNAL REMOVED DIRECTORY: " + n.getPath() );
+              }
+              n.remove();
+            }
           }
         }
+      } else {
+        
+        // **** Only check a part of the path
+        boolean check = true;
+        File newFile = f;
+        if (newFile.isDirectory()) {
+          if (pParentNode.getPath().length()<pTargetPath.length()) {
+            String filename = pTargetPath;
+            filename = pTargetPath.substring( pParentNode.getPath().length()+1 );
+            if (filename.indexOf( '/')!=-1) {
+              filename = filename.substring( 0, filename.indexOf( '/' ) );
+            }
+            newFile = new File( f, filename );
+          }
+        } else {
+          updateFileEntry( pParentNode, newFile );
+          check = false;
+        }
+        if (check) {
+          if (newFile.exists()) {
+            if (newFile.isDirectory()) {
+              if (!pParentNode.hasNode( newFile.getName() )) {
+                final Node n = pParentNode.addNode( newFile.getName(), "jecars:datafolder" );
+                final Calendar mod = Calendar.getInstance();
+                mod.setTimeInMillis( newFile.lastModified() );
+                final Calendar c = Calendar.getInstance();
+                if (mod.before(c)) c.setTime( mod.getTime() );
+                n.addMixin( "jecars:mixin_unstructured" );
+                n.setProperty( "jecars:Modified", mod );
+                n.setProperty( "jecars:DirectoryURL", newFile.toURI().toURL().toExternalForm() );
+                directoryConfigurationEvent( pMain.getLoginUser(), n, "update", "EXTERNAL ADDED DIRECTORY: " + n.getPath() );
+              }
+            } else {
+              // **** Is File
+              if (!pParentNode.hasNode( newFile.getName() )) {
+                final Node n = pParentNode.addNode( newFile.getName(), "jecars:datafile" );
+                updateFileEntry( n, newFile );
+                directoryConfigurationEvent( pMain.getLoginUser(), n, "update", "EXTERNAL ADDED FILE: " + n.getPath() );
+              }
+            }
+          } else {
+            throw new PathNotFoundException( f.getAbsolutePath() + " NOT FOUND" );          
+          }
+        }
+        
       }
+      
     } else {
       // **** no file/directory
       throw new PathNotFoundException( f.getAbsolutePath() + " NOT FOUND" );
     }
+    return;
+  }
+  
+  /** updateFileEntry
+   * 
+   * @param pNode
+   * @param pFile
+   * @throws RepositoryException
+   * @throws MalformedURLException 
+   */
+  private void updateFileEntry( final Node pNode, final File pFile ) throws RepositoryException, MalformedURLException {
+    final Calendar mod = Calendar.getInstance();
+    mod.setTimeInMillis( pFile.lastModified() );
+    final Calendar c = Calendar.getInstance();
+    if (mod.before(c)) {
+      c.setTime( mod.getTime() );
+    }
+    pNode.setProperty( "jecars:Modified", mod );
+    pNode.setProperty( "jcr:lastModified", mod );
+    pNode.setProperty( "jcr:data", "" );
+    pNode.setProperty( "jcr:mimeType", CARS_Mime.getMIMEType( pFile.getName(), null ) );
+    pNode.setProperty( "jecars:URL", pFile.toURI().toURL().toExternalForm() );
+    pNode.setProperty( "jecars:ContentLength", pFile.length() );
     return;
   }
   
@@ -337,9 +423,17 @@ public class CARS_DirectoryApp extends CARS_DefaultInterface implements CARS_Int
     // **** sys* nodes have all rights.
 //    Node sysParentNode = appSession.getRootNode().getNode( pParentNode.getPath().substring(1) );
     synchronized( appSession ) {
-      Node sysParentNode = appSession.getNode( pParentNode.getPath() );
-      synchronizeDirectory( pMain, pInterfaceNode, sysParentNode, pLeaf );
-      sysParentNode.save();
+      try {
+        Node sysParentNode = appSession.getNode( pParentNode.getPath() );
+        String path = pMain.getContext().getPathInfo();
+        if (path.endsWith( "/" )) {
+          path = path.substring( 0, path.length()-1 );
+        }
+        synchronizeDirectory( pMain, pInterfaceNode, sysParentNode, pLeaf, path );
+        sysParentNode.save();
+      } finally {
+        appSession.save();
+      }
     }
     return;
   }

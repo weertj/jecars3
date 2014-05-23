@@ -63,7 +63,7 @@ public class WFPT_DataContainer implements IWFP_Interface {
           return WFP_InterfaceResult.STOP();          
         } else {
           for( final IWFP_Node n : nodes ) {
-            pContext.copyInput( n );
+            pContext.copyInput( n, false, false );
           }
         }
       } catch( WFP_Exception we ) {

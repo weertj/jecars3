@@ -1071,7 +1071,6 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
       // ***************
       // **** RUN TASK
       case TASK: {        
-//  System.out.println("RUNTASK 1 time: " + System.currentTimeMillis() );
         if (mRerunMode) {
           if (getNode().hasNode( "Tool_" + getStepNumber() )) {
             final Node tool = getNode().getNode( "Tool_" + getStepNumber() );
@@ -1082,16 +1081,15 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
           }
           if (mRerunMode) break;
         }
-//  System.out.println("RUNTASK 2 time: " + System.currentTimeMillis() );
         handleContextParameters( pTask );
         // **** Remove old tool node if available
         if (getNode().hasNode( "Tool_" + getStepNumber() )) {
           getNode().getNode( "Tool_" + getStepNumber() ).remove();
         }
         final Node ttn = pTask.getToolTemplateNode();
-        final Node tool = getNode().addNode( "Tool_" + getStepNumber(), "jecars:Tool" );
-//  System.out.println("RUNTASK 3 time: " + System.currentTimeMillis() );
+        final Node tool;
         synchronized( WRITERACCESS ) {
+          tool = getNode().addNode( "Tool_" + getStepNumber(), "jecars:Tool" );
           tool.setProperty( "jecars:ParentTool", getWorkflow().getNode().getPath() );
           tool.setProperty( "jecars:ToolTemplate", ttn.getPath() );
           tool.addMixin( "jecars:interfaceclass" );
@@ -1103,11 +1101,13 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
             Node pn = ni.nextNode();
             if (pn.isNodeType( "jecars:parameterresource" )) {
               tool.getSession().getWorkspace().copy( pn.getPath(), tool.getPath() + "/" + pn.getName() );
+              final Node prn = tool.getNode( pn.getName() );
+              // **** Indicate that this parameter is temporary and should not be copied to future contexts.
+              prn.addMixin( "jecars:mix_temporaryresource" );
             }
           }
           save();
         }
-//  System.out.println("RUNTASK 4 time: " + System.currentTimeMillis() );
 
 //        final CARS_ActionContext ac = CARS_ActionContext.createActionContext( mMain.getContext(0) );
         final Node n = mMain.getSession().getNode( tool.getPath() );
@@ -1121,15 +1121,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
           synchronized( WRITERACCESS ) {
             // **** Copy the datanodes
             for( final Node dataNode : nl ) {
-//              if (dataNode.hasProperty( "jecars:Link" )) {
-//                Node input = toolNode.addNode( dataNode.getName(), "jecars:inputresource" );
-//                input.addMixin( "jecars:mix_link" );
-//                input.setProperty( "jcr:data", "" );
-//                input.setProperty( "jecars:Link", dataNode.getProperty( "jecars:Link" ).getString() );
-//                dataNode.remove();
-//              } else {
-                toolNode.getSession().move( dataNode.getPath(), toolNode.getPath() + "/" + dataNode.getName() );
-//              }
+              toolNode.getSession().move( dataNode.getPath(), toolNode.getPath() + "/" + dataNode.getName() );
             }
             final List<Node> pnl = getContext().getParameterNodes();
             // **** Copy the parametersnodes
@@ -1175,17 +1167,20 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
           while( ni.hasNext() ) {
             final Node tnode = ni.nextNode();
 //          ws.copy( tnode.getPath(), toPath + "/" + tnode.getName() );
-            // **** Check if the node must be copied to the current context            
-            if (tnode.isNodeType( "jecars:parameterdata" )) {
-              // **** Copy parameter as normal objects v4.1.1
-              ws.copy( tnode.getPath(), toPath + "/" + tnode.getName() );              
-            } else if ((!"jecars:Events".equals(tnode.getName())) &&
-                (!"jecars:Config".equals(tnode.getName()))) {
-              final Node nn = context.getNode().addNode( tnode.getName(), "jecars:root" );
-              nn.addMixin( "jecars:mix_link" );
-              nn.addMixin( "jecars:mix_inputresource" );
-              nn.setProperty( "jecars:Link" , tnode.getPath() );
-//              nn.setProperty( "jecars:Link" , CARS_Utils.getLinkedNode(tnode).getPath() );
+            // **** Don't copy the jecars:mix_temporaryresource nodes
+            if (!tnode.isNodeType( "jecars:mix_temporaryresource" )) {
+              // **** Check if the node must be copied to the current context
+              if (tnode.isNodeType( "jecars:parameterdata" )) {
+                // **** Copy parameter as normal objects v4.1.1
+                ws.copy( tnode.getPath(), toPath + "/" + tnode.getName() );              
+              } else if ((!"jecars:Events".equals(tnode.getName())) &&
+                         (!"jecars:Config".equals(tnode.getName()))) {
+                final Node nn = context.getNode().addNode( tnode.getName(), "jecars:root" );
+                nn.addMixin( "jecars:mix_link" );
+                nn.addMixin( "jecars:mix_inputresource" );
+                nn.setProperty( "jecars:Link" , tnode.getPath() );
+  //              nn.setProperty( "jecars:Link" , CARS_Utils.getLinkedNode(tnode).getPath() );
+              }
             }
           }
           save();

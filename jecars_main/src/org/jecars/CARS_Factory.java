@@ -615,6 +615,7 @@ abstract public class CARS_Factory {
   public void performHeadAction( final CARS_ActionContext pContext ) throws CredentialExpiredException, AccessDeniedException {
     CARS_Main main = null;
     try {
+//   System.out.println("HEAD NODE " + pContext.getPathInfo() );
       String fet = _getFET( pContext );
       pContext.setAction( CARS_ActionContext.gDefActionGET );
       main = createMain( pContext );
@@ -635,6 +636,7 @@ abstract public class CARS_Factory {
       Node cnode = main.getNode( pContext.getPathInfo(), null, true );
       pContext.setThisNode( cnode );
       pContext.prepareResult(); // **** This will cache the result so we can close the connection
+//   System.out.println("HEAD NODE " + pContext.getPathInfo() + "----- READY" );
     } catch (AccountLockedException ale) {
       pContext.setErrorCode( HttpURLConnection.HTTP_UNAUTHORIZED );
       pContext.setError( ale );
@@ -682,6 +684,7 @@ abstract public class CARS_Factory {
   public void performGetAction( final CARS_ActionContext pContext, final CARS_Main pMain ) throws CredentialExpiredException, AccessDeniedException, CARS_LongPollRequestException {
     CARS_Main main = pMain;
     try {
+//   System.out.println("GET NODE " + pContext.getPathInfo() );
       final String fet = _getFET( pContext );
       pContext.setAction( CARS_ActionContext.gDefActionGET );
       if (main==null) {
@@ -703,6 +706,7 @@ abstract public class CARS_Factory {
       pContext.setCanBeCachedResult( pContext.getQueryString()==null );
       try {
         final Node cnode = main.getNode( pContext.getPathInfo(), null, false );
+//        System.out.println("GET NODE " + pContext.getPathInfo() + " ===== READY ");
         pContext.setThisNode( cnode );
         pContext.setThisProperty( main.getCurrentViewProperty() );
       } catch( CARS_RESTMethodHandled cr ) {
@@ -754,6 +758,7 @@ abstract public class CARS_Factory {
   public void performPostAction( final CARS_ActionContext pContext ) throws AccessDeniedException, CredentialExpiredException {
     CARS_Main main = null;
     try {
+//   System.out.println("POST NODE " + pContext.getPathInfo() );
       final String fet = _getFET( pContext );
       pContext.setAction( CARS_ActionContext.gDefActionPOST );
       main = createMain( pContext );      
@@ -769,8 +774,10 @@ abstract public class CARS_Factory {
         // **** Store the given parameters
         JD_Taglist paramsTL = pContext.getQueryPartsAsTaglist();
         paramsTL = pContext.getParameterMapAsTaglist( paramsTL );
+//   System.out.println(" 2 POST NODE " );
         final Node cnode = main.addNode( pathinfo, paramsTL, pContext.getBodyStream(), pContext.getBodyContentType() );
         pContext.setCreatedNode( cnode );
+//   System.out.println("POST NODE " + pContext.getPathInfo() + "----- READY" );
       }      
     } catch (CARS_CustomException cce) {
       pContext.setError( cce );
@@ -833,6 +840,7 @@ abstract public class CARS_Factory {
   public void performPutAction( final CARS_ActionContext pContext, final CARS_Main pMain ) throws AccessDeniedException, CredentialExpiredException {
     CARS_Main main = pMain;
     try {
+//   System.out.println("PUT NODE " + pContext.getPathInfo() );
       final String fet = _getFET( pContext );
       pContext.setAction( CARS_ActionContext.gDefActionPUT );
       if (main==null) {
@@ -849,6 +857,7 @@ abstract public class CARS_Factory {
         final JD_Taglist paramsTL = pContext.getQueryPartsAsTaglist();
         final Node cnode = main.updateNode( pathinfo, paramsTL, pContext.getBodyStream(), pContext.getBodyContentType() );
         pContext.setThisNode( cnode );
+//   System.out.println("PUT NODE " + pContext.getPathInfo() + "----- READY" );
       } else {
         throw new PathNotFoundException( pathinfo );
       }
@@ -897,6 +906,7 @@ abstract public class CARS_Factory {
   public void performDeleteAction( CARS_ActionContext pContext ) throws Exception {    
     CARS_Main main = null;
     try {
+//   System.out.println("DELETE NODE " + pContext.getPathInfo() );
       pContext.setAction( CARS_ActionContext.gDefActionDELETE );
       main = createMain( pContext );      
       pContext.setMain( main );
@@ -909,6 +919,7 @@ abstract public class CARS_Factory {
         // **** Store the given parameters
         JD_Taglist paramsTL = pContext.getQueryPartsAsTaglist();
         main.removeNode( pathinfo, paramsTL );
+//   System.out.println("DELETE NODE " + pContext.getPathInfo() + "----- READY" );
       } else {
         throw new PathNotFoundException( pathinfo );
       }
