@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2011 NLR - National Aerospace Laboratory
+ * Copyright 2007-2014 NLR - National Aerospace Laboratory
  * 
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -117,6 +117,7 @@ public class JackrabbitAccessManager extends DefaultAccessManager implements Acc
     transient static Node[]                    mLastAllRightGivers     = null;
     transient static private String            mLastAllRightGiversUUID = null;
     transient static private final Set<String>   mALLPERMDelegatePathCache  = new HashSet<>(128);
+    transient static private final Set<String>   mALLREADPERMDelegatePathCache  = new HashSet<>(128);
     transient static private final HashSet<String>   mReadPathCache          = new HashSet<>(128);
     transient static private final HashSet<String>   mDenyReadPathCache      = new HashSet<>(128);
     transient static private final HashSet<String>   mWritePathCache         = new HashSet<>(128);
@@ -294,6 +295,7 @@ public class JackrabbitAccessManager extends DefaultAccessManager implements Acc
         
         // **** Delegate all permission cache
         mALLPERMDelegatePathCache.clear();
+        mALLREADPERMDelegatePathCache.clear();
         
         Iterator<String> it = mReadPathCache.iterator();
         String p, cp = pPrefix.substring(pPrefix.indexOf('/'));
@@ -345,6 +347,7 @@ public class JackrabbitAccessManager extends DefaultAccessManager implements Acc
     public void clearPathCache() {
       synchronized( EXCLUSIVE_CONTROL ) {
         mALLPERMDelegatePathCache.clear();
+        mALLREADPERMDelegatePathCache.clear();
         mReadPathCache.clear();
         mDenyReadPathCache.clear();
         mWritePathCache.clear();
@@ -359,6 +362,12 @@ public class JackrabbitAccessManager extends DefaultAccessManager implements Acc
     public Set<String> getAllPermissionsDelegatePathCache() {
       return mALLPERMDelegatePathCache;
     }
+
+    @Override
+    @SuppressWarnings("ReturnOfCollectionOrArrayField")
+    public Set<String> getAllReadPermissionsDelegatePathCache() {
+      return mALLREADPERMDelegatePathCache;
+    }    
     
     @Override
     @SuppressWarnings("ReturnOfCollectionOrArrayField")
@@ -398,6 +407,9 @@ public class JackrabbitAccessManager extends DefaultAccessManager implements Acc
     public long getCacheSize() {
       long size = 0;
       for (String c : mALLPERMDelegatePathCache) {
+        size += c.length();
+      }
+      for (String c : mALLREADPERMDelegatePathCache) {
         size += c.length();
       }
       for (String c : mReadPathCache) {
@@ -507,6 +519,23 @@ public class JackrabbitAccessManager extends DefaultAccessManager implements Acc
       }
       return false;
     }
+
+    /** checkAllReadPermissionsDelegateReadCache
+     * 
+     * @param pPath
+     * @return 
+     */
+    private boolean checkAllReadPermissionsDelegateReadCache( final String pPath ) {
+      synchronized( EXCLUSIVE_CONTROL ) {
+        for( final String cdr : mALLREADPERMDelegatePathCache ) {
+          if (pPath.startsWith( cdr )) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+    
     
     /** addReadCache
      * @param pPath
@@ -525,6 +554,17 @@ public class JackrabbitAccessManager extends DefaultAccessManager implements Acc
     private void addAllPermDelegateCache( final String pPath ) {
       synchronized( EXCLUSIVE_CONTROL ) {
         mALLPERMDelegatePathCache.add( pPath );
+      }
+      return;
+    }
+
+    /** addAllReadPermDelegateCache
+     * 
+     * @param pPath 
+     */
+    private void addAllReadPermDelegateCache( final String pPath ) {
+      synchronized( EXCLUSIVE_CONTROL ) {
+        mALLREADPERMDelegatePathCache.add( pPath );
       }
       return;
     }
@@ -793,6 +833,11 @@ public class JackrabbitAccessManager extends DefaultAccessManager implements Acc
               if (checkAllPermissionsDelegateReadCache( uuidfp )) {
                 return true;
               }
+              if (perm.equals(P_READ) || perm.equals( P_GETPROPERTY )) {
+                if (checkAllReadPermissionsDelegateReadCache( uuidfp )) {
+                  return true;
+                }
+              }
               // **** getAllRightGivers will clear the cache when an other user is detected
               final Node rn[]     = getAllRightGiversForUser( mLoggedInUsername );
 //        System.out.println( "--- " + pPath.getString() + " : " + pPermissions + " : " + perm );
@@ -859,11 +904,13 @@ public class JackrabbitAccessManager extends DefaultAccessManager implements Acc
                     for( final Value val : cn.getProperty( "jecars:Actions" ).getValues() ) {
                       actions += "|" + val.getString();
                     }
-                    if (actions.contains( "add_node" ) && actions.contains( "add_node" ) && actions.contains( "get_property" ) &&
-                        actions.contains( "set_property" ) && actions.contains( "remove" )) {
-                      addAllPermDelegateCache( mLoggedInUsername + cn.getParent().getPath() );
-                    } else {
-                      addReadCache( uuidfp );
+                    if (actions.contains( "add_node" ) && actions.contains( "read" ) && actions.contains( "get_property" )) {
+                      addAllReadPermDelegateCache( mLoggedInUsername + cn.getParent().getPath() );
+                      if (actions.contains( "set_property" ) && actions.contains( "remove" )) {
+                        addAllPermDelegateCache( mLoggedInUsername + cn.getParent().getPath() );
+                      } else {
+                        addReadCache( uuidfp );
+                      }
                     }
                   }
                   return true;
