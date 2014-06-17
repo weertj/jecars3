@@ -1549,7 +1549,7 @@ public class CARS_ActionContext {
         try {
           final Query q = mThisNode.getSession().getWorkspace().getQueryManager().createQuery( query.toString(), Query.SQL );
           ni = q.execute().getNodes();
-          CARS_Factory.getEventService().offer( new CARS_Event( mMain, null, "URL", "QUERY", this, "JCR SQL query = " + query + " result = " + ni.getSize() ) );
+//          CARS_Factory.getEventService().offer( new CARS_Event( mMain, null, "URL", "QUERY", this, "JCR SQL query = " + query + " result = " + ni.getSize() ) );
 //          CARS_Factory.getEventManager().addEventThreaded( mMain, mMain.getLoginUser(), mThisNode, null,
 //                    CARS_EventManager.EVENTCAT_URL, CARS_EventManager.EVENTTYPE_QUERY,
 //                    "JCR SQL query = " + query + " result = " + ni.getSize() );

@@ -151,11 +151,13 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
     
     final Session session = context.getSession();
     for( final Node in : getMixInputs() ) {
-      final String copyPath = context.getPath() + "/" + in.getName();
-      try {
-        session.getNode( copyPath );
-      } catch( PathNotFoundException pe ) {
-        session.getWorkspace().copy( in.getPath(), copyPath );
+      if (!in.isNodeType("jecars:mix_workflowcontrolresource")) {
+        final String copyPath = context.getPath() + "/" + in.getName();
+        try {
+          session.getNode( copyPath );
+        } catch( PathNotFoundException pe ) {
+          session.getWorkspace().copy( in.getPath(), copyPath );
+        }
       }
     }
     
@@ -174,7 +176,8 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
       final NodeIterator ni = getTool().getNodes();
       while( ni.hasNext() ) {
         Node n = ni.nextNode();
-        if (n.isNodeType( "jecars:parameterresource" )) {
+        if (n.isNodeType( "jecars:parameterresource" ) &&
+           !n.isNodeType("jecars:mix_workflowcontrolresource")) {
           if (!context.hasNode( n.getName() )) {
             n.getSession().getWorkspace().copy( n.getPath(), context.getPath() + "/" + n.getName() );
           }
@@ -203,22 +206,30 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
     final boolean       RERUN = (STATEREQUEST_RERUN.equals(getStateRequest()));
     final WF_WorkflowRunner mainwr = new WF_WorkflowRunner( main, runnerNode, RERUN );
     int nodesIsErrorCancelCountdown = 2;
+    int updateProgressWhenZero = 8;
     try {
+        getTool().setProperty( "jecars:PercCompleted", 0 );
+        getTool().save();
         mainwr.restart( RERUN, false );
         final List<Node> nodesInError = new ArrayList<>(4);
         final List<IWFP_InterfaceResult> results = new ArrayList<>(4);
         do {
           final NodeIterator rin = getTool().getNode( "runners" ).getNodes();
           while( rin.hasNext() ) {
-            // **** Write progress
-            double runtime = (System.currentTimeMillis()-mToolStartTime)/1000;
-            double progress = runtime/(double)mToolAverageRunningTime;
-            if (progress>0.95) {
-              progress = 0.95;
-            }
-            synchronized( WF_WorkflowRunner.WRITERACCESS ) {
-              getTool().setProperty( "jecars:PercCompleted", 100.0*progress );
-              getTool().save();
+            if (--updateProgressWhenZero<=0) {
+              updateProgressWhenZero = 8;
+              // **** Write progress
+              double runtime = (System.currentTimeMillis()-mToolStartTime)/1000;
+              double progress = runtime/(double)mToolAverageRunningTime;
+              if (progress>0.95) {
+                progress = 0.95;
+              }
+              synchronized( WF_WorkflowRunner.WRITERACCESS ) {
+                if (getTool().getProperty( "jecars:PercCompleted" ).getLong()!=(long)100.0*progress) {
+                  getTool().setProperty( "jecars:PercCompleted", (long)100.0*progress );
+                  getTool().save();
+                }
+              }
             }
 
             final Node runner = rin.nextNode();
@@ -249,6 +260,7 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
                 }
               }
               if (isNew) {
+                // *************************************************************
                 // **** Create a new workflow
                 final CARS_Main newmain = main.getFactory().createMain( CARS_ActionContext.createActionContext(getMain().getContext()) );
                 final Node newrunnerNode = newmain.getSession().getNode( runner.getPath() );              
@@ -281,7 +293,7 @@ public class CARS_DefaultWorkflow extends CARS_DefaultToolInterface {
           
           // **** Wait (poll) for results of the Executor service
           if (!currentRunners.isEmpty()) {
-            final Future<IWFP_InterfaceResult> fwrunResult = mExecutorService.poll( 4, TimeUnit.SECONDS );
+            final Future<IWFP_InterfaceResult> fwrunResult = mExecutorService.poll( 250, TimeUnit.MILLISECONDS );
             if (fwrunResult!=null) {
               final IWFP_InterfaceResult ir = fwrunResult.get();
               if (ir!=null) {

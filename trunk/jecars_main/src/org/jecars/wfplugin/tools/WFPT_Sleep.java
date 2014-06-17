@@ -68,6 +68,7 @@ public class WFPT_Sleep implements IWFP_Interface {
       IWFP_ContextParameter repeatdays = pTool.getContextParameter( pContext, ".*" + REPEATTIMEDAYS, null, true );
 
       if (sleepsecs!=null) {
+        pTool.reportMessage( Level.INFO, "Sleep for " + sleepsecs + " seconds" );
         Thread.sleep( (int)(Double.parseDouble(sleepsecs.getStringValue()) * 1000) );
       } else if (wakeupdate!=null) {        
         Calendar cal = ISO8601.parse( wakeupdate.getStringValue() );
@@ -98,6 +99,7 @@ public class WFPT_Sleep implements IWFP_Interface {
       String repeatdays = pTool.getParameter( REPEATTIMEDAYS, null );
 
       if (sleepsecs!=null) {
+        pTool.reportMessage( Level.INFO, "Sleep for " + sleepsecs + " seconds" );
         Thread.sleep( (int)(Double.parseDouble(sleepsecs) * 1000) );
       } else if (wakeupdate!=null) {        
         Calendar cal = ISO8601.parse( wakeupdate );

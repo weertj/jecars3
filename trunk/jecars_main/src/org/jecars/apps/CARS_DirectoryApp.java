@@ -73,6 +73,19 @@ public class CARS_DirectoryApp extends CARS_DefaultInterface implements CARS_Int
     return f;
   }
   
+  /** filenameEncoding
+   * 
+   * @param pFilename
+   * @return 
+   */
+  private String filenameEncoding( final String pFilename ) {
+    String nf = pFilename;
+    if (nf.contains( "&" )) {
+      nf = nf.replace( "&", "%26" );
+    }
+    return nf;
+  }
+  
   /** synchronizeDirectory
    * 
    * @param pMain
@@ -106,10 +119,11 @@ public class CARS_DirectoryApp extends CARS_DefaultInterface implements CARS_Int
         final Calendar synchTime = Calendar.getInstance();
         if (files!=null) {
           for( int i=0; i<files.length; i++ ) {
+            final String fileName = filenameEncoding( files[i].getName() );
             if (files[i].isDirectory()) {
               // **** Is Directory
-              if (!pParentNode.hasNode( files[i].getName() )) {
-                final Node n = pParentNode.addNode( files[i].getName(), "jecars:datafolder" );
+              if (!pParentNode.hasNode( fileName )) {
+                final Node n = pParentNode.addNode( fileName, "jecars:datafolder" );
                 final Calendar mod = Calendar.getInstance();
                 mod.setTimeInMillis( files[i].lastModified() );
                 final Calendar c = Calendar.getInstance();
@@ -124,8 +138,8 @@ public class CARS_DirectoryApp extends CARS_DefaultInterface implements CARS_Int
               // **** Is File
               final Calendar mod = Calendar.getInstance();
               final long fileLength = files[i].length();
-              if (!pParentNode.hasNode( files[i].getName() )) {
-                final Node n = pParentNode.addNode( files[i].getName(), "jecars:datafile" );
+              if (!pParentNode.hasNode( fileName )) {
+                final Node n = pParentNode.addNode( fileName, "jecars:datafile" );
                 mod.setTimeInMillis( files[i].lastModified() );
                 final Calendar c = Calendar.getInstance();
                 if (mod.before(c)) c.setTime( mod.getTime() );
@@ -139,7 +153,7 @@ public class CARS_DirectoryApp extends CARS_DefaultInterface implements CARS_Int
                 directoryConfigurationEvent( pMain.getLoginUser(), n, "update", "EXTERNAL ADDED FILE: " + n.getPath() );
               } else {
                 // **** Check modification
-                final Node n = pParentNode.getNode( files[i].getName() );
+                final Node n = pParentNode.getNode( fileName );
                 final long tm1 = files[i].lastModified();
                 final long tm2 = n.getProperty( "jecars:Modified" ).getDate().getTimeInMillis();
                 if (tm1!=tm2) {
@@ -150,7 +164,7 @@ public class CARS_DirectoryApp extends CARS_DefaultInterface implements CARS_Int
               }
 
               if ("true".equalsIgnoreCase(pMain.getContext().getParameterStringFromMap( "filecheck" ))) {
-                final Node n = pParentNode.getNode( files[i].getName() );
+                final Node n = pParentNode.getNode( fileName );
 //    System.out.println("aoijs " + n.getPath());
   //            n.setProperty( "jecars:CanExecute", files[i].canExecute());
                 try {
@@ -170,7 +184,7 @@ public class CARS_DirectoryApp extends CARS_DefaultInterface implements CARS_Int
   ////              n.setProperty( "jecars:SizeChanged", false );              
   ////            }
             }
-            Node n = pParentNode.getNode( files[i].getName() );
+            Node n = pParentNode.getNode( fileName );
             n.setProperty( "jecars:LastAccessed", Calendar.getInstance() );
   //          directoryConfigurationEvent( pMain.getLoginUser(), n, "browse", pRelative );
           }
@@ -220,9 +234,10 @@ public class CARS_DirectoryApp extends CARS_DefaultInterface implements CARS_Int
         }
         if (check) {
           if (newFile.exists()) {
+            final String fileName = filenameEncoding( newFile.getName() );
             if (newFile.isDirectory()) {
-              if (!pParentNode.hasNode( newFile.getName() )) {
-                final Node n = pParentNode.addNode( newFile.getName(), "jecars:datafolder" );
+              if (!pParentNode.hasNode( fileName )) {
+                final Node n = pParentNode.addNode( fileName, "jecars:datafolder" );
                 final Calendar mod = Calendar.getInstance();
                 mod.setTimeInMillis( newFile.lastModified() );
                 final Calendar c = Calendar.getInstance();
@@ -234,8 +249,8 @@ public class CARS_DirectoryApp extends CARS_DefaultInterface implements CARS_Int
               }
             } else {
               // **** Is File
-              if (!pParentNode.hasNode( newFile.getName() )) {
-                final Node n = pParentNode.addNode( newFile.getName(), "jecars:datafile" );
+              if (!pParentNode.hasNode( fileName )) {
+                final Node n = pParentNode.addNode( fileName, "jecars:datafile" );
                 updateFileEntry( n, newFile );
                 directoryConfigurationEvent( pMain.getLoginUser(), n, "update", "EXTERNAL ADDED FILE: " + n.getPath() );
               }

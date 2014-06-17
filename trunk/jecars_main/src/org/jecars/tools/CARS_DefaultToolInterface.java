@@ -958,7 +958,8 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
   /** getMain
    * @return
    */
-  protected CARS_Main getMain() {
+  @Override
+  public CARS_Main getMain() {
     return mMain;
   }
   
@@ -1073,7 +1074,7 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
         LOG.info( "Running as executor: " + this );
 // System.out.println("STATE REQUEST 3 " + System.currentTimeMillis());        
 //        mFuture = gExecutorService.submit( new ToolRunnable() );
-//        mFutureResult = gExecutorService.submit( new ToolCallable() );
+//      mFutureResult = gExecutorService.submit( new ToolCallable() );
         IPAR_ResourceWish resw = new PAR_ResourceWish().
                 runOnSystem( runOnSystem() ).
                 runOnCPU( runOnCPU() ).
@@ -1527,36 +1528,40 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
    */
   protected Node addOutputTransient( final Node pTool, final InputStream pOutput, final String pOutputName ) throws RepositoryException {
 //    final Node n = getTool();
-    final Node n = pTool;
-    final Node output;
-    final boolean isLink, hasNode;
-    if (hasNode=n.hasNode( pOutputName )) {
-      output = n.getNode( pOutputName );
-      if (output.hasProperty( "jecars:IsLink" )) {
-        isLink = output.getProperty( "jecars:IsLink" ).getBoolean();
+    try {
+      final Node n = pTool;
+      final Node output;
+      final boolean isLink, hasNode;
+      if (hasNode=n.hasNode( pOutputName )) {
+        output = n.getNode( pOutputName );
+        if (output.hasProperty( "jecars:IsLink" )) {
+          isLink = output.getProperty( "jecars:IsLink" ).getBoolean();
+        } else {
+          isLink = false;
+        }
       } else {
+        output = n.addNode( pOutputName, "jecars:outputresource" );
         isLink = false;
+        output.setProperty( "jcr:mimeType", "text/plain" );
       }
-    } else {
-      output = n.addNode( pOutputName, "jecars:outputresource" );
-      isLink = false;
-      output.setProperty( "jcr:mimeType", "text/plain" );
-    }
-    if (isLink || (pOutput==null)) {
-      if (!hasNode) {
-        final ByteArrayInputStream bais = new ByteArrayInputStream( "".getBytes() );
-        final Binary bin = output.getSession().getValueFactory().createBinary( bais );
+      if (isLink || (pOutput==null)) {
+        if (!hasNode) {
+          final ByteArrayInputStream bais = new ByteArrayInputStream( "".getBytes() );
+          final Binary bin = output.getSession().getValueFactory().createBinary( bais );
+          output.setProperty( "jcr:data", bin );
+        }
+        output.setProperty( "jecars:Partial", true );
+      } else {
+        final Binary bin = output.getSession().getValueFactory().createBinary( pOutput );
         output.setProperty( "jcr:data", bin );
+        output.setProperty( "jecars:Partial", false );
       }
-      output.setProperty( "jecars:Partial", true );
-    } else {
-      final Binary bin = output.getSession().getValueFactory().createBinary( pOutput );
-      output.setProperty( "jcr:data", bin );
-      output.setProperty( "jecars:Partial", false );
+      final Calendar c = Calendar.getInstance();
+      output.setProperty( "jcr:lastModified", c );
+      return output;
+    } catch( RepositoryException re ) {
+      throw new RepositoryException( "addOutputTransient: " + pOutputName + " of (" + pTool.getPath() +  ")", re );
     }
-    final Calendar c = Calendar.getInstance();
-    output.setProperty( "jcr:lastModified", c );
-    return output;
   }
   
   /** getFuture

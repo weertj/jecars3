@@ -184,6 +184,7 @@ public class CARS_ExpireManager extends CARS_DefaultToolInterface {
               }
             } else {
               // **** GC sweep not between
+              mDataStoreGCCurrent = 0;
               LOG.info( "ExpireManager: GC not running " + cal.get( Calendar.HOUR_OF_DAY ) + " not between " + gGC_BETWEEN_FROM_HOUR + " : " + gGC_BETWEEN_TO_HOUR );
             }
           }
