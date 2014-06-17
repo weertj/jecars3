@@ -15,7 +15,7 @@
  */
 package org.jecars.client;
 
-import java.io.UnsupportedEncodingException;
+import java.io.IOException;
 import java.util.List;
 import org.jecars.client.nt.JC_GroupNode;
 import org.jecars.client.nt.JC_GroupsNode;
@@ -35,11 +35,11 @@ import static org.junit.Assert.*;
  *
  * @version $Id: JC_ToolTest.java,v 1.9 2009/07/30 12:11:21 weertj Exp $
  */
-public class JC_ToolTest {
+public class JC_MultiPCTest {
 
     private JC_Clientable mClient_Admin = null;
 
-    public JC_ToolTest() {
+    public JC_MultiPCTest() {
     }
 
     private JC_Clientable getClient() throws JC_Exception {
@@ -98,106 +98,14 @@ public class JC_ToolTest {
       }
     }
 
-    /** testRunTool
-     *
-     * @throws org.jecars.client.JC_Exception
+    /** runTool
+     * 
+     * @throws JC_Exception
+     * @throws InterruptedException
+     * @throws IOException 
      */
-  //  @Ignore("even niet")
-//    @Test
-//    public void testRunTool() throws JC_Exception, Exception, InterruptedException, UnsupportedEncodingException {
-//      final JC_Clientable client = getClient();
-//      client.setCredentials("toolRunner", "toolRunner".toCharArray());
-////      client.setCredentials("Administrator", "admin".toCharArray());
-//      final JC_Nodeable toolsNode = client.getNode("/JeCARS/default/jecars:Tools");
-//      final JC_UserNode user = (JC_UserNode)client.getUserNode().morphToNodeType();
-//
-//      if (toolsNode.hasNode( "simpleCalcTemplate" )) {
-//        // **** Remove template tool
-//        toolsNode.getNode( "simpleCalcTemplate" ).removeNode();
-//        toolsNode.save();
-//      }
-//      if (toolsNode.hasNode( "simpleCalc" )) {
-//        // **** Remove tool
-//        toolsNode.getNode( "simpleCalc" ).removeNode();
-//        toolsNode.save();
-//      }
-//      if (toolsNode.hasNode( "simpleCalc2" )) {
-//        // **** Remove tool
-//        toolsNode.getNode( "simpleCalc2" ).removeNode();
-//        toolsNode.save();
-//      }
-//      if (toolsNode.hasNode( "simpleCalc3" )) {
-//        // **** Remove tool
-//        toolsNode.getNode( "simpleCalc3" ).removeNode();
-//        toolsNode.save();
-//      }
-//      // **** Create template tool
-//      final JC_ToolNode templateTool = JC_ToolNode.createTemplateTool( toolsNode, "simpleCalcTemplate", "org.jecars.tools.CARS_SimpleCalcTool", true );
-////      templateTool.setAutoStartParameters( toolsNode.getPath(), "jecars:Input" );
-//      templateTool.save();
-//
-//      // **** Run the tool
-//      final JC_ToolNode runTool = JC_ToolNode.createTool( toolsNode, templateTool, "simpleCalc", user );
-//      runTool.setAutoStartParameters( null, "jecars:Input" );
-//      runTool.save();
-//      runTool.addInput( "jecars:Input", "jecars:inputresource", "text/plain", "No1=2\nNo2=8\n" );
-////      runTool.start();
-//      final JC_ToolNode runTool2 = JC_ToolNode.createTool( toolsNode, templateTool, "simpleCalc2", user );
-//      runTool2.addInput( "jecars:Input", "jecars:inputresource", "text/plain", "No1=12\nNo2=8\n" );
-//      runTool2.start();
-//      final JC_ToolNode runTool3 = JC_ToolNode.createTool( toolsNode, templateTool, "simpleCalc3", user );
-//      runTool3.addInput( "jecars:Input", "jecars:inputresource", "text/plain", "No1=14\nNo2=16\n" );
-//      runTool3.start();
-//      int runs = 0;
-//      while( 1==1 ) {
-//        final String state = runTool.getState();
-//        System.out.println( "state = " + state );
-//        final String state2 = runTool2.getState();
-//        System.out.println( "state2 = " + state2 );
-//        final String state3 = runTool3.getState();
-//        System.out.println( "state3 = " + state3 );
-//        Thread.sleep( 1000 );
-//        if ((state.startsWith( JC_ToolNode.STATE_CLOSED )) &&
-//            (state2.startsWith( JC_ToolNode.STATE_CLOSED )) &&
-//            (state3.startsWith( JC_ToolNode.STATE_CLOSED ))) break;
-//        if (runs==3) {
-//          // **** After 3 runs stop tool3
-//          runTool3.stop();
-//        }
-//        if (runs==4) {
-//          // **** After 4 runs abort tool2
-//          runTool2.abort();
-//        }
-//        runs++;
-//      }
-////      Thread.sleep( 2000 );
-//      List<JC_ToolEventNode> tens = runTool.getToolEvents();
-//      for (JC_ToolEventNode ten : tens) {
-//        System.out.println(ten.toString());
-//      }
-//      tens = runTool2.getToolEvents();
-//      for (JC_ToolEventNode ten : tens) {
-//        System.out.println(ten.toString());
-//      }
-//      tens = runTool3.getToolEvents();
-//      for (JC_ToolEventNode ten : tens) {
-//        System.out.println(ten.toString());
-//      }
-//
-//      assertEquals( null, runTool.getState(), JC_ToolNode.STATE_CLOSED_COMPLETED );
-//      assertEquals( null, runTool2.getState(), JC_ToolNode.STATE_CLOSED_ABNORMALCOMPLETED_ABORTED );
-//      assertEquals( null, runTool3.getState(), JC_ToolNode.STATE_CLOSED_ABNORMALCOMPLETED_ABORTED );
-//
-//      return;
-//    }
-
-
-    /** testExternalTool
-     *
-     * @throws org.jecars.client.JC_Exception
-     */
-    @Test
-    public void testExternalTool() throws JC_Exception, Exception, InterruptedException, UnsupportedEncodingException {
+    private void runTool() throws JC_Exception, InterruptedException, IOException {
+    
       final JC_Clientable client = getClient();
       client.setCredentials("toolRunner", "toolRunner".toCharArray());
       final JC_Nodeable toolsNode = client.getNode("/JeCARS/default/jecars:Tools");
@@ -214,18 +122,23 @@ public class JC_ToolTest {
         toolsNode.save();
       }
       // **** Create template tool
-      final JC_ToolNode templateTool = JC_ToolNode.createTemplateTool( toolsNode, "netstatToolTemplate", "org.jecars.tools.CARS_ExternalTool", true );
+//      final JC_ToolNode templateTool = JC_ToolNode.createTemplateTool( toolsNode, "netstatToolTemplate", "org.jecars.tools.CARS_ExternalTool", true );
+//      final JC_ToolNode templateTool = JC_ToolNode.createTemplateTool( toolsNode, "netstatToolTemplate", "org.jecars.tools.CARS_MultiExternalTool", true );
+      final JC_ToolNode templateTool = JC_ToolNode.createTemplateTool( toolsNode, "netstatToolTemplate", "org.jecars.tools.CARS_SharedExternalOverthereTool", true );
 //      templateTool.addConfigExternalTool( null, "c:/WINDOWS/system32/netstat.exe", false );
-      templateTool.addConfigExternalTool( null, "netstat", false );
+//      templateTool.addConfigExternalTool( null, "netstat", false );
+      templateTool.addConfigExternalTool( null, "echo", false );
       templateTool.save();
 
       // **** Run the tool
       final JC_ToolNode runTool = JC_ToolNode.createTool( toolsNode, templateTool, "netstatTool", user );
       runTool.setAutoStartParameters( null, "jecars:Input" );
       runTool.save();
+      runTool.addParameterData( "JeCARS-RunOnSystem" ).addParameter( "nlr01214" );
       runTool.addInput( "jecars:Input", "jecars:inputresource", "text/plain", "Echo Hello World\n" );
       final JC_ParameterDataNode pdn = runTool.addParameterData( "commandLine" );
-      pdn.addParameter( "-s" );
+//      pdn.addParameter( "-s" );
+      pdn.addParameter( "%COMPUTERNAME%" );
       while( 1==1 ) {
         final String state = runTool.getState();
         System.out.println( "state = " + state );
@@ -246,6 +159,51 @@ public class JC_ToolTest {
       toolResult = JC_Utils.readAsString( toolResultStream.getStream() );
       System.out.println(toolResult);
       assertEquals( null, runTool.getState(), JC_ToolNode.STATE_CLOSED_COMPLETED );
+
+    }
+
+    @Test
+    public void multiPCTest1() throws JC_Exception, InterruptedException, IOException {
+      final JC_Clientable client = getClient();
+      client.setCredentials("Administrator", "admin".toCharArray());
+      JC_Nodeable systems = client.getSingleNode( "/JeCARS/Systems" );
+      if (!systems.hasNode( "nlr01214" )) {
+        JC_Nodeable system = systems.addNode( "nlr01214", "jecars:RES_System" );
+        system.setTitle( "nlr01214" );
+        JC_Nodeable cpu = system.addNode( "CPU", "jecars:RES_CPU" );
+        cpu.setTitle( "CPU" );
+        JC_Nodeable core = cpu.addNode( "TestCore", "jecars:RES_Core" );
+        core.setTitle("TestCore");
+        core.addMixin( "jecars:mixin_unstructured" );
+      }
+      systems.save();
+      
+      runTool();
+      
+      systems.save();
       return;
     }
+
+    @Test
+    public void multiPCTest2() throws JC_Exception, InterruptedException, IOException {
+      final JC_Clientable client = getClient();
+      client.setCredentials("Administrator", "admin".toCharArray());
+      JC_Nodeable systems = client.getSingleNode( "/JeCARS/Systems" );
+      if (!systems.hasNode( "nlr01327w" )) {
+        JC_Nodeable system = systems.addNode( "nlr01327w", "jecars:RES_System" );
+        system.setTitle( "nlr01327w" );
+        JC_Nodeable cpu = system.addNode( "CPU", "jecars:RES_CPU" );
+        cpu.setTitle( "CPU" );
+        JC_Nodeable core = cpu.addNode( "TestCore", "jecars:RES_Core" );
+        core.setTitle("OverthereCore");
+        core.addMixin( "jecars:mixin_unstructured" );
+      }
+      systems.save();
+      
+      runTool();
+      
+      systems.save();
+      return;
+    }
+    
 }

@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<node name="MasterQ" primaryType="jecars:Workflow">
+  <property name="jecars:StoreEvents" type="Boolean" value="true"/>
+  <property name="jecars:ToolClass" type="String" value="org.jecars.tools.CARS_DefaultWorkflow"/>
+  <property name="jecars:Title" type="String" value="Master Q"/>
+  <property multipleTrue="" name="jcr:mixinTypes" type="Name">
+    <propertyValue i="0" value="jecars:mix_toolstatistics"/>
+  </property>
+  <node name="links" primaryType="jecars:workflowlinks">
+    <node name="START-MASTER" primaryType="jecars:workflowlink">
+      <property name="jecars:ExpireContextAfterMinutes" type="Long" value="5"/>
+      <node name="from" primaryType="jecars:workflowlinkendpoint">
+        <property name="jecars:endpoint" type="Path" value="../../../tasks/Entry-1"/>
+        <node name="out" primaryType="jecars:workflowtaskportref">
+          <property name="jecars:portref" type="Path" value="../../../../tasks/Entry-1/outputs/out"/>
+        </node>
+      </node>
+      <node name="to" primaryType="jecars:workflowlinkendpoint">
+        <property name="jecars:endpoint" type="Path" value="../../../tasks/MasterQ"/>
+        <node name="in" primaryType="jecars:workflowtaskportref">
+          <property name="jecars:portref" type="Path" value="../../../../tasks/MasterQ/inputs/in"/>
+        </node>
+      </node>
+    </node>
+    <node name="MASTER-END" primaryType="jecars:workflowlink">
+      <property name="jecars:ExpireContextAfterMinutes" type="Long" value="5"/>
+      <node name="from" primaryType="jecars:workflowlinkendpoint">
+        <property name="jecars:endpoint" type="Path" value="../../../tasks/MasterQ"/>
+        <node name="out" primaryType="jecars:workflowtaskportref">
+          <property name="jecars:portref" type="Path" value="../../../../tasks/MasterQ/outputs/out"/>
+        </node>
+      </node>
+      <node name="to" primaryType="jecars:workflowlinkendpoint">
+        <property name="jecars:endpoint" type="Path" value="../../../tasks/Exit-1"/>
+        <node name="in" primaryType="jecars:workflowtaskportref">
+          <property name="jecars:portref" type="Path" value="../../../../tasks/Exit-1/inputs/in"/>
+        </node>
+      </node>
+    </node>
+  </node>
+  <node name="runners" primaryType="jecars:WorkflowRunners"/>
+  <node name="tasks" primaryType="jecars:workflowtasks">
+    
+    <node name="Entry-1" primaryType="jecars:workflowtask">
+      <property name="jecars:ExpireContextAfterMinutes" type="Long" value="5"/>
+      <property name="jecars:type" type="String" value="START"/>
+      <property name="jecars:y" type="Long" value="241"/>
+      <property name="jecars:x" type="Long" value="31"/>
+      <property multipleTrue="" name="jcr:mixinTypes" type="Name">
+        <propertyValue i="0" value="jecars:mixin_2dposition"/>
+      </property>
+      <node name="outputs" primaryType="jecars:workflowtaskports">
+        <node name="out" primaryType="jecars:workflowtaskport">
+          <property name="jecars:nodename" type="String" value=".*"/>
+          <property name="jecars:nodetype" type="String" value=".*"/>
+        </node>
+      </node>
+      <node name="data" primaryType="jecars:datafolder"/>
+      <node name="inputs" primaryType="jecars:workflowtaskports"/>
+    </node>
+    
+    <node name="Exit-1" primaryType="jecars:workflowtask">
+      <property name="jecars:ExpireContextAfterMinutes" type="Long" value="5"/>
+      <property name="jecars:type" type="String" value="END"/>
+      <property name="jecars:y" type="Long" value="119"/>
+      <property name="jecars:x" type="Long" value="513"/>
+      <property multipleTrue="" name="jcr:mixinTypes" type="Name">
+        <propertyValue i="0" value="jecars:mixin_2dposition"/>
+      </property>
+      <node name="outputs" primaryType="jecars:workflowtaskports"/>
+      <node name="data" primaryType="jecars:datafolder"/>
+      <node name="inputs" primaryType="jecars:workflowtaskports">
+        <node name="in" primaryType="jecars:workflowtaskport">
+          <property name="jecars:nodename" type="String" value=".*"/>
+          <property name="jecars:nodetype" type="String" value=".*"/>
+        </node>
+      </node>
+    </node>
+    
+    
+    <node name="MasterQ" primaryType="jecars:workflowtask">
+      <property name="jecars:ExpireContextAfterMinutes" type="Long" value="5"/>
+      <property name="jecars:type" type="String" value="JAVATASK"/>
+      <property name="jecars:javaclasspath" type="String" value="org.jecars.tools.workflow.WF_MasterQ"/>
+      <node name="inputs" primaryType="jecars:workflowtaskports">
+        <node name="in" primaryType="jecars:workflowtaskport">
+          <property name="jecars:nodetype" type="String" value=".*"/>
+          <property name="jecars:nodename" type="String" value=".*"/>
+        </node>
+      </node>
+      <node name="outputs" primaryType="jecars:workflowtaskports">
+        <node name="out" primaryType="jecars:workflowtaskport">
+          <property name="jecars:nodetype" type="String" value=".*"/>
+          <property name="jecars:nodename" type="String" value=".*"/>
+        </node>
+      </node>
+      <node name="data" primaryType="jecars:datafolder"/>
+    </node>
+    
+  </node>
+  <node name="jecars:Config" primaryType="jecars:ToolConfig">
+    <property name="jecars:RunningExpireMinutes" type="Long" value="-1"/>
+    <property name="jecars:ClosedExpireMinutes" type="String" value="-1"/>
+    <property name="jcr:data" size="0" type="Binary"/>
+    <property name="jcr:mimeType" type="String" value="text/plain"/>
+    <node name="WorkDirectory" primaryType="jecars:datafolder"/>
+    <node name="data" primaryType="jecars:datafolder"/>
+  </node>
+
+  <node name="P_SpectreUsers" primaryType="jecars:Permission">
+    <property multipleTrue="" name="jecars:Principal" type="Path">
+      <propertyValue i="0" value="/JeCARS/default/Groups/SPeCTREUsers"/>
+    </property>
+    <property multipleTrue="" name="jecars:Actions" type="String">
+      <propertyValue i="0" value="read"/>
+      <propertyValue i="1" value="get_property"/>
+    </property>
+    <property name="jecars:Delegate" type="Boolean" value="true"/>
+  </node>
+
+
+</node>

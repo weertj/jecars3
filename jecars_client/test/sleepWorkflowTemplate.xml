@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<node name="sleepWorkflowTemplate" primaryType="jecars:Workflow">
+  <property name="jecars:State" type="String" value="open.notrunning"/>
+  <property name="jecars:StoreEvents" type="Boolean" value="true"/>
+  <property name="jecars:ToolClass" type="String" value="org.jecars.tools.CARS_DefaultWorkflow"/>
+  <node name="links" primaryType="jecars:workflowlinks">
+    <node name="START-SLEEP" primaryType="jecars:workflowlink">
+      <node name="from" primaryType="jecars:workflowlinkendpoint">
+        <property name="jecars:endpoint" type="Path" value="../../../tasks/Entry-1"/>
+        <node name="SLEEP_Input" primaryType="jecars:workflowtaskportref">
+          <property name="jecars:portref" type="Path" value="../../../../tasks/Entry-1/outputs/SLEEP_Input"/>
+        </node>
+      </node>
+      <node name="to" primaryType="jecars:workflowlinkendpoint">
+        <property name="jecars:endpoint" type="Path" value="../../../tasks/SLEEPTool"/>
+        <node name="ToolInput" primaryType="jecars:workflowtaskportref">
+          <property name="jecars:portref" type="Path" value="../../../../tasks/SLEEPTool/inputs/ToolInput"/>
+        </node>
+      </node>
+    </node>
+    <node name="SLEEP-END" primaryType="jecars:workflowlink">
+      <node name="from" primaryType="jecars:workflowlinkendpoint">
+        <property name="jecars:endpoint" type="Path" value="../../../tasks/SLEEPTool"/>
+        <node name="ToolOutput" primaryType="jecars:workflowtaskportref">
+          <property name="jecars:portref" type="Path" value="../../../../tasks/SLEEPTool/outputs/ToolOutput"/>
+        </node>
+      </node>
+      <node name="to" primaryType="jecars:workflowlinkendpoint">
+        <property name="jecars:endpoint" type="Path" value="../../../tasks/Exit-1"/>
+        <node name="SLEEP_Output" primaryType="jecars:workflowtaskportref">
+          <property name="jecars:portref" type="Path" value="../../../../tasks/Exit-1/inputs/SLEEP_Output"/>
+        </node>
+      </node>
+    </node>
+  </node>
+  <node name="runners" primaryType="jecars:WorkflowRunners"/>
+  <node name="tasks" primaryType="jecars:workflowtasks">
+    <node name="Entry-1" primaryType="jecars:workflowtask">
+      <property name="jecars:type" type="String" value="START"/>
+      <property name="jecars:y" type="Long" value="191"/>
+      <property name="jecars:x" type="Long" value="41"/>
+      <property multipleTrue="" name="jcr:mixinTypes" type="Name">
+        <propertyValue i="0" value="jecars:mixin_2dposition"/>
+      </property>
+      <node name="outputs" primaryType="jecars:workflowtaskports">
+        <node name="SLEEP_Input" primaryType="jecars:workflowtaskport">
+          <property name="jecars:nodename" type="String" value=".*"/>
+          <property name="jecars:nodetype" type="String" value=".*"/>
+        </node>
+      </node>
+      <node name="data" primaryType="jecars:datafolder"/>
+      <node name="inputs" primaryType="jecars:workflowtaskports"/>
+    </node>
+    <node name="Exit-1" primaryType="jecars:workflowtask">
+      <property name="jecars:type" type="String" value="END"/>
+      <property name="jecars:y" type="Long" value="124"/>
+      <property name="jecars:x" type="Long" value="502"/>
+      <property multipleTrue="" name="jcr:mixinTypes" type="Name">
+        <propertyValue i="0" value="jecars:mixin_2dposition"/>
+      </property>
+      <node name="outputs" primaryType="jecars:workflowtaskports"/>
+      <node name="data" primaryType="jecars:datafolder"/>
+      <node name="inputs" primaryType="jecars:workflowtaskports">
+        <node name="SLEEP_Output" primaryType="jecars:workflowtaskport">
+          <property name="jecars:nodename" type="String" value=".*"/>
+          <property name="jecars:nodetype" type="String" value=".*"/>
+        </node>
+      </node>
+    </node>
+    <node name="SLEEPTool" primaryType="jecars:workflowtask">
+      <property name="jecars:ExpireContextAfterMinutes" type="Long" value="5"/>
+      <property name="jecars:type" type="String" value="JAVATASK"/>
+      <property name="jecars:javaclasspath" type="String" value="org.jecars.wfplugin.tools.WFPT_Sleep"/>
+      <property name="jecars:y" type="Long" value="116"/>
+      <property name="jecars:x" type="Long" value="254"/>
+      <property multipleTrue="" name="jcr:mixinTypes" type="Name">
+        <propertyValue i="0" value="jecars:mixin_2dposition"/>
+      </property>
+      <node name="outputs" primaryType="jecars:workflowtaskports">
+        <node name="ToolOutput" primaryType="jecars:workflowtaskport">
+          <property name="jecars:nodename" type="String" value=".*"/>
+          <property name="jecars:nodetype" type="String" value=".*"/>
+        </node>
+      </node>
+      <node name="data" primaryType="jecars:datafolder"/>
+      <node name="inputs" primaryType="jecars:workflowtaskports">
+        <node name="ToolInput" primaryType="jecars:workflowtaskport">
+          <property name="jecars:nodename" type="String" value=".*"/>
+          <property name="jecars:nodetype" type="String" value=".*"/>
+        </node>
+      </node>
+    </node>
+  </node>
+  <node name="jecars:Config" primaryType="jecars:ToolConfig">
+    <property name="jecars:RunningExpireMinutes" type="Long" value="-1"/>
+    <property name="jecars:ClosedExpireMinutes" type="String" value="-1"/>
+    <property name="jcr:data" size="0" type="Binary"/>
+    <property name="jcr:mimeType" type="String" value="text/plain"/>
+    <node name="WorkDirectory" primaryType="jecars:datafolder"/>
+  </node>
+</node>
