@@ -17,11 +17,8 @@ package org.jecars.client;
 
 import java.io.FileInputStream;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import org.jecars.client.nt.EJC_ContextParameter;
-import org.jecars.client.nt.EJC_TaskModifier;
 import org.jecars.client.nt.JC_GroupNode;
 import org.jecars.client.nt.JC_GroupsNode;
 import org.jecars.client.nt.JC_ParameterDataNode;
@@ -37,7 +34,6 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -253,6 +249,7 @@ public class JC_Workflow1Test {
      * @throws org.jecars.client.JC_Exception
      */
     @Test
+    @SuppressWarnings("UseOfSystemOutOrSystemErr")
     public void testSleepTool() throws JC_Exception, Exception, InterruptedException, UnsupportedEncodingException {
       
       final JC_Nodeable templatesNode = getClient().getSingleNode("/JeCARS/default/jecars:Tools");
@@ -270,9 +267,7 @@ public class JC_Workflow1Test {
         runWorkflow.addInput( "rangedfile_" + i + ".txt", "jecars:inputresource", "text/plain", new FileInputStream("test/rangedfile.txt") );
       }
       runWorkflow.start();
-      while( !runWorkflow.isRunning() ) {
-        Thread.sleep( 1000 );
-      }
+      Thread.sleep( 1000 );
       while( runWorkflow.isRunning() ) {
         Thread.sleep( 1000 );
         List<JC_ToolEventNode> events = runWorkflow.getToolEvents();
@@ -281,6 +276,14 @@ public class JC_Workflow1Test {
            System.out.println("--- " + event.getPath() );
         }
 
+      }
+      
+      System.out.println("state = " + runWorkflow.getState() );
+      if (runWorkflow.getState().startsWith( JC_WorkflowNode.STATE_CLOSED_ABNORMALCOMPLETED )) {
+        System.out.println("Workflow in error");
+        for( JC_ToolEventNode ten : runWorkflow.getToolEvents() ) {
+          System.out.println("ToolEventNode: " + ten );
+        }
       }
       
       return;

@@ -77,4 +77,14 @@ public class JC_EventsAppTest {
       return;
     }
 
+    @Test
+    public void fanomosEventTest() throws JC_Exception {
+        final JC_Clientable c = getClient();
+        c.setCredentials( "Administrator", "admin".toCharArray() );
+        final JC_EventsApp eventApp = new JC_EventsApp( c );
+        eventApp.createEvent(
+                "/JeCARS/default/Events/Fanomos/FAP/jecars:EventsINFO", "testEventApp1", "The body\nmessage", null, null, "INFO", "DEF" );
+      return;
+    }
+    
 }

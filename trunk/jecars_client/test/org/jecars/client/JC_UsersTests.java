@@ -15,6 +15,9 @@
  */
 package org.jecars.client;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.Collection;
 import org.jecars.client.nt.JC_GroupNode;
@@ -226,5 +229,5 @@ public class JC_UsersTests {
     return;
   }
 */
-
+  
 }
