@@ -170,6 +170,9 @@
 [jecars:mix_inputresource] mixin
 
 [jecars:mix_temporaryresource] mixin
+// **** The mix_workflowcontrolresource nodetype will only being used in the root of a workflow
+// **** Won't be copied to the contexts of the runners
+[jecars:mix_workflowcontrolresource] mixin
 
 [jecars:inputresource] > jecars:mix_inputresource, jecars:datafile
 

@@ -759,7 +759,16 @@ public class CARS_Utils {
         n = pMain.getNodeDirect( pJecarspath );
       } catch( Exception ee ) {
         try {
-          n = pMain.getNode(pJecarspath, null, false);
+          // **** The directory APP needs the Main->Context to have a pathInfo set to the target directory
+          // **** Create a backup of the current value
+          final String bck = pMain.getContext().getPathInfo();
+          try {
+            pMain.getContext().setPathInfo( pJecarspath );
+            n = pMain.getNode(pJecarspath, null, false);
+          } finally {
+            // **** Restore the old pathinfo value
+            pMain.getContext().setPathInfo( bck );
+          }
         } catch( Exception eee ) {
           if (pCreatePath) {
             // **** Try to create the path
@@ -856,6 +865,37 @@ public class CARS_Utils {
     
     return n;
   }
-  
+ 
+  /** getPropertyValueBoolean
+   * 
+   * @param pNode
+   * @param pParam
+   * @param pDefault
+   * @return
+   * @throws RepositoryException 
+   */
+  public static boolean getPropertyValueBoolean( final Node pNode, final String pParam, final boolean pDefault ) throws RepositoryException {
+    if (pNode.hasProperty( pParam )) {
+      return pNode.getProperty( pParam ).getBoolean();
+    } else {
+      return pDefault;
+    }
+  }
+
+  /** getPropertyValue
+   * 
+   * @param pNode
+   * @param pParam
+   * @param pDefault
+   * @return
+   * @throws RepositoryException 
+   */
+  public static String getPropertyValue( final Node pNode, final String pParam, final String pDefault ) throws RepositoryException {
+    if (pNode.hasProperty( pParam )) {
+      return pNode.getProperty( pParam ).getString();
+    } else {
+      return pDefault;
+    }
+  }
   
 }

@@ -863,7 +863,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
       IOStreamThreadFile error = null;
       IOStreamThreadFile input = null;
       try {
-        final Process process = pb.start();
+        final Process process = pb.start();        
         final Node tt = getToolTemplate( getTool() ); // **** This goes wrong when in one workflow with the same working directory there are two tool runs of the same tool
         String errorFile  = "__error_" + tt.getName() + ".txt";
         String stdoutFile = "__stdout_" + tt.getName() + ".txt";

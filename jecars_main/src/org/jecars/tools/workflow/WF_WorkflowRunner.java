@@ -23,9 +23,9 @@ import java.util.Calendar;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
 import java.util.logging.Level;
 import javax.jcr.*;
+import nl.msd.jdots.JD_Taglist;
 import org.jecars.CARS_Main;
 import org.jecars.CARS_Security;
 import org.jecars.CARS_Utils;
@@ -189,7 +189,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
   public IWF_Workflow getWorkflow() throws RepositoryException {
     return new WF_Workflow( getNode().getParent().getParent() );
   }
-  
+
   /** getContext
    * 
    * @return
@@ -411,7 +411,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
     final IWF_Task  currentTask = getCurrentTask();
     final IWF_Link  currentLink = getCurrentLink();
 
-  System.out.println("+++++ next step time: " + System.currentTimeMillis() + " == " + currentTask.getPath() + " : " + currentLink.getPath() );
+//  System.out.println("+++++ next step time: " + System.currentTimeMillis() + " == " + currentTask.getPath() + " : " + currentLink.getPath() );
     
     if (currentTask.isNULL() && currentLink.isNULL()) {
       
@@ -985,18 +985,57 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
               }
             }
           }
-          synchronized( WRITERACCESS ) {
-            toolNode.getSession().save();
-            ti.setStateRequest( CARS_ToolInterface.STATEREQUEST_START );
-//            System.out.println("waiting for ending");
+          
+          // *******************************************************************
+          // **** Master Q
+          WF_MasterQData masterQData = new WF_MasterQData();
+          boolean masterQ = CARS_Utils.getPropertyValueBoolean( getWorkflow().getConfig(), "Par_MasterQ", false );
+          if (masterQ) {
+            // **** Get Root Tool
+            Node rootTool = ti.getRootTool();
+            if (rootTool.hasNode( "Par_MasterQ")) {
+              masterQData.fill( rootTool.getNode( "Par_MasterQ" ));
+            }
+            
           }
-          // **** Wait until ready
-          final Future futureres = ti.getFuture();
-          futureres.get();
-//          while(!futureres.isDone()) {
-//            Thread.sleep( 1000 );
-//          }
-//          System.out.println("task ended " + n.getPath() + " RESULT: " + futureres.get() );
+          if (masterQData.masterQ().isEmpty()) {
+            
+            // *****************************************************************
+            // **** Normal default start and wait
+            synchronized( WRITERACCESS ) {
+              toolNode.getSession().save();
+              ti.setStateRequest( CARS_ToolInterface.STATEREQUEST_START );
+            }
+            // **** Wait until ready
+            final Future futureres = ti.getFuture();
+            futureres.get();
+            
+          } else {
+            // **** Close toolinstance session, not needed because masterQ will take over
+            ti.getMain().destroy();
+            
+            // *****************************************************************
+            // **** Run with MasterQ control            
+            JD_Taglist linkTags = new JD_Taglist();
+            linkTags.putData( "$0.link", "true" );            
+            linkTags.putData( "$0.link.href", mMain.getContext().getBaseContextURL() + newWF.getPath() );
+            linkTags.putData( "$0.link.rel", "via" );
+            linkTags.putData( "jcr:primaryType", newWF.getNode().getPrimaryNodeType().getName() );
+            Node masterWF = mMain.addNode( masterQData.masterQ() + "/runners/Main/context/Q/AddWorkflows/" + newWF.getNode().getName(),
+                            linkTags, null, null );
+            // **** To the running queue
+            linkTags.clear();
+            linkTags.putData( "jcr:primaryType", masterWF.getPrimaryNodeType().getName() );
+            masterWF = mMain.addNode( masterQData.masterQ() + "/runners/Main/context/Q/RunningWorkflows/" + masterWF.getName(),
+                             linkTags, null, null );
+            // **** Wait for result
+            boolean wait = true;
+            while( wait ) {
+              final String state = newWF.getToolInterface().getState();
+              wait = state.startsWith( CARS_ToolInterface.STATE_OPEN );
+              Thread.sleep( 250 );
+            }
+          }
         }
         
         // **** Empty context        

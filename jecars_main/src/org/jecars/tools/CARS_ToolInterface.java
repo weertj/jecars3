@@ -457,5 +457,6 @@ public interface CARS_ToolInterface {
 
   Future getFuture();
 
+  CARS_Main getMain();
   
 }
