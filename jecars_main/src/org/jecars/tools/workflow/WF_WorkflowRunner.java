@@ -989,14 +989,15 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
           // *******************************************************************
           // **** Master Q
           WF_MasterQData masterQData = new WF_MasterQData();
-          boolean masterQ = CARS_Utils.getPropertyValueBoolean( getWorkflow().getConfig(), "Par_MasterQ", false );
-          if (masterQ) {
-            // **** Get Root Tool
-            Node rootTool = ti.getRootTool();
-            if (rootTool.hasNode( "Par_MasterQ")) {
-              masterQData.fill( rootTool.getNode( "Par_MasterQ" ));
+          if (getWorkflow().getConfig()!=null) {
+            boolean masterQ = CARS_Utils.getPropertyValueBoolean( getWorkflow().getConfig(), "Par_MasterQ", false );
+            if (masterQ) {
+              // **** Get Root Tool
+              Node rootTool = ti.getRootTool();
+              if (rootTool.hasNode( "Par_MasterQ")) {
+                masterQData.fill( rootTool.getNode( "Par_MasterQ" ));
+              }            
             }
-            
           }
           if (masterQData.masterQ().isEmpty()) {
             
