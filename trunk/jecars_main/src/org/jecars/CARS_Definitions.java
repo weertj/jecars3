@@ -21,7 +21,7 @@ public class CARS_Definitions {
   static public final String P_ADDNODE     = "add_node";
   static public final String P_REMOVE      = "remove";
     
-  final static public String VERSION_ID    = "v4.4.2";
+  final static public String VERSION_ID    = "v4.4.3";
   final static public String PRODUCTNAME   = "JeCARS 'Fragaria'";
   final static public String VERSION       = PRODUCTNAME + " " + VERSION_ID;
   final static public String MAINFOLDER    = "JeCARS";
