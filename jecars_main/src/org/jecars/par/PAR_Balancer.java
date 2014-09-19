@@ -125,7 +125,7 @@ public class PAR_Balancer implements IPAR_Balancer {
    * @throws javax.jcr.RepositoryException
    */
   @Override
-  public List<IPAR_Core> coresByWish( final IPAR_ResourceWish pWish ) throws RepositoryException {
+  public List<IPAR_Core> coresByWish( final IPAR_ResourceWish pWish, final IPAR_ResourceWish pResult ) throws RepositoryException {
     final List<IPAR_Core> cores = new ArrayList<>(8);
     synchronized (mSchedulerLock) {
       mSchedulerLock.incrementAndGet();
@@ -150,10 +150,11 @@ public class PAR_Balancer implements IPAR_Balancer {
           }
         }
       } else {
+        final boolean systemTypeCheck = !(pWish.systemType()==EPAR_SystemType.ALL);
         // **** NON LOCAL systems
         for (final IPAR_System sys : systems()) {
           // **** System check
-          if ((sys.systemType()==EPAR_SystemType.LOCAL) &&
+          if ((sys.systemType()!=EPAR_SystemType.LOCAL || !systemTypeCheck) &&
               (sys.name().matches( pWish.runOnSystem()))) {
             for (final IPAR_CPU cpu : sys.cpus(EPAR_CPUType.AVAILABLE)) {
               // **** CPU check

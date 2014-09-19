@@ -24,11 +24,18 @@ import javax.jcr.RepositoryException;
 import javax.jcr.observation.Event;
 import javax.jcr.observation.EventIterator;
 import javax.jcr.observation.EventListener;
+import org.jecars.CARS_DefaultMain;
+import org.jecars.CARS_Factory;
+import org.jecars.CARS_Main;
+import org.jecars.CARS_Utils;
 import org.jecars.client.JC_Clientable;
 import org.jecars.client.JC_Exception;
 import org.jecars.client.JC_Factory;
 import org.jecars.client.JC_Nodeable;
 import org.jecars.client.nt.JC_WorkflowNode;
+import org.jecars.par.IPAR_ResourceWish;
+import org.jecars.tools.CARS_ToolInterface;
+import org.jecars.tools.CARS_ToolsFactory;
 import org.jecars.wfplugin.IWFP_Context;
 import org.jecars.wfplugin.IWFP_Interface;
 import org.jecars.wfplugin.IWFP_Node;
@@ -43,6 +50,11 @@ import org.jecars.wfplugin.WFP_InterfaceResult;
  */
 public class WF_MasterQ implements IWFP_Interface {
   
+  static private int EVENT_AGE_IN_MINUTES = 60*24;
+  
+  private String       mJeCARSServer =  "http://localhost/cars/";
+  private String       mUsername = "Administrator";
+  private String       mPassword = "admin";
   private IWFP_Tool    mTool;
   private IWFP_Context mContext;
     
@@ -58,9 +70,9 @@ public class WF_MasterQ implements IWFP_Interface {
   public WFP_InterfaceResult start( final IWFP_Tool pTool, final IWFP_Context pContext ) {
     try {
       
-      final JC_Clientable client = JC_Factory.createClient( "http://localhost/cars/" );
-      client.setCredentials( "spectre", "spectre".toCharArray() );
-      mClients.put( "http://localhost/cars/", client );
+      final JC_Clientable client = JC_Factory.createClient( mJeCARSServer );
+      client.setCredentials( mUsername, mPassword.toCharArray() );
+      mClients.put( mJeCARSServer, client );
       
       mTool    = pTool;
       mContext = pContext;
@@ -137,15 +149,21 @@ public class WF_MasterQ implements IWFP_Interface {
    * @throws WFP_Exception
    * @throws JC_Exception 
    */
-  private JC_Nodeable resolveWorkflowIDToNodeable( final String pWorkflowPath ) throws WFP_Exception, JC_Exception {
+  private Node resolveWorkflowIDToNodeable( final String pWorkflowPath ) throws WFP_Exception, RepositoryException {
     final IWFP_Node workflow = mTool.getNodeFromRoot( pWorkflowPath );
-    if (workflow.hasProperty( "jecars:Link" )) {
-      String linkworkflow = workflow.getProperty( "jecars:Link" ).getStringValue();
-      // **** Use jecars client to resolve to JC_Nodeable
-      JC_Clientable client = mClients.get( "http://localhost/cars/" );
-      return client.getSingleNode( linkworkflow );
-    }
-    return null;
+    return CARS_Utils.getLinkedNode( workflow.getJCRNode() );
+//    if (workflow.hasProperty( "jecars:Link" )) {
+//      String linkworkflow = workflow.getProperty( "jecars:Link" ).getStringValue();
+//      // **** Use jecars client to resolve to JC_Nodeable
+//      JC_Clientable client = mClients.get( mJeCARSServer );
+//      return client.getSingleNode( linkworkflow );
+//    }
+//    return null;
+  }
+  
+  private JC_Nodeable workflowToClientNode( final Node pWorkflow ) throws RepositoryException, JC_Exception {
+    JC_Clientable client = mClients.get( mJeCARSServer );
+    return client.getSingleNode( pWorkflow.getPath() );
   }
   
   /** runningWorkflowsListener
@@ -163,12 +181,17 @@ public class WF_MasterQ implements IWFP_Interface {
               try {
                 
                 // **** New workflow can be executed
-                String wflPath = lastEvent.getPath();
-                JC_WorkflowNode workflowNode = (JC_WorkflowNode)resolveWorkflowIDToNodeable( wflPath ).morphToNodeType();
+                final String wflPath = lastEvent.getPath();
+                final Node wfl = resolveWorkflowIDToNodeable( wflPath );
+                final CARS_Main main = CARS_Factory.createMain( wfl.getSession(), CARS_Factory.getLastFactory() );
+                final CARS_ToolInterface ti = CARS_ToolsFactory.getTool( main, wfl, null, true );
+                IPAR_ResourceWish rwish = ti.resourceWish();
+                final Node toolNode = ti.getTool();
+                JC_WorkflowNode workflowNode = (JC_WorkflowNode)workflowToClientNode( wfl ).morphToNodeType();
                 workflowNode.start();
                 
-              } catch( JC_Exception | WFP_Exception | RepositoryException re ) {
-                mTool.reportException( Level.WARNING, re );
+              } catch( Exception re ) {
+                mTool.reportException( Level.WARNING, re, EVENT_AGE_IN_MINUTES );
               }
               break;            
             }
@@ -196,11 +219,12 @@ public class WF_MasterQ implements IWFP_Interface {
               try {
                 // **** New queue can be executed
                 String wflPath = lastEvent.getPath();
-                JC_WorkflowNode queueNode = (JC_WorkflowNode)resolveWorkflowIDToNodeable( wflPath ).morphToNodeType();
+                Node wfl = resolveWorkflowIDToNodeable( wflPath );
+                JC_WorkflowNode queueNode = (JC_WorkflowNode)workflowToClientNode( wfl ).morphToNodeType();
                 queueNode.start();
                 
               } catch( JC_Exception | WFP_Exception | RepositoryException re ) {
-                mTool.reportException( Level.WARNING, re );
+                mTool.reportException( Level.WARNING, re, EVENT_AGE_IN_MINUTES );
               }
               break;            
             }

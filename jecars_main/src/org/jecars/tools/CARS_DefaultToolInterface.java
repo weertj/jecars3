@@ -25,6 +25,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -50,7 +51,13 @@ import javax.jcr.Session;
 import javax.jcr.Value;
 import nl.msd.jdots.JD_Taglist;
 import org.jecars.*;
+import org.jecars.client.JC_Clientable;
+import org.jecars.client.JC_Factory;
+import org.jecars.client.JC_Nodeable;
+import org.jecars.client.nt.JC_ToolNode;
+import org.jecars.client.nt.JC_WorkflowNode;
 import org.jecars.jaas.CARS_Credentials;
+import org.jecars.par.EPAR_SystemType;
 import org.jecars.par.IPAR_ResourceWish;
 import org.jecars.par.IPAR_ToolRun;
 import org.jecars.par.PAR_ResourceWish;
@@ -124,6 +131,8 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
   private transient CARS_Main mMain     = null;
   private transient Node      mToolNode = null;
 
+  private transient JC_ToolNode mRuntool = null;
+  
   static final public String CONFIGNODE_RUNNINGEXPIREMINUTES = "jecars:RunningExpireMinutes";
   static final public String CONFIGNODE_CLOSEDEXPIREMINUTES  = "jecars:ClosedExpireMinutes";
   
@@ -191,8 +200,10 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
     @Override
     public IWFP_InterfaceResult call() {
       Session newSession = null;
-      IWFP_InterfaceResult ires = WFP_InterfaceResult.OK();
+      IWFP_InterfaceResult ires = WFP_InterfaceResult.OK();            
       try {
+ 
+        
         if (mRebuildToolSession) {
           newSession = createToolSession();
           mToolNode = newSession.getNode( mToolPath );
@@ -212,6 +223,52 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
           return ires;
         }
         setState( CARS_ToolInterface.STATE_OPEN_RUNNING );
+
+//            final Node config = getTool().getNode( "jecars:Config" );
+//            if (config.hasProperty( "jecars:RunOnSystem" )) {
+//              final String system = config.getProperty( "jecars:RunOnSystem" ).getString();
+//              final Session sys = CARS_Factory.getSystemAccessSession();
+//              String jecars = null;
+//              synchronized( sys ) {
+//                try {
+//                  Node systemNode = sys.getNode( "/JeCARS/Systems/" + system );
+//                  if (systemNode.hasProperty( "jecars:JeCARSURL" )) {
+//                    jecars = systemNode.getProperty( "jecars:JeCARSURL" ).getString();
+//                  }
+//                } finally {
+//                  sys.save();
+//                }
+//              }
+        
+               
+        // ***********************
+        // **** Multi JeCARS check
+        boolean hasRunned = false;
+        try {
+          if (CARS_DefaultToolInterface.this instanceof CARS_ExternalTool) {
+            Map<String,String> values = getParameterValues( "JeCARS-ResourceWish" );
+            if (!values.isEmpty()) {
+              final String jecars = CARS_Utils.getJeCARSURLFromSystem( values.getOrDefault( "jecars:RunOnSystem", "" ) );
+              if (!jecars.isEmpty()) {
+                System.out.println( );
+                System.out.println("Transport tool " + getTool().getPath() + " to " + jecars );
+                reportMessage( Level.INFO, "Transport tool " + getTool().getPath() + " to " + jecars, false );
+                final JC_Clientable client = JC_Factory.createClient( jecars );
+                client.setCredentials( "Administrator", "admin".toCharArray() );
+                final JC_Nodeable toolParent = client.getSingleNode( getRootTool().getParent().getPath() );
+                mRuntool = JC_ToolNode.createTool( toolParent, getToolTemplatePath(), "remoteRun" + System.currentTimeMillis(), null );
+                mRuntool.save();
+                if (getConfigNode().hasProperty( CARS_ExternalTool.FIXEDWORKINGDIRECTORY )) {
+                  mRuntool.addParameterData( "FixedWorkingDirectory" ).addParameter( getConfigNode().getProperty( CARS_ExternalTool.FIXEDWORKINGDIRECTORY ).getString() );
+                }
+                mRuntool.save();                
+              }
+            }
+          }
+        } catch( Exception e ) {
+          e.printStackTrace();
+        }
+        
         toolRun();
         if (STATE_OPEN_ABORTING.equals( getState() )) {
           // **** Tool is aborted
@@ -497,6 +554,10 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
     return;
   }
   
+  protected JC_ToolNode getRuntool() {
+    return mRuntool;
+  }
+  
   /** setRunningExpireMinutes
    *
    * @param pMin
@@ -541,20 +602,61 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
     return mClosedExpireMinutes;
   }
 
-  /** runOnSystem
+  /** systemType
    * 
    * @return 
    */
-  public String runOnSystem() {
+  public EPAR_SystemType systemType( Map<String,String> pResourceWishParams ) {
+    EPAR_SystemType sys = EPAR_SystemType.LOCAL;
+    try {
+      final Node cn = getConfigNode();
+      if (cn.hasProperty( "jecars:SystemType" )) {
+        sys = EPAR_SystemType.valueOf( cn.getProperty( "jecars:SystemType" ).getString() );
+      }
+      sys = EPAR_SystemType.valueOf(pResourceWishParams.getOrDefault( "jecars:SystemType", sys.name() ));
+//      if (getTool().hasNode( "JeCARS-SystemType" )) {
+//        sys = EPAR_SystemType.valueOf( getTool().getNode( "JeCARS-SystemType" ).getProperty( "jecars:string" ).getValues()[0].getString() );
+//      }
+    } catch( Exception e ) {     
+    }
+    return sys;    
+  }
+  
+  /** mustFollowWish
+   * 
+   * @return 
+   */
+  public boolean mustFollowWish() {
+    boolean fw = true;
+    try {
+      final Node cn = getConfigNode();
+      if (cn.hasProperty( "jecars:MustFollowWish" )) {
+        fw = cn.getProperty( "jecars:MustFollowWish" ).getBoolean();
+      }
+      if (getTool().hasNode( "JeCARS-MustFollowWish" )) {
+        fw = Boolean.valueOf(getTool().getNode( "JeCARS-MustFollowWish" ).getProperty( "jecars:string" ).getValues()[0].getString());
+      }
+    } catch( Exception e ) {     
+    }
+    return fw;    
+  }
+  
+  /** runOnSystem
+   * 
+   * @param pResourceWishParams
+   * @return 
+   */
+  public String runOnSystem( Map<String,String> pResourceWishParams ) {
     String sys = ".*";
     try {
       final Node cn = getConfigNode();
       if (cn.hasProperty( "jecars:RunOnSystem" )) {
         sys = cn.getProperty( "jecars:RunOnSystem" ).getString();
       }
-      if (getTool().hasNode( "JeCARS-RunOnSystem" )) {
-        sys = getTool().getNode( "JeCARS-RunOnSystem" ).getProperty( "jecars:string" ).getValues()[0].getString();
-      }
+      sys = pResourceWishParams.getOrDefault("jecars:RunOnSystem", sys );
+//      if (getTool().hasNode( "JeCARS-RunOnSystem" )) {
+//        sys = getTool().getNode( "JeCARS-RunOnSystem" ).getProperty( "jecars:string" ).getValues()[0].getString();
+//      }
     } catch( Exception e ) {     
     }
     return sys;    
@@ -699,56 +801,8 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
     }
     if (storeEvents()) {
         if (!mToolNode.hasNode( "jecars:Events" )) {
-//    System.out.println("TOOL CREATE EVENT FOLDERS " + System.currentTimeMillis() );
           Node events = mToolNode.addNode( "jecars:Events", "jecars:BasicToolEvents" );
-//          Node events = mToolNode.addNode( "jecars:Events", "jecars:ToolEvents" );
-//          mToolNode.save();
-/*          
-          Node ev = events.getNode( "jecars:EventsSEVERE" );
-          ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
-          ev.setProperty( "jecars:ExpireHourSEVERE", -1 );      // **** Events will be expired by the tool node
-          ev = events.getNode( "jecars:EventsWARNING" );
-          ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
-          ev.setProperty( "jecars:ExpireHourWARNING", -1 );      // **** Events will be expired by the tool node
-          ev = events.getNode( "jecars:EventsINFO" );
-          ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
-          ev.setProperty( "jecars:ExpireHourINFO", -1 );      // **** Events will be expired by the tool node
-          ev = events.getNode( "jecars:EventsCONFIG" );
-          ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
-          ev.setProperty( "jecars:ExpireHourCONFIG", -1 );      // **** Events will be expired by the tool node
-          ev = events.getNode( "jecars:EventsFINE" );
-          ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
-          ev.setProperty( "jecars:ExpireHourFINE", -1 );      // **** Events will be expired by the tool node
-          ev = events.getNode( "jecars:EventsFINER" );
-          ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
-          ev.setProperty( "jecars:ExpireHourFINER", -1 );      // **** Events will be expired by the tool node
-          ev = events.getNode( "jecars:EventsFINEST" );
-          ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
-          ev.setProperty( "jecars:ExpireHourFINEST", -1 );      // **** Events will be expired by the tool node
-          ev = events.getNode( "jecars:EventsUNKNOWN" );
-          ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
-          ev.setProperty( "jecars:ExpireHourUNKNOWN", -1 );      // **** Events will be expired by the tool node
-          ev = events.getNode( "jecars:EventsSTATE" );
-          ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
-          ev.setProperty( "jecars:ExpireHourSTATE", -1 );      // **** Events will be expired by the tool node
-          ev = events.getNode( "jecars:EventsINSTANCE" );
-          ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
-          ev.setProperty( "jecars:ExpireHourINSTANCE", -1 );      // **** Events will be expired by the tool node
-          ev = events.getNode( "jecars:EventsOUTPUT" );
-          ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
-          ev.setProperty( "jecars:ExpireHourOUTPUT", -1 );      // **** Events will be expired by the tool node
-          ev = events.getNode( "jecars:EventsMESSAGE" );
-          ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
-          ev.setProperty( "jecars:ExpireHourMESSAGE", -1 );      // **** Events will be expired by the tool node
-          ev = events.getNode( "jecars:EventsSTATUS" );
-          ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
-          ev.setProperty( "jecars:ExpireHourSTATUS", -1 );      // **** Events will be expired by the tool node
-          ev = events.getNode( "jecars:EventsPROGRESS" );
-          ev.setProperty( "jecars:StoreEventsPer", "NONE" );        // **** Flat representation
-          ev.setProperty( "jecars:ExpireHourPROGRESS", -1 );      // **** Events will be expired by the tool node
-      */
           mToolNode.getSession().save();
-//   System.out.println("TOOL READY CREATING EVENT FOLDERS " + System.currentTimeMillis() );
         }
     }
     return;
@@ -816,7 +870,8 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
   }
 
   /** Superclass must implement this method to actually start the
-   * @throws java.lang.Exceptiontool
+   * @param pRemoteToolNode When not null, use this tool to run.
+   * @throws java.lang.Exception
    */
   protected void toolRun() throws Exception {
     reportOutput( null );
@@ -1040,6 +1095,40 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
 //    return mToolThread;
 //  }
 
+  /** resourceWish
+   * 
+   * @return 
+   */
+  @Override
+  public IPAR_ResourceWish resourceWish() {
+    IPAR_ResourceWish resw = new PAR_ResourceWish().
+        toolInterface( this ).
+        systemType( systemType(Collections.EMPTY_MAP) ).
+        mustFollowWish( mustFollowWish() ).
+        runOnSystem(runOnSystem(Collections.EMPTY_MAP)).
+        runOnCPU(runOnCPU()).
+        runOnCore(runOnCore()).
+        numberOfCores((int) getUsesNumberOfCores()).
+        expectedLoad(getExpectedLoad());
+    return resw;
+  }
+
+  /** setConfigResourceWithByCoreNode
+   * 
+   * @param pCoreNode
+   * @throws Exception 
+   */
+  @Override
+  public void setConfigResourceWithByCoreNode( final Node pCoreNode ) throws Exception {    
+    if (getTool().hasNode( "jecars:Config" )) {
+      Node config = getTool().getNode( "jecars:Config" );
+      config.setProperty( "jecars:RunOnCore",   pCoreNode.getName() );
+      config.setProperty( "jecars:RunOnCPU",    pCoreNode.getParent().getName() );
+      config.setProperty( "jecars:RunOnSystem", pCoreNode.getParent().getParent().getName() );
+    }
+    getTool().save();
+    return;
+  }
   
   /** Set the current staterequest of the tool
    * @param pStateRequest STATEREQUEST_*
@@ -1053,13 +1142,19 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
     mToolPath = getTool().getPath();
 // System.out.println("STATE REQUEST 1 " + System.currentTimeMillis());        
     _toolInitSettings();
+    _initEventFolder();
+    toolParameters();
 
+    final Map<String,String> resourceWishParams = getParameterValues( "JeCARS-ResourceWish" );
     if (pStateRequest.equals(STATEREQUEST_START)) {
       if (isScheduledTool()) {
         LOG.info( "Running as scheduled executor: " + this );
 //        mScheduledFuture = gScheduledExecutorService.scheduleWithFixedDelay( new ToolRunnable(), getDelayInSecs(), getDelayInSecs(), TimeUnit.SECONDS );
         IPAR_ResourceWish resw = new PAR_ResourceWish().
-                runOnSystem(runOnSystem()).
+                toolInterface( this ).
+                systemType( systemType(resourceWishParams) ).
+                mustFollowWish( mustFollowWish() ).
+                runOnSystem(runOnSystem( resourceWishParams )).
                 runOnCPU(runOnCPU()).
                 runOnCore(runOnCore()).
                 numberOfCores((int) getUsesNumberOfCores()).
@@ -1076,7 +1171,10 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
 //        mFuture = gExecutorService.submit( new ToolRunnable() );
 //      mFutureResult = gExecutorService.submit( new ToolCallable() );
         IPAR_ResourceWish resw = new PAR_ResourceWish().
-                runOnSystem( runOnSystem() ).
+                toolInterface( this ).
+                systemType( systemType(resourceWishParams) ).
+                mustFollowWish( mustFollowWish() ).
+                runOnSystem( runOnSystem( resourceWishParams ) ).
                 runOnCPU( runOnCPU() ).
                 runOnCore( runOnCore() ).
                 numberOfCores( (int)getUsesNumberOfCores() ).
@@ -1342,6 +1440,29 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
     }
     return null;
   }
+  
+  /** getParameterValues
+   * 
+   * @param pName
+   * @return 
+   */
+  @Override
+  public Map<String,String> getParameterValues( final String pName ) {
+    final Map<String, String> values = new HashMap<>(8);
+    int i = 0;
+    while( 1==1 ) {
+      final String val = getParameterString( pName, i );
+      if (val==null) {
+        break;
+      }
+      final String[] vals = val.split( "=" );
+      values.put( vals[0], vals[1] );
+      i++;
+    }
+    return values;
+  }
+
+  
 
   /** setParameterString
    * 

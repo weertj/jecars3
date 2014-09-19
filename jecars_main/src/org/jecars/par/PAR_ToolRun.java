@@ -22,6 +22,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.jcr.RepositoryException;
+import org.jecars.wfplugin.IWFP_InterfaceResult;
+import org.jecars.wfplugin.WFP_InterfaceResult;
 
 /**
  *
@@ -103,7 +105,8 @@ public class PAR_ToolRun<E> implements IPAR_ToolRun<E> {
 //      final Session sysSession = CARS_Factory.getSystemAccessSession();
         if (mResourceWish.numberOfCores() == 1) {
           try {
-            final List<IPAR_Core> cores = bal.coresByWish( mResourceWish );
+            final IPAR_ResourceWish resultWish = new PAR_ResourceWish();
+            final List<IPAR_Core> cores = bal.coresByWish( mResourceWish, resultWish );
             if (!cores.isEmpty()) {              
               IPAR_Core core = null;
               try {
@@ -170,7 +173,8 @@ public class PAR_ToolRun<E> implements IPAR_ToolRun<E> {
 //      final Session sysSession = CARS_Factory.getSystemAccessSession();
         if (mResourceWish.numberOfCores() == 1) {
           try {
-            final List<IPAR_Core> cores = bal.coresByWish(mResourceWish);
+            final IPAR_ResourceWish resultWish = new PAR_ResourceWish();
+            final List<IPAR_Core> cores = bal.coresByWish( mResourceWish, resultWish );
             if (!cores.isEmpty()) {
               IPAR_Core core = null;
               try {
@@ -179,6 +183,8 @@ public class PAR_ToolRun<E> implements IPAR_ToolRun<E> {
                   // **** Didn't work.... add it as queue
                   core.allocate( mResourceWish, true );
                 }
+                mResourceWish.toolInterface().reportStatusMessage( "Running at core: " + core.node().getPath() );
+                mResourceWish.toolInterface().setConfigResourceWithByCoreNode( core.node() );                
                 result = (E)core.execute( mExec, mResourceWish );
               } catch( Throwable e ) {
                 e.printStackTrace();
@@ -190,9 +196,17 @@ public class PAR_ToolRun<E> implements IPAR_ToolRun<E> {
                 bal.resourceWishReady( mResourceWish );
               }
             } else {
-              result = mExec.callable().call();              
+              if (mResourceWish.mustFollowWish()) {
+                // **** Cannot allocate resource for running
+                mResourceWish.toolInterface().reportMessage( Level.SEVERE, "Cannot allocate core for resourcewish: " + mResourceWish, false );
+                mResourceWish.toolInterface().reportException( new Exception( "Cannot allocate core for resourcewish: " + mResourceWish ), Level.SEVERE );
+                result = (E)WFP_InterfaceResult.ERROR();                
+              } else {
+                result = mExec.callable().call();              
+              }
             }
           } catch (RepositoryException re) {
+            mResourceWish.toolInterface().reportException( re, Level.WARNING );
             result = mExec.callable().call();
           }
         }
@@ -200,4 +214,6 @@ public class PAR_ToolRun<E> implements IPAR_ToolRun<E> {
     return result;
   }
 
+  
+  
 }

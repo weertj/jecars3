@@ -44,6 +44,7 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import org.jecars.CARS_Factory;
 import org.jecars.CARS_Utils;
+import org.jecars.client.nt.JC_ToolNode;
 import org.jecars.tools.workflow.WF_WorkflowRunner;
 
 /**
@@ -669,6 +670,7 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
 
   /** toolRun
    *
+   * @param pToolNode
    * @throws Exception
    */
   @Override
@@ -859,53 +861,63 @@ public class CARS_ExternalTool extends CARS_DefaultToolInterface {
       }
       
       reportProgress( 0 );      
-      int err;
-      IOStreamThreadFile error = null;
-      IOStreamThreadFile input = null;
-      try {
-        final Process process = pb.start();        
-        final Node tt = getToolTemplate( getTool() ); // **** This goes wrong when in one workflow with the same working directory there are two tool runs of the same tool
-        String errorFile  = "__error_" + tt.getName() + ".txt";
-        String stdoutFile = "__stdout_" + tt.getName() + ".txt";
-        error = new IOStreamThreadFile( errorFile,  process.getErrorStream(), new File( mWorkingDirectory, errorFile ) );
-        input = new IOStreamThreadFile( stdoutFile, process.getInputStream(), new File( mWorkingDirectory, stdoutFile ) );
-        error.start();
-        input.start();
-        addFileToOutput( new File( mWorkingDirectory, errorFile ) );
-        addFileToOutput( new File( mWorkingDirectory, stdoutFile ) );
-        err = process.waitFor();
-        error.join( 4000 );
-        input.join( 4000 );
-        process.destroy();
-        synchronized( WF_WorkflowRunner.WRITERACCESS ) {
-          reportProgress( 1 );
-          try {
-            getTool().save();
-          } catch( RepositoryException re ) {
-            LOG.warning( re.getMessage() );
+      if (getRuntool()==null) {
+        int err;
+        IOStreamThreadFile error = null;
+        IOStreamThreadFile input = null;
+        try {
+          final Process process = pb.start();        
+          final Node tt = getToolTemplate( getTool() ); // **** This goes wrong when in one workflow with the same working directory there are two tool runs of the same tool
+          String errorFile  = "__error_" + tt.getName() + ".txt";
+          String stdoutFile = "__stdout_" + tt.getName() + ".txt";
+          error = new IOStreamThreadFile( errorFile,  process.getErrorStream(), new File( mWorkingDirectory, errorFile ) );
+          input = new IOStreamThreadFile( stdoutFile, process.getInputStream(), new File( mWorkingDirectory, stdoutFile ) );
+          error.start();
+          input.start();
+          addFileToOutput( new File( mWorkingDirectory, errorFile ) );
+          addFileToOutput( new File( mWorkingDirectory, stdoutFile ) );
+          err = process.waitFor();
+          error.join( 4000 );
+          input.join( 4000 );
+          process.destroy();
+          synchronized( WF_WorkflowRunner.WRITERACCESS ) {
+            reportProgress( 1 );
+            try {
+              getTool().save();
+            } catch( RepositoryException re ) {
+              LOG.warning( re.getMessage() );
+            }
+          }
+        } catch( Throwable e ) {
+          reportException( e, Level.SEVERE );
+          super.toolRun();
+          throw e;
+        } finally {
+          if (error!=null) {
+            error.finish();
+          }
+          if (input!=null) {
+            input.finish();
           }
         }
-      } catch( Throwable e ) {
-        reportException( e, Level.SEVERE );
-        super.toolRun();
-        throw e;
-      } finally {
-        if (error!=null) {
-          error.finish();
-        }
-        if (input!=null) {
-          input.finish();
-        }
-      }
-      synchronized( WF_WorkflowRunner.WRITERACCESS ) {
-        reportStatusMessage( "External tool " + getTool().getPath() + " is ending result = " + err );
-        if (err!=0) {
-          String logmessage =  "External tool " + getTool().getPath() + "(" + pExecPath + ") has produced an error " + err;
-          LOG.warning( logmessage );
+        synchronized( WF_WorkflowRunner.WRITERACCESS ) {
+          reportStatusMessage( "External tool " + getTool().getPath() + " is ending result = " + err );
+          if (err!=0) {
+            String logmessage =  "External tool " + getTool().getPath() + "(" + pExecPath + ") has produced an error " + err;
+            LOG.warning( logmessage );
+            getTool().save();
+            throw new CARS_ToolException( logmessage );
+          }
           getTool().save();
-          throw new CARS_ToolException( logmessage );
         }
-        getTool().save();
+      } else {
+        // **** Use runtool
+        JC_ToolNode runTool = getRuntool();
+        runTool.start();
+        Thread.sleep( 1000 );
+        while( runTool.isRunning() ) {
+          Thread.sleep( 1000 );
+        }
       }
     return;
   }

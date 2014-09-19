@@ -95,6 +95,25 @@ public class WFP_Tool extends WFP_Node implements IWFP_Tool {
   /** reportException
    * 
    * @param pLevel
+   * @param pT
+   * @param pRemoveAfterMinutes
+   * @return 
+   */
+  @Override
+  public CARS_ToolInstanceEvent reportException( final Level pLevel, final Throwable pT, final int pRemoveAfterMinutes ) {
+    CARS_ToolInstanceEvent tie = reportException( pLevel, pT );
+    try {
+      final Node eventNode = tie.getEventNode( mWorkflow.getNode().getSession() );
+      CARS_Utils.setExpireDate( eventNode, pRemoveAfterMinutes );
+    } catch( RepositoryException re ) {
+      re.printStackTrace();
+    } 
+    return tie;
+  }
+
+  /** reportException
+   * 
+   * @param pLevel
    * @param pT 
    * @return  
    */

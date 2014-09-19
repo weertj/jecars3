@@ -15,12 +15,19 @@
  */
 package org.jecars.par;
 
+import org.jecars.tools.CARS_ToolInterface;
+
 /**
  *
  * @author weert
  */
 public interface IPAR_ResourceWish {
 
+  CARS_ToolInterface toolInterface();
+  IPAR_ResourceWish  toolInterface( final CARS_ToolInterface pTI );
+  
+  boolean           mustFollowWish();
+  IPAR_ResourceWish mustFollowWish( final boolean pW );
   String            wishID();
   IPAR_ResourceWish resourceID( final String pResourceID );
   String            resourceID();  

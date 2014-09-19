@@ -16,6 +16,7 @@
 package org.jecars.par;
 
 import java.util.concurrent.atomic.AtomicLong;
+import org.jecars.tools.CARS_ToolInterface;
 
 /**
  *
@@ -24,17 +25,19 @@ import java.util.concurrent.atomic.AtomicLong;
 public class PAR_ResourceWish implements IPAR_ResourceWish {
   
   static private final AtomicLong COUNTER = new AtomicLong(1);
-  
-  private final String          mWishID;
-  private       EPAR_SystemType mSystemType = EPAR_SystemType.LOCAL;
+
+  private       boolean             mMustFollowWish = false;
+  private final String              mWishID;
+  private       EPAR_SystemType     mSystemType = EPAR_SystemType.LOCAL;
 //  private       String          mSystem = "localhost";
-  private       int             mNumberOfCores = 1;
-  private       double          mExpectedLoad = 1;
-  private       int             mMaxNumberOfRunsPerSystem = -1;
-  private       String          mRunOnSystem  = ".*";
-  private       String          mRunOnCPU     = ".*";
-  private       String          mRunOnCore    = ".*";
-  private       String          mResourceID = null;
+  private       int                 mNumberOfCores = 1;
+  private       double              mExpectedLoad = 1;
+  private       int                 mMaxNumberOfRunsPerSystem = -1;
+  private       String              mRunOnSystem  = ".*";
+  private       String              mRunOnCPU     = ".*";
+  private       String              mRunOnCore    = ".*";
+  private       String              mResourceID = null;
+  private       CARS_ToolInterface  mToolInterface = null;
 
   /** PAR_ResourceWish
    * 
@@ -48,8 +51,29 @@ public class PAR_ResourceWish implements IPAR_ResourceWish {
   public String wishID() {
     return mWishID;
   }
-  
-  
+
+  @Override
+  public CARS_ToolInterface toolInterface() {
+    return mToolInterface;
+  }
+
+  @Override
+  public IPAR_ResourceWish toolInterface( final CARS_ToolInterface pTI ) {
+    mToolInterface = pTI;
+    return this;
+  }
+
+  @Override
+  public boolean mustFollowWish() {
+    return mMustFollowWish;
+  }
+
+  @Override
+  public IPAR_ResourceWish mustFollowWish( final boolean pW ) {
+    mMustFollowWish = pW;
+    return this;
+  }
+
   @Override
   public String resourceID() {
     return mResourceID;
@@ -154,6 +178,22 @@ public class PAR_ResourceWish implements IPAR_ResourceWish {
   }
 
   
-  
+  /** toString
+   * 
+   * @return 
+   */
+  @Override
+  public String toString() {
+    String s = mWishID + "\n";
+    s += "System = " + mRunOnSystem + " type=" + mSystemType + "\n";
+    s += "CPU = " + mRunOnCPU + "\n";
+    s += "Core = " + mRunOnCore + "\n";
+    s += "Expected load = " + mExpectedLoad + "\n";    
+    s += "Max runs per system = " + mMaxNumberOfRunsPerSystem + "\n";    
+    s += "Number of cores = " + mNumberOfCores + "\n";    
+    s += "Must follow wish = " + mMustFollowWish + "\n";    
+    return s;
+  }
+
   
 }

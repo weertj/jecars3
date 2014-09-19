@@ -80,25 +80,55 @@ public class CARS_SystemsApp extends CARS_DefaultInterface {
       final Session appSession = CARS_Factory.getSystemApplicationSession();
       synchronized( appSession ) {
         try {
-          final Node systems = appSession.getNode( pParentNode.getPath() );
-          final String computername= LOCALHOST.getHostName();
-          if (!systems.hasNode( computername )) {
-            Node cn = systems.addNode( computername, "jecars:RES_System" );
-            cn.addMixin( "jecars:mixin_unstructured" );
-            cn.setProperty( "jecars:Title", computername );
-            Node cpu = cn.addNode( "CPU", "jecars:RES_CPU" );
-            cpu.addMixin( "jecars:mixin_unstructured" );
-            cpu.setProperty( "jecars:Title", "CPU" );
-          }
-          Node system = systems.getNode( computername );
-          Node cpu    = system.getNode( "CPU" );
-          system.setProperty( "jecars:MainMemory", Runtime.getRuntime().maxMemory() );
-          for( int i=Runtime.getRuntime().availableProcessors()-1; i>=0; i-- ) {
-            if (!cpu.hasNode( "Core_" + i )) {
-              Node core = cpu.addNode( "Core_" + i, "jecars:RES_Core" );
-              core.setProperty( "jecars:Title", "Core_" + i );
-              core.addMixin( "jecars:mixin_unstructured" );
+          {
+            final Node systems = appSession.getNode( pParentNode.getPath() );
+            final String computername= LOCALHOST.getHostName();
+            if (!systems.hasNode( computername )) {
+              Node cn = systems.addNode( computername, "jecars:RES_System" );
+              cn.addMixin( "jecars:mixin_unstructured" );
+              cn.setProperty( "jecars:Title", computername );
+              Node cpu = cn.addNode( "CPU", "jecars:RES_CPU" );
+              cpu.addMixin( "jecars:mixin_unstructured" );
+              cpu.setProperty( "jecars:Title", "CPU" );
             }
+            Node system = systems.getNode( computername );
+            Node cpu    = system.getNode( "CPU" );
+            system.setProperty( "jecars:MainMemory", Runtime.getRuntime().maxMemory() );
+            for( int i=Runtime.getRuntime().availableProcessors()-1; i>=0; i-- ) {
+              if (!cpu.hasNode( "Core_" + i )) {
+                Node core = cpu.addNode( "Core_" + i, "jecars:RES_Core" );
+                core.setProperty( "jecars:Title", "Core_" + i );
+                core.addMixin( "jecars:mixin_unstructured" );
+              }
+            }
+          }
+          
+          {
+            final Node systems = appSession.getNode( pParentNode.getPath() );
+            // **** Check the multi jecars
+            for( CARS_Factory.MultiJeCARS mj : CARS_Factory.gMultiJeCARS ) {
+              if (!systems.hasNode( mj.mServer )) {
+                Node cn = systems.addNode( mj.mServer, "jecars:RES_System" );
+                cn.addMixin( "jecars:mixin_unstructured" );
+                cn.setProperty( "jecars:Title", mj.mServer );
+                cn.setProperty( "jecars:JeCARSURL", mj.mJeCARSURL );
+                Node cpu = cn.addNode( "CPU", "jecars:RES_CPU" );
+                cpu.addMixin( "jecars:mixin_unstructured" );
+                cpu.setProperty( "jecars:Title", "CPU" );              
+              }              
+              Node system = systems.getNode( mj.mServer );
+              Node cpu    = system.getNode( "CPU" );
+              system.setProperty( "jecars:MainMemory", Runtime.getRuntime().maxMemory() );
+              for( int i=mj.mNumberOfCores-1; i>=0; i-- ) {
+                if (!cpu.hasNode( "Core_" + i )) {
+                  Node core = cpu.addNode( "Core_" + i, "jecars:RES_Core" );
+                  core.setProperty( "jecars:Title", "Core_" + i );
+                  core.addMixin( "jecars:mixin_unstructured" );
+                }
+              }              
+              
+            }
+            
           }
         } catch( Exception e ) {
           gLog.log( Level.WARNING, e.getMessage(), e );
