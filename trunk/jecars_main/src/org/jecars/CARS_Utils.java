@@ -898,4 +898,29 @@ public class CARS_Utils {
     }
   }
   
+  /** getJeCARSURLFromSystem
+   * 
+   * @param pSystem
+   * @return
+   * @throws RepositoryException 
+   */
+  public static String getJeCARSURLFromSystem( final String pSystem ) throws RepositoryException {
+    String jecars = "";
+    if (pSystem!=null && !pSystem.isEmpty()) {
+      final Session sys = CARS_Factory.getSystemAccessSession();
+      synchronized( sys ) {
+        try {
+          Node systemNode = sys.getNode( "/JeCARS/Systems/" + pSystem );
+          if (systemNode.hasProperty( "jecars:JeCARSURL" )) {
+            jecars = systemNode.getProperty( "jecars:JeCARSURL" ).getString();
+          }
+        } finally {
+          sys.save();
+        }
+      }
+    }
+    return jecars;
+  }
+
+  
 }

@@ -18,6 +18,7 @@ package org.jecars.tools;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import javax.jcr.Node;
@@ -26,6 +27,7 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import nl.msd.jdots.JD_Taglist;
 import org.jecars.CARS_Main;
+import org.jecars.par.IPAR_ResourceWish;
 
 /**
  *  CARS_ToolInterface
@@ -225,7 +227,9 @@ public interface CARS_ToolInterface {
    * @return
    * @throws java.lang.Exception
    */
-  public String getParameterString( final String pName, final int pIndex ) throws Exception;
+  String getParameterString( final String pName, final int pIndex ) throws Exception;
+  
+  Map<String, String> getParameterValues( final String pName );
   
   /** setParameterString
    * 
@@ -458,5 +462,10 @@ public interface CARS_ToolInterface {
   Future getFuture();
 
   CARS_Main getMain();
+  
+  IPAR_ResourceWish resourceWish();
+
+  void setConfigResourceWithByCoreNode( final Node pCore ) throws Exception;
+  
   
 }

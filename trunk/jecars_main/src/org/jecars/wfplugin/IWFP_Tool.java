@@ -35,6 +35,7 @@ public interface IWFP_Tool extends IWFP_Node {
   IWFP_Node     getNodeFromRoot( final String pPath ) throws WFP_Exception;
   CARS_ToolInstanceEvent          reportProgress(  final float pProgress );
   CARS_ToolInstanceEvent          reportException( final Level pLevel, final Throwable pT );
+  CARS_ToolInstanceEvent          reportException( final Level pLevel, final Throwable pT, final int pRemoveAfterMinutes );
   CARS_ToolInstanceEvent          reportMessage(   final Level pLevel, final String pMessage );
   CARS_ToolInstanceEvent          reportMessage(   final Level pLevel, final String pMessage, final int pRemoveAfterMinutes );
 

@@ -23,7 +23,8 @@ public enum EPAR_SystemType {
   
   UNKNOWN,
   LOCAL,
-  REMOTE
+  REMOTE,
+  ALL
   
   
 }

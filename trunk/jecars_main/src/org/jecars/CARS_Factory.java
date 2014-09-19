@@ -80,14 +80,36 @@ abstract public class CARS_Factory {
   static private   boolean              gEnableFET                = true;
   static private   boolean              gEnableFETLogging         = false;
   
-  /** Creates a new instance of CARS_Factory */
+  static final public List<MultiJeCARS> gMultiJeCARS = new ArrayList<>();
+  
+  static public class MultiJeCARS {
+    public String mServer = "";
+    public String mJeCARSURL = "";
+    public int    mNumberOfCores = 1;
+  }
+  
+  /** Creates a new instance of CARS_Factory
+   */
   @SuppressWarnings("LeakingThisInConstructor")
   public CARS_Factory() {
     gLastFactory   = this;
     return;
   }
 
-  
+  /** addMultiJeCARS
+   * 
+   * @param pServer
+   * @param pJeCARSURL
+   * @param pNumberOfCores
+   */
+  static public void addMultiJeCARS( final String pServer, final String pJeCARSURL, final int pNumberOfCores ) {
+    MultiJeCARS mj = new MultiJeCARS();
+    mj.mServer = pServer;
+    mj.mJeCARSURL = pJeCARSURL;
+    mj.mNumberOfCores = pNumberOfCores;
+    gMultiJeCARS.add( mj );
+    return;
+  }
   
   /** setJecarsPropertiesPath
    * 
@@ -98,6 +120,10 @@ abstract public class CARS_Factory {
     return;
   }
   
+  /** getJecarsProperties
+   * 
+   * @return 
+   */
   static public Properties getJecarsProperties() {
     return gJecarsProperties;
   }

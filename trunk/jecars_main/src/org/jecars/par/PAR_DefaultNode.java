@@ -26,6 +26,10 @@ public class PAR_DefaultNode implements IPAR_DefaultNode {
   
   final private Node mNode;
 
+  /** PAR_DefaultNode
+   * 
+   * @param pNode 
+   */
   public PAR_DefaultNode( final Node pNode ) {
     mNode = pNode;
     return;
