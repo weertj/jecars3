@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -268,7 +269,16 @@ public class JeCARS_RESTServlet extends HttpServlet {
         // **** When there are security entries, disable the allowed
         CARS_Security.javaClassesAllowed( false );
       }
-
+      final String multijecars = getInitParameter( "MULTI_JECARS" );
+      if (multijecars!=null) {
+        final StringTokenizer st = new StringTokenizer( multijecars, "," );
+        while( st.hasMoreTokens() ) {
+          String sys = st.nextToken();
+          String jecars = st.nextToken();
+          int nocores = Integer.parseInt(st.nextToken());
+          CARS_Factory.addMultiJeCARS( sys, jecars, nocores );
+        }
+      }
       
       gLog.log( Level.INFO, "Trying to read /WEB-INF/classes/" + CARS_Factory.JECARSPROPERTIESNAME );
       final InputStream is = getServletContext().getResourceAsStream( "/WEB-INF/classes/" + CARS_Factory.JECARSPROPERTIESNAME );
