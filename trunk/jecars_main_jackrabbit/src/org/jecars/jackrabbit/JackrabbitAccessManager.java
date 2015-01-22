@@ -904,9 +904,9 @@ public class JackrabbitAccessManager extends DefaultAccessManager implements Acc
                     for( final Value val : cn.getProperty( "jecars:Actions" ).getValues() ) {
                       actions += "|" + val.getString();
                     }
-                    if (actions.contains( "add_node" ) && actions.contains( "read" ) && actions.contains( "get_property" )) {
+                    if (actions.contains( "read" ) && actions.contains( "get_property" )) {
                       addAllReadPermDelegateCache( mLoggedInUsername + cn.getParent().getPath() );
-                      if (actions.contains( "set_property" ) && actions.contains( "remove" )) {
+                      if (actions.contains( "add_node" ) && actions.contains( "set_property" ) && actions.contains( "remove" )) {
                         addAllPermDelegateCache( mLoggedInUsername + cn.getParent().getPath() );
                       } else {
                         addReadCache( uuidfp );
