@@ -77,8 +77,8 @@ public class PAR_Balancer implements IPAR_Balancer {
       final NodeIterator ni = ses.getNode("/JeCARS/Systems").getNodes();
       while (ni.hasNext()) {
         final Node n = ni.nextNode();
-        if (system(n)==null) {
-          if (n.isNodeType("jecars:RES_System")) {
+        if (n.isNodeType("jecars:RES_System")) {
+          if (system(n)==null) {
             mSystems.add(new PAR_System(n));
           }
         }
