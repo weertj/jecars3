@@ -48,7 +48,6 @@ public class WFPT_DataContainer implements IWFP_Interface {
    */
   @Override
   public WFP_InterfaceResult start( final IWFP_Tool pTool, final IWFP_Context pContext ) {
-//    File dc = new File( "C:/SVN/Projects/SPeCTRE/Beamforming/matlabtest" );
 //      System.out.println("HELLO DATACONTAINER!!!!!! write to " + dc.getAbsolutePath() );
     // **** Check workflow for overrule parameterw
     final boolean append = Boolean.parseBoolean(pTool.getParameter( APPEND, "false" ));

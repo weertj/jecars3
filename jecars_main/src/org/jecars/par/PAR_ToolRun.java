@@ -16,6 +16,7 @@
 package org.jecars.par;
 
 import java.net.UnknownHostException;
+import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -35,7 +36,11 @@ public class PAR_ToolRun<E> implements IPAR_ToolRun<E> {
   private static final Logger LOG = Logger.getLogger("org.jecars.par");
 
   private final String           mName;
+  private final String           mPath;
   private final IPAR_Execute<E>  mExec;
+  private final Calendar         mCreated;
+  private       Calendar         mStarted;
+  private       Calendar         mFinished = null;
 
   private IPAR_ResourceWish mResourceWish;
 
@@ -48,8 +53,10 @@ public class PAR_ToolRun<E> implements IPAR_ToolRun<E> {
    */
   public PAR_ToolRun( final String pName, final Runnable pRunnable, final IPAR_ResourceWish pRW ) throws UnknownHostException {
     mName         = pName;
+    mPath         = "<empty>";
     mExec         = new PAR_Execute<>( this, pRunnable );
     mResourceWish = pRW;
+    mCreated      = Calendar.getInstance();
     return;    
   }
 
@@ -57,14 +64,17 @@ public class PAR_ToolRun<E> implements IPAR_ToolRun<E> {
   /** PAR_ToolRun
    * 
    * @param pName
+   * @param pPath
    * @param pCallable
    * @param pRW
    * @throws UnknownHostException 
    */
-  public PAR_ToolRun( final String pName, final Callable<E> pCallable, final IPAR_ResourceWish pRW ) throws UnknownHostException {
+  public PAR_ToolRun( final String pName, final String pPath, final Callable<E> pCallable, final IPAR_ResourceWish pRW ) throws UnknownHostException {
     mName         = pName;
+    mPath         = pPath;
     mExec         = new PAR_Execute<>( this, pCallable );
     mResourceWish = pRW;
+    mCreated      = Calendar.getInstance();
     return;    
   }
 
@@ -77,6 +87,39 @@ public class PAR_ToolRun<E> implements IPAR_ToolRun<E> {
     return mName;
   }
 
+  @Override
+  public String path() {
+    return mPath;
+  }
+
+  @Override
+  public Calendar created() {
+    return mCreated;
+  }
+  
+  @Override
+  public Calendar started() {
+    return mStarted;
+  }
+
+  @Override
+  public void started(Calendar pC) {
+    mStarted = pC;
+  }
+
+  
+  @Override
+  public Calendar finished() {
+    return mFinished;
+  }
+
+  @Override
+  public void finished(Calendar pC) {
+    mFinished = pC;
+  }
+
+  
+  
   /** resourceWish
    * 
    * @return 

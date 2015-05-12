@@ -413,9 +413,12 @@
 // **** JeCARS Main
 
 [jecars:main] > jecars:root
+- jecars:JeCARSMajorVersion   (Long)
+- jecars:JeCARSMinorVersion   (Long)
+- jecars:JeCARSPatchVersion   (Long)
 - jecars:MajorVersion    (Long)='4'         mandatory autocreated
 - jecars:MinorVersion    (Long)='4'         mandatory autocreated
-- jecars:BuildVersion    (Long)='20140522'  mandatory autocreated
+- jecars:BuildVersion    (Long)='20150512'  mandatory autocreated
 - jecars:CurrentId       (Long)='0'         mandatory autocreated
 - jecars:Started         (Date)
 + *

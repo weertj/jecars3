@@ -15,6 +15,7 @@
  */
 package org.jecars.par;
 
+import java.util.Calendar;
 import java.util.concurrent.Callable;
 
 /**
@@ -24,8 +25,17 @@ import java.util.concurrent.Callable;
  */
 public interface IPAR_ToolRun<E> extends Runnable, Callable<E> {
 
+  Calendar created();
+    
+  Calendar started();
+  void     started( final Calendar pC );
+  
+  Calendar finished();
+  void     finished( final Calendar pC );
+  
   String name();
-
+  String path();
+  
   IPAR_ResourceWish resourceWish();
   
 }

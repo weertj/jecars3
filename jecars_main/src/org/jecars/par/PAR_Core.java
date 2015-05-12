@@ -16,6 +16,8 @@
 package org.jecars.par;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ExecutionException;
@@ -34,10 +36,13 @@ import org.jecars.tools.CARS_ThreadFactory;
  */
 public class PAR_Core<E> extends PAR_DefaultNode implements IPAR_Core<E> {
    
+  static public final int MAX_STORED_EXEC_FINISHED = 500;
+  
   private       EPAR_CoreType           mCoreType = EPAR_CoreType.UNKNOWN;
   private final List<IPAR_ResourceWish> mExecWishes = new ArrayList<>(16);
   private final Queue<IPAR_Execute<E>>  mExecQueue = new PriorityBlockingQueue<>();
   private final List<IPAR_Execute<E>>   mExecRunning = new ArrayList<>(16);
+  private final LinkedList<IPAR_Execute<E>> mExecFinished = new LinkedList<>();
   private final AtomicInteger           mCurrentRunning = new AtomicInteger(0);
   private final AtomicInteger           mReadyRunning   = new AtomicInteger(0);
   
@@ -46,7 +51,7 @@ public class PAR_Core<E> extends PAR_DefaultNode implements IPAR_Core<E> {
   private       double              mMaxLoad = 1.0;
   private       ExecutorService     mExecutorService = null;
 
-  private final Object CORELOCK = new Object();
+//  public final Object CORELOCK = new Object();
   
   /** PAR_Core
    * 
@@ -198,21 +203,30 @@ public class PAR_Core<E> extends PAR_DefaultNode implements IPAR_Core<E> {
 //      } catch( RepositoryException e ) {
 //        e.printStackTrace();
 //      }
-      synchronized( CORELOCK ) {
+      synchronized( this ) {
         mCurrentRunning.incrementAndGet();
         mExecRunning.add( runExec );
       }
       try {
+        pExec.toolRun().started( Calendar.getInstance() );
         executorService().submit( runExec.runnable() ).get();
       } finally {        
         synchronized( mExecRunning ) {
           mCurrentLoad -= pWish.expectedLoad();
           mExecRunning.notifyAll();
         }
-        synchronized( CORELOCK ) {
+        synchronized( this ) {
           mExecRunning.remove( runExec );
           mCurrentRunning.decrementAndGet();
           mReadyRunning.incrementAndGet();
+          pExec.toolRun().finished( Calendar.getInstance() );
+//          if (pExec.toolRun().resourceWish().expectedLoad()>0) {
+        mExecFinished.remove( pExec );
+        mExecFinished.addFirst( pExec );
+        while( mExecFinished.size()>MAX_STORED_EXEC_FINISHED ) {
+          mExecFinished.removeLast();
+        }
+//          }
         }
       }
     }
@@ -224,12 +238,13 @@ public class PAR_Core<E> extends PAR_DefaultNode implements IPAR_Core<E> {
 //      } catch( RepositoryException e ) {
 //        e.printStackTrace();
 //      }
-      synchronized( CORELOCK ) {
+      synchronized( this ) {
         mCurrentRunning.incrementAndGet();
         mExecRunning.add( runExec );
       }
       try {
 //        System.out.println("START RUNNING " + runExec.id() );
+        pExec.toolRun().started( Calendar.getInstance() );
         result = executorService().submit( runExec.callable() ).get();
 //        System.out.println("END RUNNING " + runExec.id() );
       } finally {
@@ -237,10 +252,18 @@ public class PAR_Core<E> extends PAR_DefaultNode implements IPAR_Core<E> {
           mCurrentLoad -= pWish.expectedLoad();
           mExecRunning.notify();
         }
-        synchronized( CORELOCK ) {
+        synchronized( this ) {
           mExecRunning.remove( runExec );
           mCurrentRunning.decrementAndGet();
           mReadyRunning.incrementAndGet();
+          pExec.toolRun().finished( Calendar.getInstance() );
+//          if (pExec.toolRun().resourceWish().expectedLoad()>0) {
+          mExecFinished.remove( pExec );
+          mExecFinished.addFirst( pExec );
+          while( mExecFinished.size()>MAX_STORED_EXEC_FINISHED ) {
+            mExecFinished.removeLast();
+          }
+//          }
         }
       }
     }
@@ -264,18 +287,50 @@ public class PAR_Core<E> extends PAR_DefaultNode implements IPAR_Core<E> {
 
   @Override
   public List<IPAR_Execute<E>> runningExecs() {
-    synchronized( CORELOCK ) {
+    synchronized( this ) {
       return new ArrayList<>( mExecRunning );
     }
   }
 
   @Override
   public List<IPAR_Execute<E>> queuedExecs() {
-    synchronized( CORELOCK ) {
+    synchronized( this ) {
       return new ArrayList<>( mExecQueue );
     }
   }
+
+  @Override
+  public LinkedList<IPAR_Execute<E>> finishedExecs() {
+    synchronized( this ) {
+      return new LinkedList<>( mExecFinished );
+    }    
+  }
   
+  @Override
+  public void removeQueuedExecs( final List<IPAR_Execute<E>> pExecs ) {
+    synchronized( this ) {
+      mExecFinished.removeAll( pExecs );
+    }
+    return;
+  }
+  
+  @Override
+  public void removeRunningExecs( final List<IPAR_Execute<E>> pExecs ) {
+    synchronized( this ) {
+      mExecFinished.removeAll( pExecs );
+    }
+    return;
+  }
+
+  
+  @Override
+  public void removeFinishedExecs( final List<IPAR_Execute<E>> pExecs ) {
+    synchronized( this ) {
+      mExecFinished.removeAll( pExecs );
+    }
+    return;
+  }
+
   
  
 }

@@ -15,6 +15,7 @@
  */
 package org.jecars.par;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import javax.jcr.RepositoryException;
@@ -39,8 +40,13 @@ public interface IPAR_Core<E> extends IPAR_DefaultNode {
   double        currentLoad();
   double        expectedLoad();
   
-  List<IPAR_Execute<E>> queuedExecs();
-  List<IPAR_Execute<E>> runningExecs();
+  List<IPAR_Execute<E>>       queuedExecs();
+  List<IPAR_Execute<E>>       runningExecs();
+  LinkedList<IPAR_Execute<E>> finishedExecs();
+  
+  void          removeQueuedExecs(    final List<IPAR_Execute<E>> pExecs );
+  void          removeRunningExecs(   final List<IPAR_Execute<E>> pExecs );
+  void          removeFinishedExecs(  final List<IPAR_Execute<E>> pExecs );
   
 }
   

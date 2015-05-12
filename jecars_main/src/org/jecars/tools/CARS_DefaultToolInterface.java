@@ -1179,7 +1179,7 @@ public class CARS_DefaultToolInterface implements CARS_ToolInterface, CARS_ToolI
                 runOnCore( runOnCore() ).
                 numberOfCores( (int)getUsesNumberOfCores() ).
                 expectedLoad( getExpectedLoad() );
-        IPAR_ToolRun<IWFP_InterfaceResult> toolrun = new PAR_ToolRun<>( getName(), new ToolCallable(), resw );
+        IPAR_ToolRun<IWFP_InterfaceResult> toolrun = new PAR_ToolRun<>( getName(), mToolPath, new ToolCallable(), resw );
         mFutureResult = gExecutorService.submit( (Callable<IWFP_InterfaceResult>)toolrun );
 //        Thread thread = new Thread( new ToolRunnable() );
 //        thread.setPriority( getThreadPriority() );
