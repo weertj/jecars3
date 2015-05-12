@@ -206,6 +206,10 @@ public class JackrabbitFactory extends CARS_Factory {
     }
     n = n.getNode( CARS_Definitions.MAINFOLDER );
     n.setProperty( "jecars:Started", cal );
+    // **** Report current jecars version
+    n.setProperty( "jecars:JeCARSMajorVersion", CARS_Definitions.VERSION_MAJOR );
+    n.setProperty( "jecars:JeCARSMinorVersion", CARS_Definitions.VERSION_MINOR );
+    n.setProperty( "jecars:JeCARSPatchVersion", CARS_Definitions.VERSION_PATCH );
 
     Node internalSource;
 //    if (!n.hasNode( "Trashcans" )) {
