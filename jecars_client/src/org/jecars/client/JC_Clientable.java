@@ -39,8 +39,8 @@ import org.jecars.client.observation.JC_ObservationManager;
  */
 public interface JC_Clientable {
 
-  final static public String VERSION_ID = "v3.1.1";
-  final static public String VERSION = "JeCARS 'Elderberry' Client Development " + VERSION_ID;
+  final static public String VERSION_ID = "v5.0.0";
+  final static public String VERSION = "JeCARS 'Grapefruit' Client Development " + VERSION_ID;
 
   @Deprecated
   final static int LOGIN_TYPE_UNKNOWN = 0; 
@@ -287,6 +287,8 @@ public interface JC_Clientable {
    * @throws org.jecars.client.JC_Exception
    */
   void registerNodeClass( String pNodeType, String pClass ) throws JC_Exception;
+
+  void registerOverrideNodeClass( String pNodeType, String pClass ) throws JC_Exception;
 
   /** canBeMorphed
    * 

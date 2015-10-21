@@ -351,6 +351,25 @@ public class JC_DefaultNode extends JC_DefaultItem implements JC_Nodeable {
     return nodes;
   }
 
+  @Override
+  public Collection<JC_Nodeable> getNodesAllProperties() throws JC_Exception {
+    Collection<JC_Nodeable> nodes;
+    if (isNew() && (mChildNodes==null)) {
+    } else if (!mNodeProps.contains( PROPS.GOTNODES )) {
+      JC_Params p = mClient.createParams( JC_RESTComm.GET ).cloneParams();
+      p.setAllProperties( true );
+      mChildNodes = (List<JC_Nodeable>)getNodes( p, null, null );
+      mNodeProps.add( PROPS.GOTNODES );
+    }
+    if (mChildNodes==null) {
+      nodes = null;
+    } else {
+      nodes = Collections.unmodifiableList(mChildNodes);
+    }
+    return nodes;
+  }
+
+  
   /** getNodesExt
    * 
    * @param pParams

@@ -333,7 +333,8 @@ public interface JC_Nodeable extends JC_Itemable, JC_WebDAVable {
    * @return
    * @throws org.jecars.client.JC_Exception
    */
-  Collection<JC_Nodeable>    getNodes()                        throws JC_Exception;
+  Collection<JC_Nodeable>     getNodes()              throws JC_Exception;
+  Collection<JC_Nodeable>     getNodesAllProperties() throws JC_Exception;
 
   /** getNodes
    * 

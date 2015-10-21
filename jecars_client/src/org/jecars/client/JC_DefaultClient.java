@@ -719,6 +719,14 @@ public class JC_DefaultClient implements JC_Clientable, Serializable {
     return;
   }
 
+  @Override
+  public void registerOverrideNodeClass(String pNodeType, String pClass) throws JC_Exception {
+    mNodeTypeRegistry.put( pNodeType, pClass );
+    return;
+  }
+
+  
+  
   /** createNodeClass
    * @param pNodeType
    * @return
