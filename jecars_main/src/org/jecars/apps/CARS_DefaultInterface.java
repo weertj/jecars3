@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.jcr.Node;
@@ -558,6 +559,21 @@ public class CARS_DefaultInterface implements CARS_Interface, EventListener {
       }
       return pMain.setParamProperty( pNode, pPropName, pValue );
     }
+
+    /**
+     * setParamPropertyBulk
+     * @param pMain
+     * @param pInterfaceNode
+     * @param pNode
+     * @param pParams
+     * @throws Exception 
+     */
+    @Override
+    public void setParamPropertyBulk( final CARS_Main pMain, final Node pInterfaceNode, final Node pNode, final Map<String, String> pParams) throws Exception {
+      return;
+    }
+    
+    
     
   /** Add a node
    * @param pParentNode

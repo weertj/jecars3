@@ -18,6 +18,7 @@ package org.jecars.apps;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import javax.jcr.*;
 import nl.msd.jdots.JD_Taglist;
 import org.jecars.CARS_Main;
@@ -161,4 +162,14 @@ public interface CARS_Interface {
    */
   Property setParamProperty( CARS_Main pMain, Node pInterfaceNode, Node pNode, String pPropName, String pValue ) throws Exception;
     
+  /**
+   * setParamPropertyBulk
+   * @param pMain
+   * @param pInterfaceNode
+   * @param pNode
+   * @param pParams
+   * @return
+   * @throws Exception 
+   */
+  void setParamPropertyBulk( CARS_Main pMain, Node pInterfaceNode, Node pNode, Map<String, String> pParams ) throws Exception;
 }

@@ -1354,21 +1354,34 @@ koasdkaso
       it = pParamsTL.getIterator();
 //      Iterator it = pParamsTL.getIterator();
 //      String key, data;
-      while( it.hasNext() ) {
-        key = (String)it.next();
-        if (isVersionParameter( key )) {
-          if (versionTL==null) {
-            versionTL = new JD_Taglist();
+      {
+        Map<String,String> ppdata = new HashMap<>( 8 );
+        while( it.hasNext() ) {
+          key = (String)it.next();
+          if (isVersionParameter( key )) {
+            if (versionTL==null) {
+              versionTL = new JD_Taglist();
+            }
+            versionTL.putData( key, pParamsTL.getData( key ) );
+          } else if (!isPOSTParameter( key )) {
+            data = (String)pParamsTL.getData( key );
+            ppdata.put( key, data );
+            if (cars==null) {
+              di.setParamProperty( this, null, cnode, key, data );
+            } else {
+              cars.setParamProperty( this, interfaceClass, cnode, key, data );
+            }
+            modified = true;
           }
-          versionTL.putData( key, pParamsTL.getData( key ) );
-        } else if (!isPOSTParameter( key )) {
-          data = (String)pParamsTL.getData( key );
+        }
+        // **** Send the parameters as bulk
+        if (!ppdata.isEmpty()) {
           if (cars==null) {
-            di.setParamProperty( this, null, cnode, key, data );
+            di.setParamPropertyBulk( this, null, cnode, ppdata );
           } else {
-            cars.setParamProperty( this, interfaceClass, cnode, key, data );
+            cars.setParamPropertyBulk( this, interfaceClass, cnode, ppdata );
           }
-          modified = true;
+          ppdata.clear();
         }
       }
 
