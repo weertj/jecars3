@@ -22,7 +22,7 @@ public class CARS_Definitions {
   static public final String P_REMOVE      = "remove";
   
   final static public int    VERSION_MAJOR = 5;
-  final static public int    VERSION_MINOR = 1;
+  final static public int    VERSION_MINOR = 2;
   final static public int    VERSION_PATCH = 0;
   final static public String VERSION_ID    = "v" + VERSION_MAJOR + "." + VERSION_MINOR + "." + VERSION_PATCH;
   final static public String PRODUCTNAME   = "JeCARS 'Grapefruit'";
@@ -31,7 +31,7 @@ public class CARS_Definitions {
   final static public String DEFAULTNS1    = "jecars";
   final static public String DEFAULTNS     = "jecars:";
   final static public String DEFAULTAUTHOR = "jecars.org";
-  final static public String DEFAULTRIGHTS = "(C) 2006-2015";
+  final static public String DEFAULTRIGHTS = "(C) 2006-2016";
 
     
   static public final String ACCOUNTKEYSPATH    = "accounts/ClientLogin";

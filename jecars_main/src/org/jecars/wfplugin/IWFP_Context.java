@@ -19,6 +19,7 @@ import java.util.List;
 import javax.jcr.Node;
 import org.jecars.CARS_Main;
 import org.jecars.tools.workflow.IWF_Context;
+import org.jecars.tools.workflow.IWF_WorkflowRunner;
 
 /**
  *
@@ -26,6 +27,8 @@ import org.jecars.tools.workflow.IWF_Context;
  */
 public interface IWFP_Context {
 
+  IWF_WorkflowRunner runner();
+  
   CARS_Main getMain();
     
   Node getContextNode();

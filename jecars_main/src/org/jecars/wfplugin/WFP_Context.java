@@ -24,6 +24,7 @@ import javax.jcr.RepositoryException;
 import javax.jcr.Session;
 import org.jecars.CARS_Main;
 import org.jecars.tools.workflow.IWF_Context;
+import org.jecars.tools.workflow.IWF_WorkflowRunner;
 
 /** WFP_Context
  *
@@ -33,6 +34,7 @@ public class WFP_Context implements IWFP_Context {
  
   private final transient CARS_Main             mMain;  
   private final transient IWF_Context           mContext;
+  private final transient IWF_WorkflowRunner    mRunner;
   private final transient List<IWFP_Input>      mInputs = new ArrayList<IWFP_Input>();
   private final transient Map<String, Object>   mTransientInputs = new HashMap<String, Object>();
 
@@ -40,9 +42,10 @@ public class WFP_Context implements IWFP_Context {
    * 
    * @param pContext 
    */
-  public WFP_Context( final IWF_Context pContext, final CARS_Main pMain ) throws RepositoryException {
+  public WFP_Context( final IWF_Context pContext, final CARS_Main pMain, final IWF_WorkflowRunner pRunner ) throws RepositoryException {
     mMain    = pMain;
     mContext = pContext;
+    mRunner  = pRunner;
     if (mContext!=null) {
       for( final Node dn : mContext.getDataNodes() ) {
         addInput( new WFP_Input( dn ) );
@@ -60,6 +63,10 @@ public class WFP_Context implements IWFP_Context {
     return mContext;
   }
 
+  @Override
+  public IWF_WorkflowRunner runner() {
+    return mRunner;
+  }
   
   /** getMain
    * 

@@ -416,9 +416,9 @@
 - jecars:JeCARSMajorVersion   (Long)
 - jecars:JeCARSMinorVersion   (Long)
 - jecars:JeCARSPatchVersion   (Long)
-- jecars:MajorVersion    (Long)='4'         mandatory autocreated
-- jecars:MinorVersion    (Long)='4'         mandatory autocreated
-- jecars:BuildVersion    (Long)='20150512'  mandatory autocreated
+- jecars:MajorVersion    (Long)='5'         mandatory autocreated
+- jecars:MinorVersion    (Long)='2'         mandatory autocreated
+- jecars:BuildVersion    (Long)='20160405'  mandatory autocreated
 - jecars:CurrentId       (Long)='0'         mandatory autocreated
 - jecars:Started         (Date)
 + *

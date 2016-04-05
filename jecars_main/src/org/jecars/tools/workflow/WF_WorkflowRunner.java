@@ -74,7 +74,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
   public WF_WorkflowRunner( final CARS_Main pMain, final Node pNode, final boolean pRerun ) throws RepositoryException {
     super(pNode);    
     mMain = pMain;
-    mTransientContext = new WFP_Context(null, pMain );
+    mTransientContext = new WFP_Context( null, pMain, this );
     mRerunMode = pRerun;
     return;
   }
@@ -735,7 +735,7 @@ public class WF_WorkflowRunner extends WF_Default implements IWF_WorkflowRunner 
       iface = searchForIWFP_Interface( dataNode );
     }
     final WFP_Tool       tool = new WFP_Tool( pTask.getNode(), getWorkflow() );
-    final WFP_Context context = new WFP_Context( getContext(), getMain() );
+    final WFP_Context context = new WFP_Context( getContext(), getMain(), this );
     context.copyTransientInputs( pTransientContext );
     final WFP_InterfaceResult res;
     try {
