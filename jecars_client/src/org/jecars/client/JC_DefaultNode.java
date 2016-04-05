@@ -564,9 +564,6 @@ public class JC_DefaultNode extends JC_DefaultItem implements JC_Nodeable {
             sline[1] = line.substring( ixx+1 );          
           }
   //        sline = gPropPattern.split( line, 0 );
-     if (sline[0]==null) {
-         System.out.println("fdpioijoij");
-     }
           if (sline[0].startsWith( prefix )) {
             if (sline.length==2) {
               nodeable._addProperty( (String)sline[0].substring(prefix.length()),
