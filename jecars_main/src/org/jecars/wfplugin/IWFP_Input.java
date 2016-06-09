@@ -15,18 +15,20 @@
  */
 package org.jecars.wfplugin;
 
+import java.io.Closeable;
 import java.io.InputStream;
 
 /**
  *
  * @author weert
  */
-public interface IWFP_Input extends IWFP_Node {
+public interface IWFP_Input extends IWFP_Node, Closeable {
     
   
 //  String    getProperty( final String pName ) throws WFP_Exception;
 //  IWFP_Property setProperty( final String pName, final String pValue ) throws WFP_Exception;
 //  void      save() throws WFP_Exception;
+  @Override
   void        addMixin( String pMixin ) throws WFP_Exception;
   InputStream openStream()  throws WFP_Exception;
   String      getContentsAsString() throws WFP_Exception;

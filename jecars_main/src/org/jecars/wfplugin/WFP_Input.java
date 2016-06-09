@@ -138,6 +138,9 @@ public class WFP_Input extends WFP_Node implements IWFP_Input {
           }
         }
       }
+      if (mCurrentBinary==null) {
+        return null;
+      }
       return mCurrentBinary.getStream();
     } catch( FileNotFoundException fn ) {
       throw new WFP_Exception( fn );        
@@ -157,6 +160,16 @@ public class WFP_Input extends WFP_Node implements IWFP_Input {
       mCurrentBinary = null;
     }
   }
+
+  @Override
+  public void close() throws IOException {
+    try {
+      closeStream();
+    } catch( WFP_Exception e ) {
+      throw new IOException(e);
+    }
+  }
+  
 
   /** setProperty
    * 

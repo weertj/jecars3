@@ -80,13 +80,15 @@ public class WFPT_DataContainer implements IWFP_Interface {
         dc.mkdirs();
         for( IWFP_Input input : pContext.getInputs() ) {
           File writeFile = new File( dc, input.getName() );
-            System.out.println("write input " + input.getPath() + " -> " + writeFile.getAbsolutePath() );
+          System.out.println("write input " + input.getPath() + " -> " + writeFile.getAbsolutePath() );
           pTool.reportMessage( Level.INFO, "WFPT_DataContainer: Write input " + input.getPath() + " to " + writeFile.getAbsolutePath() );
-          final InputStream is = input.openStream();
-          final FileOutputStream fos = new FileOutputStream( writeFile, append );
-          CARS_Utils.sendInputStreamToOutputStream( 10000, is, fos );
-          fos.close();
-          is.close();
+          try (InputStream is = input.openStream()) {
+            if (is!=null) {
+              try (FileOutputStream fos = new FileOutputStream( writeFile, append )) {
+                CARS_Utils.sendInputStreamToOutputStream( 10000, is, fos );
+              }
+            }
+          }
         }
         
         // **** To output  TODO Temporary disable.... missing use-case

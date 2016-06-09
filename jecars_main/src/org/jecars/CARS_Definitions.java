@@ -23,7 +23,7 @@ public class CARS_Definitions {
   
   final static public int    VERSION_MAJOR = 5;
   final static public int    VERSION_MINOR = 2;
-  final static public int    VERSION_PATCH = 0;
+  final static public int    VERSION_PATCH = 1;
   final static public String VERSION_ID    = "v" + VERSION_MAJOR + "." + VERSION_MINOR + "." + VERSION_PATCH;
   final static public String PRODUCTNAME   = "JeCARS 'Grapefruit'";
   final static public String VERSION       = PRODUCTNAME + " " + VERSION_ID;
